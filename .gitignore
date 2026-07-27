@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Runtime data / dev databases (schema is seed-driven, not migration-driven yet)
+*.db
+*.sqlite
+*.sqlite3
+
+# OS / Office lock files
+.DS_Store
+Thumbs.db
+~$*
+
+# Node (docx build script tooling, if reused)
+node_modules/
+
+# Editor
+.vscode/
+.idea/

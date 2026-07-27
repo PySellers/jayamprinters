@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sri Jayam Printers — Staff Dashboard</title>
+<meta name="theme-color" content="#1f3864" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #1f3864; --accent: #c55a11; --bg: #f4f6f9; --card: #fff; --border: #e1e5eb; --muted: #6b7280;
+    --danger: #b3261e; --warn: #ac6c00; --ok: #1a7f37;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: #1b1f24; }
+  header.topbar { background: var(--navy); color: #fff; position: sticky; top: 0; z-index: 30; }
+  .topbar-inner { max-width: 1500px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; gap: 12px; flex-wrap: wrap; }
+  .brand { font-weight: 700; font-size: 17px; }
+  nav.topnav { display: flex; gap: 6px; flex-wrap: wrap; }
+  nav.topnav button { background: transparent; border: none; color: #dbe4f3; font-size: 13.5px; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  nav.topnav button:hover, nav.topnav button.active { background: rgba(255,255,255,.12); color: #fff; }
+  .user-box { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+  .role-badge { background: rgba(255,255,255,.15); padding: 3px 10px; border-radius: 10px; font-weight: 700; text-transform: uppercase; font-size: 10.5px; }
+  .logout-btn { background: rgba(255,255,255,.12); border: none; color: #fff; padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 12px; }
+
+  main { max-width: 1500px; margin: 0 auto; padding: 22px 20px 60px; }
+  .view { display: none; } .view.active { display: block; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .toolbar h2 { margin: 0; font-size: 18px; color: var(--navy); }
+  .live-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .live-dot .pulse { width: 8px; height: 8px; border-radius: 50%; background: #1a7f37; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: .3; } 100% { opacity: 1; } }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+  .grid2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 980px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
+  .panel h3 { margin: 0 0 14px; font-size: 15px; color: var(--navy); }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 700; color: #444; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .3px; }
+  input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 7px; font-size: 13.5px; font-family: inherit; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  button.btn { border: none; border-radius: 8px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-navy { background: var(--navy); color: #fff; }
+  .btn-outline { background: #fff; border: 1.5px solid var(--border); color: #333; }
+  .btn-sm { padding: 5px 10px; font-size: 11.5px; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--border); border-radius: 16px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+  .chip.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .price-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .price-row.total { font-weight: 800; font-size: 16px; color: var(--navy); border-top: 1px dashed var(--border); margin-top: 8px; padding-top: 8px; }
+
+  /* Stat cards */
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .stat-card .label { font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: .3px; }
+  .stat-card .value { font-size: 22px; font-weight: 800; color: var(--navy); margin-top: 4px; }
+  .stat-card.warn .value { color: var(--warn); }
+  .stat-card.danger .value { color: var(--danger); }
+
+  /* Reminders */
+  .reminder { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+  .reminder:last-child { border-bottom: none; }
+  .reminder .tag { padding: 2px 9px; border-radius: 10px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; }
+  .tag-overdue { background: #fde8e6; color: var(--danger); animation: blink 1.1s infinite; }
+  .tag-due_soon { background: #fff4e0; color: var(--warn); }
+  .tag-unpaid_balance { background: #e8f0ff; color: var(--navy); }
+
+  /* Job status list + assignee editor */
+  .job-row { border-bottom: 1px solid var(--border); padding: 8px 0; font-size: 12.5px; }
+  .job-row .head { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .job-row .assignees { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; background: #fafbfc; padding: 10px; border-radius: 8px; }
+  .job-row .assignees.open { display: grid; }
+  .assign-field { display: flex; gap: 4px; }
+  .assign-field input { font-size: 11.5px; padding: 5px 7px; }
+  .assign-field button { padding: 4px 8px; font-size: 11px; }
+
+  /* Kanban */
+  .board { display: grid; grid-template-columns: repeat(7, minmax(180px, 1fr)); gap: 12px; overflow-x: auto; }
+  .col { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-height: 200px; }
+  .col h3 { font-size: 12px; text-transform: uppercase; color: var(--muted); margin: 4px 4px 10px; letter-spacing: .3px; }
+  .job-card { background: #fbfcfe; border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 12.5px; }
+  .job-card .num { font-weight: 700; color: var(--navy); }
+  .job-card .meta { color: var(--muted); margin: 3px 0 6px; }
+  .job-card select { width: 100%; font-size: 11.5px; padding: 4px; }
+
+  .range-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .range-tabs button { border: 1px solid var(--border); background: #fff; padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  .range-tabs button.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 18px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-size: 10.5px; text-transform: uppercase; background: #fafbfc; }
+  td input { padding: 5px 7px; font-size: 12px; }
+  .empty-state { text-align: center; padding: 40px; color: var(--muted); }
+  .subtabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .subtabs button { border: 1px solid var(--border); background: #fff; padding: 6px 13px; border-radius: 16px; font-size: 12.5px; cursor: pointer; }
+  .subtabs button.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .subview { display: none; } .subview.active { display: block; }
+  .admin-only-note { font-size: 11.5px; color: var(--muted); margin-bottom: 10px; }
+  .locked-note { font-size: 12px; color: var(--muted); background: #f6f7f9; border: 1px dashed var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
+
+  /* Login */
+  #loginScreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--navy), #2c4a7c); }
+  .login-card { background: #fff; border-radius: 14px; padding: 34px 32px; width: 340px; box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+  .login-card h1 { font-size: 18px; margin: 0 0 4px; color: var(--navy); }
+  .login-card p.sub { font-size: 12.5px; color: var(--muted); margin: 0 0 20px; }
+  .login-card .field { margin-bottom: 14px; }
+  .login-error { color: var(--danger); font-size: 12.5px; margin-top: 8px; }
+  .login-hints { margin-top: 18px; font-size: 11px; color: var(--muted); background: #f6f7f9; border-radius: 8px; padding: 10px 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>Sri Jayam Printers</h1>
+    <p class="sub">Staff sign-in</p>
+    <div class="field"><label>Username</label><input id="loginUsername" /></div>
+    <div class="field"><label>Password</label><input id="loginPassword" type="password" /></div>
+    <button class="btn btn-navy" style="width:100%;" onclick="doLogin()">Sign in</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hints">
+      Dev logins seeded automatically — change these before going live:<br/>
+      admin/admin123 (full access) &middot; counter/counter123 &middot; production/production123 &middot; accounts/accounts123
+    </div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">Sri Jayam Printers — Staff Dashboard</div>
+      <nav class="topnav">
+        <button data-view="home" onclick="showView('home')">Home</button>
+        <button data-view="board" onclick="showView('board')">Job Board</button>
+        <button data-view="orders" onclick="showView('orders')">Orders</button>
+        <button data-view="reports" onclick="showView('reports')">Reports</button>
+        <button data-view="accounts" onclick="showView('accounts')">Accounts</button>
+        <button data-view="catalog" id="navCatalogAdmin" onclick="showView('catalog')" style="display:none;">Catalog Admin</button>
+        <button data-view="parties" onclick="showView('parties')">Parties</button>
+      </nav>
+      <div class="user-box">
+        <span id="userLabel">-</span>
+        <span class="role-badge" id="roleBadge">-</span>
+        <button class="logout-btn" onclick="doLogout()">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===================== HOME ===================== -->
+    <section class="view active" id="view-home">
+      <div class="toolbar"><h2>Home</h2><span class="live-dot"><span class="pulse"></span> live</span></div>
+
+      <div class="stat-row" id="homeStats"></div>
+
+      <div class="grid2">
+        <div>
+          <div class="panel">
+            <h3>Quick order entry</h3>
+            <div class="row2">
+              <div class="field"><label>Date</label><input id="homeDate" readonly /></div>
+              <div class="field"><label>Order taken by</label><input id="homeOrderTakenBy" /></div>
+            </div>
+            <div class="row2">
+              <div class="field"><label>Mobile No.</label><input id="homeMobile" /></div>
+              <div class="field"><label>Alternative Mobile No.</label><input id="homeAltMobile" /></div>
+            </div>
+            <div class="field"><label>Customer name</label><input id="homeCustName" /></div>
+            <div class="field"><label>Address</label><input id="homeAddress" /></div>
+            <div class="field">
+              <label>Printing category</label>
+              <select id="homeCategory"><option>Loading&hellip;</option></select>
+            </div>
+            <div id="homeSkuField" class="field" style="display:none;"><label>Item</label><select id="homeSkuSelect"></select></div>
+            <div id="homeAttrFields"></div>
+            <div class="row2">
+              <div class="field"><label>Quantity</label><input id="homeQty" type="number" value="100" min="1" oninput="homeLivePrice()" /></div>
+              <div class="field"><label>Delivery due</label><input id="homeDueDate" type="datetime-local" /></div>
+            </div>
+            <div id="homeExtraField" class="field" style="display:none;"><label>Extra work</label><div class="chips" id="homeExtraChips"></div></div>
+            <div id="homePriceBox" style="margin: 10px 0;"></div>
+            <div class="login-error" id="homeError"></div>
+            <button class="btn btn-primary" onclick="homeCreateJob()">Create job</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <h3>Reminders</h3>
+            <div id="remindersBox"><div class="empty-state">Loading&hellip;</div></div>
+          </div>
+          <div class="panel">
+            <h3>Job status</h3>
+            <div id="jobStatusBox"><div class="empty-state">Loading&hellip;</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== JOB BOARD ===================== -->
+    <section class="view" id="view-board">
+      <div class="toolbar">
+        <h2>Live job board</h2>
+        <span class="live-dot"><span class="pulse"></span> auto-refreshing every 5s</span>
+      </div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <!-- ===================== ORDERS ===================== -->
+    <section class="view" id="view-orders">
+      <div class="toolbar"><h2>Orders</h2><span class="live-dot"><span class="pulse"></span> live</span></div>
+      <table>
+        <thead><tr><th>Order No.</th><th>Party</th><th>Source</th><th>Status</th><th>Grand Total</th><th>Paid</th><th>Balance</th><th>Actions</th></tr></thead>
+        <tbody id="ordersBody"><tr><td colspan="8" class="empty-state">Loading&hellip;</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- ===================== REPORTS ===================== -->
+    <section class="view" id="view-reports">
+      <div class="toolbar"><h2>Sales &amp; expense reports</h2></div>
+      <div class="range-tabs">
+        <button data-range="daily" class="active" onclick="setRange('daily')">Daily</button>
+        <button data-range="weekly" onclick="setRange('weekly')">Weekly</button>
+        <button data-range="monthly" onclick="setRange('monthly')">Monthly</button>
+        <button data-range="yearly" onclick="setRange('yearly')">Yearly</button>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card"><div class="label">Orders (shown range)</div><div class="value" id="statOrders">0</div></div>
+        <div class="stat-card"><div class="label">Sales (shown range)</div><div class="value" id="statSales">Rs. 0</div></div>
+        <div class="stat-card warn"><div class="label">Expenses (shown range)</div><div class="value" id="statExpenses">Rs. 0</div></div>
+        <div class="stat-card"><div class="label">Cash in hand</div><div class="value" id="statCashHand">Rs. 0</div></div>
+      </div>
+      <div class="chart-card"><h3 style="margin-top:0;">Sales Graph</h3><canvas id="salesChart" height="90"></canvas></div>
+      <div class="chart-card"><h3 style="margin-top:0;">Expense Graph</h3><canvas id="expenseChart" height="90"></canvas></div>
+    </section>
+
+    <!-- ===================== ACCOUNTS ===================== -->
+    <section class="view" id="view-accounts">
+      <div class="toolbar"><h2>Accounts</h2></div>
+      <div class="subtabs">
+        <button data-sub="cash" class="active" onclick="setAccSub('cash')">Cash in Hand / Bank</button>
+        <button data-sub="cheques" onclick="setAccSub('cheques')">Cheques</button>
+        <button data-sub="vendor" onclick="setAccSub('vendor')">Stock Value / Vendor Bills</button>
+        <button data-sub="stock" onclick="setAccSub('stock')">Low Stock</button>
+      </div>
+      <div id="accWriteLockNote" class="locked-note" style="display:none;">
+        Your role can view Accounts but not add/edit entries. Ask an Admin or Accounts-role user.
+      </div>
+
+      <div class="subview active" id="acc-cash">
+        <div class="stat-row">
+          <div class="stat-card"><div class="label">Cash in Hand</div><div class="value" id="cashInHand">Rs. 0</div></div>
+          <div class="stat-card"><div class="label">Moved to Bank</div><div class="value" id="cashToBank">Rs. 0</div></div>
+        </div>
+        <div class="panel" id="cashFormPanel">
+          <h3>Record a cash movement</h3>
+          <div class="row3">
+            <div class="field"><label>Type</label>
+              <select id="cashType"><option value="receipt">Receipt (cash in)</option><option value="payment">Payment (expense)</option><option value="bank_deposit">Bank deposit</option></select>
+            </div>
+            <div class="field"><label>Amount</label><input id="cashAmount" type="number" /></div>
+            <div class="field"><label>Note</label><input id="cashNote" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="addCashTxn()">Add</button>
+        </div>
+        <table><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>By</th></tr></thead><tbody id="cashTableBody"></tbody></table>
+      </div>
+
+      <div class="subview" id="acc-cheques">
+        <div class="panel" id="chequeFormPanel">
+          <h3>Add cheque (issued or deposited)</h3>
+          <div class="row3">
+            <div class="field"><label>Direction</label><select id="chqDirection"><option value="deposited">Deposited (received)</option><option value="issued">Issued (paid out)</option></select></div>
+            <div class="field"><label>Cheque No.</label><input id="chqNo" /></div>
+            <div class="field"><label>Amount</label><input id="chqAmount" type="number" /></div>
+          </div>
+          <div class="row3">
+            <div class="field"><label>Cheque Date</label><input id="chqDate" type="date" /></div>
+            <div class="field"><label>Bank / Branch</label><input id="chqBranch" /></div>
+            <div class="field"><label>Deposit Date</label><input id="chqDepositDate" type="date" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="addCheque()">Add cheque</button>
+        </div>
+        <table><thead><tr><th>Cheque No.</th><th>Direction</th><th>Amount</th><th>Cheque Date</th><th>Branch</th><th>Deposit Date</th><th>Status</th></tr></thead><tbody id="chequeTableBody"></tbody></table>
+      </div>
+
+      <div class="subview" id="acc-vendor">
+        <div class="panel" id="vendorFormPanel">
+          <h3>Add vendor bill</h3>
+          <div class="row3">
+            <div class="field"><label>Bill No.</label><input id="vBillNo" /></div>
+            <div class="field"><label>Vendor Name</label><input id="vVendor" /></div>
+            <div class="field"><label>Bill Date</label><input id="vDate" type="date" /></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>Cash Value</label><input id="vCashValue" type="number" /></div>
+            <div class="field"><label>Paid Amount</label><input id="vPaid" type="number" value="0" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="addVendorBill()">Add bill</button>
+        </div>
+        <table><thead><tr><th>Bill No.</th><th>Vendor</th><th>Cash Value</th><th>Paid</th><th>Balance</th></tr></thead><tbody id="vendorTableBody"></tbody></table>
+      </div>
+
+      <div class="subview" id="acc-stock">
+        <div class="panel" id="stockFormPanel">
+          <h3>Add / update stock item</h3>
+          <div class="row3">
+            <div class="field"><label>Item name</label><input id="invName" /></div>
+            <div class="field"><label>Current qty</label><input id="invQty" type="number" /></div>
+            <div class="field"><label>Reorder threshold</label><input id="invThreshold" type="number" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="addInventoryItem()">Save</button>
+        </div>
+        <table><thead><tr><th>Item</th><th>Qty</th><th>Reorder Threshold</th><th>Status</th></tr></thead><tbody id="stockTableBody"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ===================== CATALOG ADMIN (admin only) ===================== -->
+    <section class="view" id="view-catalog">
+      <div class="toolbar"><h2>Catalog admin — prices &amp; options</h2></div>
+      <div class="admin-only-note">Only Admin can change prices, add/remove options, or add SKUs. Everyone else only sees the read-only catalog via Home/Job Board.</div>
+      <div class="field" style="max-width:420px;"><label>Category</label><select id="catAdminCategory" onchange="loadCatalogAdmin()"></select></div>
+      <div class="subtabs">
+        <button data-sub="attrs" class="active" onclick="setCatSub('attrs')">Attributes &amp; Options</button>
+        <button data-sub="prices" onclick="setCatSub('prices')">Prices</button>
+        <button data-sub="extras" onclick="setCatSub('extras')">Extras</button>
+        <button data-sub="skus" onclick="setCatSub('skus')">SKUs</button>
+      </div>
+      <div class="subview active" id="cat-attrs"></div>
+      <div class="subview" id="cat-prices"></div>
+      <div class="subview" id="cat-extras"></div>
+      <div class="subview" id="cat-skus"></div>
+    </section>
+
+    <!-- ===================== PARTIES ===================== -->
+    <section class="view" id="view-parties">
+      <div class="toolbar"><h2>Customers</h2></div>
+      <table>
+        <thead><tr><th>Name</th><th>Mobile</th><th>Alt. Mobile</th><th>Address</th></tr></thead>
+        <tbody id="partiesBody"><tr><td colspan="4" class="empty-state">Loading&hellip;</td></tr></tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const API = "http://localhost:8000";
+const $ = (id) => document.getElementById(id);
+
+const STAGES = ["order_taken", "dtp", "proof_customer", "proof_press", "printing", "finishing", "dispatched"];
+const STAGE_LABELS = {
+  order_taken: "Order Taken", dtp: "DTP", proof_customer: "Proof (Customer)",
+  proof_press: "Proof (Press)", printing: "Printing", finishing: "Finishing", dispatched: "Dispatched",
+};
+const ASSIGNEE_FIELDS = [
+  ["dtp_by", "DTP"], ["machine_man_by", "Machine Man"], ["rubber_stamp_by", "Rubber Stamp"],
+  ["numbering_by", "Numbering"], ["binding_by", "Binding"],
+  ["proof_verified_customer_by", "Proof Verified - Customer"], ["proof_verified_press_by", "Proof Verified - Press"],
+];
+
+let session = JSON.parse(localStorage.getItem("sjp_session") || "null");
+
+// ---------------- auth-aware fetch ----------------
+async function api(path, options = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (session && session.token) headers["Authorization"] = "Bearer " + session.token;
+  const res = await fetch(API + path, { ...options, headers });
+  if (res.status === 401) {
+    doLogout();
+    throw new Error("Session expired — please sign in again.");
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `Request failed (${res.status})`);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+function isAdmin() { return session && session.role === "admin"; }
+function canWriteAccounts() { return session && (session.role === "admin" || session.role === "accounts"); }
+
+async function doLogin() {
+  $("loginError").textContent = "";
+  const username = $("loginUsername").value.trim();
+  const password = $("loginPassword").value;
+  try {
+    const res = await fetch(API + "/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || "Login failed");
+    }
+    session = await res.json();
+    localStorage.setItem("sjp_session", JSON.stringify(session));
+    enterApp();
+  } catch (e) {
+    $("loginError").textContent = e.message;
+  }
+}
+
+function doLogout() {
+  session = null;
+  localStorage.removeItem("sjp_session");
+  $("appShell").style.display = "none";
+  $("loginScreen").style.display = "flex";
+}
+
+function enterApp() {
+  $("loginScreen").style.display = "none";
+  $("appShell").style.display = "block";
+  $("userLabel").textContent = (session.full_name || session.username);
+  $("roleBadge").textContent = session.role;
+  $("navCatalogAdmin").style.display = isAdmin() ? "" : "none";
+  $("accWriteLockNote").style.display = canWriteAccounts() ? "none" : "block";
+  ["cashFormPanel", "chequeFormPanel", "vendorFormPanel", "stockFormPanel"].forEach((id) => {
+    $(id).style.display = canWriteAccounts() ? "" : "none";
+  });
+  initHome();
+  loadBoard();
+  setInterval(loadBoard, 5000);
+  setInterval(loadHomeWidgets, 8000);
+}
+
+function showView(name) {
+  document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+  $("view-" + name).classList.add("active");
+  document.querySelectorAll(".topnav button[data-view]").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  if (name === "reports") loadReports();
+  if (name === "parties") loadParties();
+  if (name === "accounts") loadAccounts();
+  if (name === "catalog") loadCatalogCategories();
+  if (name === "home") loadHomeWidgets();
+  if (name === "orders") loadOrders();
+}
+
+// ==================================================================
+// ORDERS
+// ==================================================================
+async function loadOrders() {
+  try {
+    const orders = await api("/orders");
+    $("ordersBody").innerHTML = orders.map((o) => `
+      <tr>
+        <td>${o.order_number}</td>
+        <td>${o.party ? o.party.name : "-"}</td>
+        <td>${o.source}</td>
+        <td>${o.status === 'cancelled' ? '<span class="tag tag-overdue">CANCELLED</span>' : '<span class="tag tag-unpaid_balance">ACTIVE</span>'}</td>
+        <td>Rs. ${Number(o.grand_total).toFixed(2)}</td>
+        <td>Rs. ${Number(o.paid_amount).toFixed(2)}</td>
+        <td>Rs. ${Number(o.balance_due).toFixed(2)}</td>
+        <td>
+          ${o.status !== 'cancelled' && Number(o.balance_due) > 0 ? `<button class="btn btn-outline btn-sm" onclick="recordOrderPayment('${o.order_number}')">Record payment</button>` : ""}
+          ${isAdmin() && o.status !== 'cancelled' ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${o.order_number}')">Cancel</button>` : ""}
+        </td>
+      </tr>`).join("") || `<tr><td colspan="8" class="empty-state">No orders yet.</td></tr>`;
+  } catch (e) {
+    $("ordersBody").innerHTML = `<tr><td colspan="8" class="empty-state">${e.message}</td></tr>`;
+  }
+}
+
+async function recordOrderPayment(orderNumber) {
+  const amount = prompt("Payment amount (Rs.):");
+  if (!amount) return;
+  try {
+    await api(`/orders/${orderNumber}/payment`, { method: "POST", body: JSON.stringify({ amount: parseFloat(amount) }) });
+    loadOrders();
+  } catch (e) { alert(e.message); }
+}
+
+async function cancelOrder(orderNumber) {
+  if (!confirm(`Cancel order ${orderNumber}? This cannot be undone.`)) return;
+  try {
+    await api(`/orders/${orderNumber}/cancel`, { method: "POST" });
+    loadOrders();
+  } catch (e) { alert(e.message); }
+}
+
+// ==================================================================
+// HOME
+// ==================================================================
+let homeCategories = [];
+let homeCurrentCategory = null;
+
+async function initHome() {
+  $("homeDate").value = new Date().toLocaleDateString();
+  $("homeOrderTakenBy").value = session.full_name || session.username;
+  try {
+    homeCategories = await api("/catalog/categories");
+    $("homeCategory").innerHTML = homeCategories.map((c) => `<option value="${c.code}">${c.name}</option>`).join("");
+    await onHomeCategoryChange();
+  } catch (e) {}
+  $("homeCategory").addEventListener("change", onHomeCategoryChange);
+  loadHomeWidgets();
+}
+
+async function onHomeCategoryChange() {
+  const code = $("homeCategory").value;
+  const meta = homeCategories.find((c) => c.code === code);
+  if (!meta) return;
+  const [attributes, extras] = await Promise.all([
+    api(`/catalog/categories/${code}/attributes`), api(`/catalog/categories/${code}/extras`),
+  ]);
+  homeCurrentCategory = { ...meta, attributes, extras };
+  if (meta.pricing_mode === "sku") {
+    const skus = await api(`/catalog/categories/${code}/skus`);
+    homeCurrentCategory.skus = skus;
+    $("homeSkuField").style.display = "";
+    $("homeAttrFields").innerHTML = "";
+    $("homeSkuSelect").innerHTML = skus.map((s) => `<option value="${s.sku_code}">${s.name} — Rs.${s.price}</option>`).join("");
+    $("homeSkuSelect").onchange = homeLivePrice;
+  } else {
+    $("homeSkuField").style.display = "none";
+    $("homeAttrFields").innerHTML = attributes.map((attr) => `
+      <div class="field"><label>${attr.name}</label>
+        <select data-attr-code="${attr.code}" onchange="homeLivePrice()">
+          ${attr.options.map((o) => `<option value="${o.value}">${o.value}</option>`).join("")}
+        </select>
+      </div>`).join("");
+  }
+  $("homeExtraField").style.display = extras.length ? "" : "none";
+  $("homeExtraChips").innerHTML = extras.map((e) => `<div class="chip" data-extra-code="${e.code}" onclick="this.classList.toggle('selected'); homeLivePrice();">${e.name}</div>`).join("");
+  homeLivePrice();
+}
+
+function homeCollectSelection() {
+  const quantity = parseInt($("homeQty").value, 10) || 0;
+  let selected_options = {};
+  if (homeCurrentCategory.pricing_mode === "sku") {
+    selected_options = { SKU: $("homeSkuSelect").value };
+  } else {
+    document.querySelectorAll("#homeAttrFields select").forEach((sel) => { selected_options[sel.dataset.attrCode] = sel.value; });
+  }
+  const extra_codes = Array.from(document.querySelectorAll("#homeExtraChips .chip.selected")).map((c) => c.dataset.extraCode);
+  return { category_code: homeCurrentCategory.code, quantity, selected_options, extra_codes };
+}
+
+async function homeLivePrice() {
+  $("homeError").textContent = "";
+  if (!homeCurrentCategory) return;
+  try {
+    const sel = homeCollectSelection();
+    if (!sel.quantity || sel.quantity <= 0) throw new Error("Enter a valid quantity.");
+    const quote = await api("/quotes/calculate", { method: "POST", body: JSON.stringify(sel) });
+    homeCurrentCategory._lastQuote = quote;
+    $("homePriceBox").innerHTML = `<div class="price-row total"><span>Total</span><span>Rs. ${Number(quote.total).toFixed(2)}</span></div>`;
+  } catch (e) {
+    $("homeError").textContent = e.message;
+  }
+}
+
+async function homeCreateJob() {
+  $("homeError").textContent = "";
+  try {
+    if (!homeCurrentCategory || !homeCurrentCategory._lastQuote) throw new Error("Fix pricing errors first.");
+    const sel = homeCollectSelection();
+    const payload = {
+      ...sel,
+      order_taken_by: $("homeOrderTakenBy").value || null,
+      delivery_due_at: $("homeDueDate").value ? new Date($("homeDueDate").value).toISOString() : null,
+      party: $("homeCustName").value ? {
+        name: $("homeCustName").value, mobile: $("homeMobile").value || null,
+        alt_mobile: $("homeAltMobile").value || null, address: $("homeAddress").value || null,
+      } : null,
+    };
+    const job = await api("/jobs", { method: "POST", body: JSON.stringify(payload) });
+    alert(`Job ${job.job_number} created — Rs. ${Number(job.computed_total).toFixed(2)}`);
+    loadHomeWidgets();
+    loadBoard();
+  } catch (e) {
+    $("homeError").textContent = e.message;
+  }
+}
+
+async function loadHomeWidgets() {
+  loadReminders();
+  loadJobStatus();
+  loadHomeStats();
+}
+
+async function loadHomeStats() {
+  try {
+    const [daily, cash] = await Promise.all([api("/reports/summary?range=daily"), api("/accounts/cash")]);
+    const activeJobs = (await api("/jobs")).filter((j) => j.stage !== "dispatched").length;
+    $("homeStats").innerHTML = `
+      <div class="stat-card"><div class="label">Today's Sales</div><div class="value">Rs. ${Number(daily.points.at(-1)?.total_sales || 0).toFixed(0)}</div></div>
+      <div class="stat-card"><div class="label">Cash in Hand</div><div class="value">Rs. ${Number(cash.cash_in_hand).toFixed(0)}</div></div>
+      <div class="stat-card"><div class="label">Active Jobs</div><div class="value">${activeJobs}</div></div>
+    `;
+  } catch (e) {}
+}
+
+async function loadReminders() {
+  try {
+    const data = await api("/jobs/reminders");
+    if (!data.items.length) { $("remindersBox").innerHTML = `<div class="empty-state">Nothing overdue — all clear.</div>`; return; }
+    $("remindersBox").innerHTML = data.items.map((r) => `
+      <div class="reminder">
+        <span>${r.job_number}${r.party_name ? " · " + r.party_name : ""} ${r.reason === "unpaid_balance" ? "· Rs. " + Number(r.balance_due).toFixed(2) + " due" : ""}</span>
+        <span class="tag tag-${r.reason}">${r.reason.replace("_", " ")}</span>
+      </div>`).join("");
+  } catch (e) {
+    $("remindersBox").innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+async function loadJobStatus() {
+  try {
+    const jobs = (await api("/jobs")).slice(0, 12);
+    $("jobStatusBox").innerHTML = jobs.map((j) => `
+      <div class="job-row">
+        <div class="head" onclick="toggleAssignees('${j.job_number}')">
+          <span><strong>${j.job_number}</strong> · ${j.category_code} · Qty ${j.quantity}</span>
+          <span class="tag tag-${j.stage === 'dispatched' ? 'unpaid_balance' : 'due_soon'}" style="animation:none;">${STAGE_LABELS[j.stage] || j.stage}</span>
+        </div>
+        <div class="assignees" id="assignees-${j.job_number}">
+          ${ASSIGNEE_FIELDS.map(([field, label]) => `
+            <div class="assign-field">
+              <input placeholder="${label}" value="${j[field] || ''}" id="af-${j.job_number}-${field}" />
+              <button class="btn btn-outline btn-sm" onclick="saveAssignee('${j.job_number}', '${field}')">Save</button>
+            </div>`).join("")}
+        </div>
+      </div>`).join("") || `<div class="empty-state">No jobs yet.</div>`;
+  } catch (e) {
+    $("jobStatusBox").innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+function toggleAssignees(jobNumber) {
+  $("assignees-" + jobNumber).classList.toggle("open");
+}
+
+async function saveAssignee(jobNumber, field) {
+  const name = $(`af-${jobNumber}-${field}`).value;
+  try {
+    await api(`/jobs/${jobNumber}/assignee`, { method: "PATCH", body: JSON.stringify({ field, name }) });
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+// ==================================================================
+// JOB BOARD
+// ==================================================================
+async function loadBoard() {
+  let jobs = [];
+  try { jobs = await api("/jobs"); } catch (e) { $("board").innerHTML = `<div class="empty-state">${e.message}</div>`; return; }
+  const byStage = {};
+  STAGES.forEach((s) => (byStage[s] = []));
+  jobs.forEach((j) => { if (byStage[j.stage]) byStage[j.stage].push(j); });
+  $("board").innerHTML = STAGES.map((stage) => `
+    <div class="col">
+      <h3>${STAGE_LABELS[stage]} (${byStage[stage].length})</h3>
+      ${byStage[stage].map((j) => `
+        <div class="job-card">
+          <div class="num">${j.job_number}</div>
+          <div class="meta">${j.category_code} &middot; Qty ${j.quantity} ${j.party ? "&middot; " + j.party.name : ""}</div>
+          <div class="meta">Rs. ${Number(j.computed_total || 0).toFixed(2)}</div>
+          <select onchange="advanceStage('${j.job_number}', this.value)">
+            ${STAGES.map((s) => `<option value="${s}" ${s === stage ? "selected" : ""}>${STAGE_LABELS[s]}</option>`).join("")}
+          </select>
+        </div>`).join("") || `<div style="color:#9aa2ab; font-size:12px; padding:6px;">No jobs</div>`}
+    </div>`).join("");
+}
+
+async function advanceStage(jobNumber, newStage) {
+  try {
+    await api(`/jobs/${jobNumber}/stage`, { method: "PATCH", body: JSON.stringify({ stage: newStage }) });
+    loadBoard();
+  } catch (e) { alert(e.message); }
+}
+
+// ==================================================================
+// REPORTS
+// ==================================================================
+let currentRange = "daily";
+let salesChart = null, expenseChart = null;
+
+function setRange(r) {
+  currentRange = r;
+  document.querySelectorAll(".range-tabs button").forEach((b) => b.classList.toggle("active", b.dataset.range === r));
+  loadReports();
+}
+
+async function loadReports() {
+  let sales, exp, cash;
+  try {
+    [sales, exp, cash] = await Promise.all([
+      api(`/reports/summary?range=${currentRange}`), api(`/reports/expenses?range=${currentRange}`), api("/accounts/cash"),
+    ]);
+  } catch (e) { return; }
+
+  $("statOrders").textContent = sales.total_orders;
+  $("statSales").textContent = "Rs. " + Number(sales.grand_total).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+  $("statExpenses").textContent = "Rs. " + Number(exp.grand_total).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+  $("statCashHand").textContent = "Rs. " + Number(cash.cash_in_hand).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+
+  const salesCtx = document.getElementById("salesChart").getContext("2d");
+  if (salesChart) salesChart.destroy();
+  salesChart = new Chart(salesCtx, {
+    data: { labels: sales.points.map((p) => p.label), datasets: [
+      { type: "bar", label: "Sales (Rs.)", data: sales.points.map((p) => p.total_sales), backgroundColor: "#1f3864", yAxisID: "y" },
+      { type: "line", label: "Orders", data: sales.points.map((p) => p.order_count), borderColor: "#c55a11", yAxisID: "y1", tension: .3 },
+    ]},
+    options: { responsive: true, scales: {
+      y: { type: "linear", position: "left", title: { display: true, text: "Sales (Rs.)" } },
+      y1: { type: "linear", position: "right", title: { display: true, text: "Orders" }, grid: { drawOnChartArea: false } },
+    }},
+  });
+
+  const expCtx = document.getElementById("expenseChart").getContext("2d");
+  if (expenseChart) expenseChart.destroy();
+  expenseChart = new Chart(expCtx, {
+    data: { labels: exp.points.map((p) => p.label), datasets: [
+      { type: "bar", label: "Expenses (Rs.)", data: exp.points.map((p) => p.total_sales), backgroundColor: "#ac6c00" },
+    ]},
+    options: { responsive: true },
+  });
+}
+
+// ==================================================================
+// ACCOUNTS
+// ==================================================================
+function setAccSub(name) {
+  document.querySelectorAll("#view-accounts .subview").forEach((v) => v.classList.remove("active"));
+  $("acc-" + name).classList.add("active");
+  document.querySelectorAll("#view-accounts .subtabs button").forEach((b) => b.classList.toggle("active", b.dataset.sub === name));
+}
+
+async function loadAccounts() {
+  try {
+    const cash = await api("/accounts/cash");
+    $("cashInHand").textContent = "Rs. " + Number(cash.cash_in_hand).toFixed(2);
+    $("cashToBank").textContent = "Rs. " + Number(cash.cash_moved_to_bank).toFixed(2);
+    $("cashTableBody").innerHTML = cash.transactions.map((t) => `
+      <tr><td>${t.created_at ? new Date(t.created_at).toLocaleDateString() : "-"}</td><td>${t.txn_type}</td><td>Rs. ${Number(t.amount).toFixed(2)}</td><td>${t.note || "-"}</td><td>${t.created_by || "-"}</td></tr>
+    `).join("") || `<tr><td colspan="5" class="empty-state">No transactions yet.</td></tr>`;
+  } catch (e) {}
+
+  try {
+    const cheques = await api("/accounts/cheques");
+    $("chequeTableBody").innerHTML = cheques.map((c) => `
+      <tr><td>${c.cheque_no}</td><td>${c.direction}</td><td>Rs. ${Number(c.amount).toFixed(2)}</td><td>${c.cheque_date || "-"}</td><td>${c.bank_branch || "-"}</td><td>${c.deposit_date || "-"}</td>
+      <td>${canWriteAccounts() ? `<select onchange="updateChequeStatus(${c.id}, this.value)">
+            <option value="pending" ${c.status==='pending'?'selected':''}>Pending</option>
+            <option value="cleared" ${c.status==='cleared'?'selected':''}>Cleared</option>
+            <option value="bounced" ${c.status==='bounced'?'selected':''}>Bounced</option>
+          </select>` : c.status}</td></tr>
+    `).join("") || `<tr><td colspan="7" class="empty-state">No cheques recorded.</td></tr>`;
+  } catch (e) {}
+
+  try {
+    const bills = await api("/accounts/vendor-bills");
+    $("vendorTableBody").innerHTML = bills.map((b) => `
+      <tr><td>${b.bill_no}</td><td>${b.vendor_name}</td><td>Rs. ${Number(b.cash_value).toFixed(2)}</td><td>Rs. ${Number(b.paid_amount).toFixed(2)}</td><td>Rs. ${Number(b.balance).toFixed(2)}</td></tr>
+    `).join("") || `<tr><td colspan="5" class="empty-state">No vendor bills yet.</td></tr>`;
+  } catch (e) {}
+
+  try {
+    const items = await api("/accounts/inventory");
+    $("stockTableBody").innerHTML = items.map((i) => `
+      <tr><td>${i.name}</td><td>${i.current_qty} ${i.unit}</td><td>${i.reorder_threshold}</td>
+      <td>${i.low_stock ? '<span class="tag tag-overdue">LOW STOCK</span>' : '<span class="tag tag-unpaid_balance">OK</span>'}</td></tr>
+    `).join("") || `<tr><td colspan="4" class="empty-state">No stock items tracked yet.</td></tr>`;
+  } catch (e) {}
+}
+
+async function addCashTxn() {
+  try {
+    await api("/accounts/cash", { method: "POST", body: JSON.stringify({
+      txn_type: $("cashType").value, amount: parseFloat($("cashAmount").value || "0"), note: $("cashNote").value || null,
+    })});
+    $("cashAmount").value = ""; $("cashNote").value = "";
+    loadAccounts();
+  } catch (e) { alert(e.message); }
+}
+
+async function addCheque() {
+  try {
+    await api("/accounts/cheques", { method: "POST", body: JSON.stringify({
+      direction: $("chqDirection").value, cheque_no: $("chqNo").value, amount: parseFloat($("chqAmount").value || "0"),
+      cheque_date: $("chqDate").value || null, bank_branch: $("chqBranch").value || null, deposit_date: $("chqDepositDate").value || null,
+    })});
+    loadAccounts();
+  } catch (e) { alert(e.message); }
+}
+
+async function updateChequeStatus(id, status) {
+  try { await api(`/accounts/cheques/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }); loadAccounts(); }
+  catch (e) { alert(e.message); }
+}
+
+async function addVendorBill() {
+  try {
+    await api("/accounts/vendor-bills", { method: "POST", body: JSON.stringify({
+      bill_no: $("vBillNo").value, vendor_name: $("vVendor").value, cash_value: parseFloat($("vCashValue").value || "0"),
+      paid_amount: parseFloat($("vPaid").value || "0"), bill_date: $("vDate").value || null,
+    })});
+    loadAccounts();
+  } catch (e) { alert(e.message); }
+}
+
+async function addInventoryItem() {
+  try {
+    await api("/accounts/inventory", { method: "POST", body: JSON.stringify({
+      name: $("invName").value, current_qty: parseFloat($("invQty").value || "0"), reorder_threshold: parseFloat($("invThreshold").value || "0"),
+    })});
+    loadAccounts();
+  } catch (e) { alert(e.message); }
+}
+
+// ==================================================================
+// CATALOG ADMIN
+// ==================================================================
+async function loadCatalogCategories() {
+  const cats = await api("/catalog/categories");
+  $("catAdminCategory").innerHTML = cats.map((c) => `<option value="${c.code}">${c.name}</option>`).join("");
+  loadCatalogAdmin();
+}
+
+function setCatSub(name) {
+  document.querySelectorAll("#view-catalog .subview").forEach((v) => v.classList.remove("active"));
+  $("cat-" + name).classList.add("active");
+  document.querySelectorAll("#view-catalog .subtabs button").forEach((b) => b.classList.toggle("active", b.dataset.sub === name));
+}
+
+async function loadCatalogAdmin() {
+  const code = $("catAdminCategory").value;
+  if (!code) return;
+  const [attrs, cells, extras, skus] = await Promise.all([
+    api(`/catalog/categories/${code}/attributes`), api(`/catalog/categories/${code}/price-cells`),
+    api(`/catalog/categories/${code}/extras`), api(`/catalog/categories/${code}/skus`),
+  ]);
+
+  $("cat-attrs").innerHTML = attrs.map((a) => `
+    <div class="panel"><h3>${a.name} (${a.code})</h3>
+      <table><thead><tr><th>Option</th><th>Cost Delta</th><th></th></tr></thead><tbody>
+        ${a.options.map((o) => `<tr><td>${o.value}</td><td>Rs. ${Number(o.cost_delta_per_unit).toFixed(2)}</td><td>${isAdmin() ? `<button class="btn btn-danger btn-sm" onclick="removeOption(${o.id})">Remove</button>` : ""}</td></tr>`).join("")}
+      </tbody></table>
+      ${isAdmin() ? `<div class="row2" style="margin-top:10px;">
+        <input placeholder="New option value" id="newopt-${a.code}" />
+        <button class="btn btn-outline" onclick="addOption('${code}', '${a.code}')">Add option</button>
+      </div>` : ""}
+    </div>
+  `).join("") || `<div class="empty-state">No attributes on this category (SKU-priced).</div>`;
+
+  $("cat-prices").innerHTML = `
+    <table><thead><tr><th>Slab</th><th>Attribute Selector</th><th>Base Rate</th><th></th></tr></thead><tbody>
+      ${cells.map((c) => `<tr><td>${c.slab_label || "-"}</td><td>${JSON.stringify(c.attribute_selector)}</td>
+        <td><input type="number" step="0.01" value="${c.base_rate}" id="rate-${c.id}" ${isAdmin() ? "" : "disabled"} /></td>
+        <td>${isAdmin() ? `<button class="btn btn-primary btn-sm" onclick="savePriceCell(${c.id})">Save</button>` : ""}</td></tr>`).join("")}
+    </tbody></table>` || `<div class="empty-state">No price cells.</div>`;
+
+  $("cat-extras").innerHTML = `
+    <table><thead><tr><th>Name</th><th>Type</th><th>Amount</th><th>Minimum</th><th></th></tr></thead><tbody>
+      ${extras.map((e) => `<tr><td>${e.name}</td><td>${e.charge_type}</td>
+        <td><input type="number" step="0.01" value="${e.amount}" id="extra-amt-${e.id}" ${isAdmin() ? "" : "disabled"} /></td>
+        <td><input type="number" step="0.01" value="${e.minimum_amount || ''}" id="extra-min-${e.id}" ${isAdmin() ? "" : "disabled"} /></td>
+        <td>${isAdmin() ? `<button class="btn btn-primary btn-sm" onclick="saveExtra(${e.id})">Save</button>` : ""}</td></tr>`).join("")}
+    </tbody></table>` || `<div class="empty-state">No extra charges.</div>`;
+
+  $("cat-skus").innerHTML = `
+    <table><thead><tr><th>SKU Code</th><th>Name</th><th>Price</th><th></th></tr></thead><tbody>
+      ${skus.map((s) => `<tr><td>${s.sku_code}</td><td>${s.name}</td>
+        <td><input type="number" step="0.01" value="${s.price}" id="sku-price-${s.id}" ${isAdmin() ? "" : "disabled"} /></td>
+        <td>${isAdmin() ? `<button class="btn btn-primary btn-sm" onclick="saveSku(${s.id})">Save</button>` : ""}</td></tr>`).join("")}
+    </tbody></table>
+    ${isAdmin() ? `<div class="panel" style="margin-top:14px;"><h3>Add SKU</h3>
+      <div class="row3"><input placeholder="SKU code" id="newSkuCode" /><input placeholder="Name" id="newSkuName" /><input placeholder="Price" type="number" id="newSkuPrice" /></div>
+      <button class="btn btn-outline" style="margin-top:8px;" onclick="addSku('${code}')">Add</button>
+    </div>` : ""}`;
+}
+
+async function addOption(categoryCode, attrCode) {
+  const value = $(`newopt-${attrCode}`).value;
+  if (!value) return;
+  try { await api(`/catalog/categories/${categoryCode}/attributes/${attrCode}/options`, { method: "POST", body: JSON.stringify({ value, cost_delta_per_unit: 0 }) }); loadCatalogAdmin(); }
+  catch (e) { alert(e.message); }
+}
+
+async function removeOption(optionId) {
+  if (!confirm("Remove this option? Existing job cards referencing it are unaffected, but it will no longer be selectable.")) return;
+  try {
+    await api(`/catalog/options/${optionId}`, { method: "DELETE" });
+    loadCatalogAdmin();
+  } catch (e) { alert(e.message); }
+}
+
+async function savePriceCell(id) {
+  try { await api(`/catalog/price-cells/${id}`, { method: "PATCH", body: JSON.stringify({ base_rate: parseFloat($(`rate-${id}`).value) }) }); alert("Saved."); }
+  catch (e) { alert(e.message); }
+}
+
+async function saveExtra(id) {
+  try {
+    await api(`/catalog/extras/${id}`, { method: "PATCH", body: JSON.stringify({
+      amount: parseFloat($(`extra-amt-${id}`).value), minimum_amount: $(`extra-min-${id}`).value ? parseFloat($(`extra-min-${id}`).value) : null,
+    })});
+    alert("Saved.");
+  } catch (e) { alert(e.message); }
+}
+
+async function saveSku(id) {
+  try { await api(`/catalog/skus/${id}`, { method: "PATCH", body: JSON.stringify({ price: parseFloat($(`sku-price-${id}`).value) }) }); alert("Saved."); }
+  catch (e) { alert(e.message); }
+}
+
+async function addSku(categoryCode) {
+  try {
+    await api(`/catalog/categories/${categoryCode}/skus`, { method: "POST", body: JSON.stringify({
+      sku_code: $("newSkuCode").value, name: $("newSkuName").value, price: parseFloat($("newSkuPrice").value || "0"),
+    })});
+    loadCatalogAdmin();
+  } catch (e) { alert(e.message); }
+}
+
+// ==================================================================
+// PARTIES
+// ==================================================================
+async function loadParties() {
+  try {
+    const parties = await api("/parties");
+    $("partiesBody").innerHTML = parties.map((p) => `<tr><td>${p.name}</td><td>${p.mobile || "-"}</td><td>${p.alt_mobile || "-"}</td><td>${p.address || "-"}</td></tr>`).join("")
+      || `<tr><td colspan="4" class="empty-state">No customers yet.</td></tr>`;
+  } catch (e) {
+    $("partiesBody").innerHTML = `<tr><td colspan="4" class="empty-state">${e.message}</td></tr>`;
+  }
+}
+
+// ---------------- boot ----------------
+if (session && session.token) {
+  enterApp();
+} else {
+  $("loginScreen").style.display = "flex";
+}
+</script>
+
+</body>
+</html>

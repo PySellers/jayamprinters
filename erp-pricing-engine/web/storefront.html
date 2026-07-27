@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sri Jayam Printers — Order Online</title>
+<meta name="theme-color" content="#1f3864" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" href="icon-192.png" />
+<style>
+  :root {
+    --navy: #1f3864;
+    --navy-light: #2c4a7c;
+    --accent: #c55a11;
+    --accent-light: #e08a45;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --border: #e1e5eb;
+    --text: #1b1f24;
+    --muted: #6b7280;
+    --success: #1a7f37;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  a { color: inherit; }
+
+  /* ---------- Header ---------- */
+  header.topbar {
+    background: var(--navy);
+    color: #fff;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  }
+  .topbar-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; cursor: pointer; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  nav.topnav { display: flex; gap: 6px; align-items: center; }
+  nav.topnav button {
+    background: transparent; border: none; color: #dbe4f3; font-size: 14px;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600;
+  }
+  nav.topnav button:hover, nav.topnav button.active { background: rgba(255,255,255,0.12); color: #fff; }
+  .cart-btn { position: relative; }
+  .cart-badge {
+    position: absolute; top: -4px; right: -6px; background: var(--accent);
+    color: #fff; font-size: 10.5px; font-weight: 700; border-radius: 10px;
+    padding: 1px 6px; min-width: 16px; text-align: center;
+  }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 20px 60px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: #fff; border-radius: var(--radius); padding: 40px 32px; margin-bottom: 28px;
+    display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  }
+  .hero h1 { margin: 0 0 8px; font-size: 26px; }
+  .hero p { margin: 0; color: #cfd9ec; max-width: 520px; font-size: 14px; }
+  .hero .badge-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .hero .pill { background: rgba(255,255,255,0.12); padding: 5px 12px; border-radius: 20px; font-size: 12.5px; }
+
+  /* ---------- Category grid ---------- */
+  .section-title { font-size: 16px; font-weight: 700; margin: 6px 0 16px; color: var(--navy); }
+  .cat-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px;
+  }
+  .cat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 16px; cursor: pointer; transition: transform .15s, box-shadow .15s;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .cat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(31,56,100,0.12); border-color: var(--accent-light); }
+  .cat-card .icon { font-size: 30px; }
+  .cat-card .name { font-weight: 700; font-size: 14.5px; }
+  .cat-card .desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .cat-card .cta { margin-top: auto; font-size: 12.5px; color: var(--accent); font-weight: 700; }
+
+  /* ---------- Configure view ---------- */
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--navy); font-weight: 600; font-size: 13.5px; cursor: pointer; margin-bottom: 14px; }
+  .configure-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 860px) { .configure-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+  .panel h2 { margin: 0 0 4px; font-size: 19px; color: var(--navy); }
+  .panel .sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 700; color: #333; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .3px; }
+  select, input[type=number], input[type=text], input[type=tel] {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff;
+  }
+  .qty-stepper { display: flex; align-items: center; gap: 10px; }
+  .qty-stepper button {
+    width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-size: 18px; cursor: pointer;
+  }
+  .qty-stepper input { text-align: center; max-width: 100px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--border); border-radius: 20px; padding: 7px 14px; font-size: 13px; cursor: pointer; user-select: none;
+  }
+  .chip.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  .price-card { position: sticky; top: 90px; }
+  .price-row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 5px 0; color: #444; }
+  .price-row.total { font-weight: 800; font-size: 19px; color: var(--navy); border-top: 1px dashed var(--border); margin-top: 10px; padding-top: 12px; }
+  .btn { border: none; border-radius: 9px; padding: 12px 18px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #ac4d0d; }
+  .btn-outline { background: #fff; border: 1.5px solid var(--navy); color: var(--navy); }
+  .btn-navy { background: var(--navy); color: #fff; }
+  .muted-note { font-size: 11.5px; color: var(--muted); margin-top: 10px; line-height: 1.4; }
+
+  /* ---------- Cart / checkout ---------- */
+  .cart-line { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); gap: 12px; }
+  .cart-line .info { font-size: 13.5px; }
+  .cart-line .info .title { font-weight: 700; }
+  .cart-line .info .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .cart-line .amount { font-weight: 700; white-space: nowrap; }
+  .remove-btn { background: none; border: none; color: #b3261e; font-size: 12px; cursor: pointer; margin-left: 8px; }
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--muted); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* ---------- Confirmation ---------- */
+  .confirm-box { text-align: center; padding: 40px 20px; }
+  .confirm-box .check { font-size: 46px; color: var(--success); }
+  .order-number { font-size: 22px; font-weight: 800; color: var(--navy); margin: 6px 0 20px; }
+  table.bill { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 12px; }
+  table.bill th, table.bill td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  table.bill th { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+
+  .stage-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11.5px; font-weight: 700; }
+  .stage-order_taken { background: #eef2fb; color: #1f3864; }
+  .stage-dtp { background: #fff4e5; color: #ac6c00; }
+  .stage-proof_customer, .stage-proof_press { background: #fef0e6; color: var(--accent); }
+  .stage-printing { background: #e8f0ff; color: #2c4a7c; }
+  .stage-finishing { background: #f1e8ff; color: #6d28d9; }
+  .stage-dispatched { background: #e7f6ec; color: var(--success); }
+
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: #fff; padding: 12px 20px; border-radius: 8px;
+    font-size: 13.5px; box-shadow: 0 8px 24px rgba(0,0,0,.2); display: none; z-index: 100;
+  }
+
+  @media print {
+    header, .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand" onclick="showView('catalog')"><span class="dot"></span> Sri Jayam Printers</div>
+    <nav class="topnav">
+      <button data-view="catalog" onclick="showView('catalog')">Catalog</button>
+      <button data-view="track" onclick="showView('track')">Track Order</button>
+      <button class="cart-btn" onclick="showView('cart')">
+        Cart <span class="cart-badge" id="cartBadge">0</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== CATALOG ===================== -->
+  <section class="view active" id="view-catalog">
+    <div class="hero">
+      <div>
+        <h1>Sri Jayam Printers</h1>
+        <div class="badge-row">
+          <span class="pill">20+ years in business</span>
+          <span class="pill" id="apiStatusPill">Live pricing connected</span>
+        </div>
+      </div>
+    </div>
+    <div class="section-title">Browse categories</div>
+    <div class="cat-grid" id="catGrid"><div class="empty-state">Loading catalog&hellip;</div></div>
+  </section>
+
+  <!-- ===================== CONFIGURE ===================== -->
+  <section class="view" id="view-configure">
+    <div class="back-link" onclick="showView('catalog')">&larr; Back to catalog</div>
+    <div class="configure-grid">
+      <div class="panel">
+        <h2 id="cfgTitle">Product</h2>
+        <div class="sub" id="cfgSub">Choose your options below.</div>
+        <div id="cfgSkuField" class="field" style="display:none;">
+          <label>Item</label>
+          <select id="skuSelect"></select>
+        </div>
+        <div id="cfgAttrFields"></div>
+        <div class="field">
+          <label>Quantity</label>
+          <div class="qty-stepper">
+            <button type="button" onclick="stepQty(-1)">&minus;</button>
+            <input type="number" id="cfgQty" value="100" min="1" oninput="livePrice()" />
+            <button type="button" onclick="stepQty(1)">+</button>
+          </div>
+        </div>
+        <div id="cfgExtraField" class="field" style="display:none;">
+          <label>Extra work / add-ons</label>
+          <div class="chips" id="cfgExtraChips"></div>
+        </div>
+      </div>
+      <div class="panel price-card">
+        <h2 style="font-size:16px;">Price</h2>
+        <div id="cfgPriceBody">
+          <div class="muted-note">Fill in the options to see a live price.</div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:16px;" onclick="addToCart()">Add to Cart</button>
+        <div class="muted-note" id="cfgError" style="color:#b3261e;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CART ===================== -->
+  <section class="view" id="view-cart">
+    <div class="section-title">Your cart</div>
+    <div class="panel" id="cartPanel"></div>
+  </section>
+
+  <!-- ===================== CHECKOUT ===================== -->
+  <section class="view" id="view-checkout">
+    <div class="back-link" onclick="showView('cart')">&larr; Back to cart</div>
+    <div class="configure-grid">
+      <div class="panel">
+        <h2>Delivery details</h2>
+        <div class="field"><label>Full name *</label><input type="text" id="chkName" /></div>
+        <div class="row2">
+          <div class="field"><label>Mobile *</label><input type="tel" id="chkMobile" /></div>
+          <div class="field"><label>Alternate mobile</label><input type="tel" id="chkAltMobile" /></div>
+        </div>
+        <div class="field"><label>Address</label><input type="text" id="chkAddress" /></div>
+        <div class="muted-note" id="chkError" style="color:#b3261e;"></div>
+        <button class="btn btn-primary" onclick="placeOrder()">Place order</button>
+      </div>
+      <div class="panel">
+        <h2 style="font-size:16px;">Order summary</h2>
+        <div id="checkoutSummary"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CONFIRMATION ===================== -->
+  <section class="view" id="view-confirmation">
+    <div class="panel confirm-box">
+      <div class="check">&#10003;</div>
+      <h2>Order placed!</h2>
+      <div class="order-number" id="confOrderNumber">-</div>
+      <table class="bill" id="confTable"><thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead><tbody></tbody></table>
+      <div class="price-row total"><span>Grand Total</span><span id="confTotal">Rs. 0.00</span></div>
+      <div class="no-print" style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+        <button class="btn btn-outline" style="width:auto;" onclick="window.print()">Print receipt</button>
+        <button class="btn btn-navy" style="width:auto;" onclick="showView('catalog')">Continue shopping</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TRACK ORDER ===================== -->
+  <section class="view" id="view-track">
+    <div class="section-title">Track your order</div>
+    <div class="panel" style="max-width:520px;">
+      <div class="field"><label>Order number</label><input type="text" id="trackInput" placeholder="e.g. ORD-00001" /></div>
+      <button class="btn btn-navy" onclick="trackOrder()">Track</button>
+      <div id="trackResult" style="margin-top:18px;"></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+const API = "http://localhost:8000";
+const $ = (id) => document.getElementById(id);
+
+const CATEGORY_META = {
+  WEDDING_INVITATION_OFFSET: { icon: "💍", desc: "Offset-printed wedding cards & covers, any size/paper/GSM." },
+  WEDDING_INVITATION_SCREEN: { icon: "🖨️", desc: "Screen-printed invitations for smaller runs." },
+  READYMADE_INVITATION: { icon: "🎉", desc: "Readymade / Friends Card style invitations." },
+  COVER_CUSTOMISE_OFFSET: { icon: "📩", desc: "Custom offset-printed covers." },
+  READYMADE_COVER: { icon: "✉️", desc: "Readymade covers in standard sizes, printed to order." },
+  VISITING_CARD: { icon: "📇", desc: "Business cards, 50 to 40,000 pcs, with lamination & foiling." },
+  ID_CARD: { icon: "🪪", desc: "PVC / synthetic / chip ID cards with holders & ropes." },
+  STATIONERY_BILL_BOOK: { icon: "📒", desc: "Letterheads, bill books, challans, vouchers & more." },
+  REGISTER: { icon: "📚", desc: "Bound registers - soft, hard, calico, rexon & leather." },
+  APPLICATION_FORM: { icon: "📋", desc: "Application forms in any size, paper & folding style." },
+  TC_TRANSFER_CERTIFICATE: { icon: "🎓", desc: "Transfer certificate books, bound to order." },
+  MENU_CARD: { icon: "🍽️", desc: "Restaurant menu cards with board & lamination options." },
+  RUBBER_STAMP_POLYMER: { icon: "🔖", desc: "Polymer rubber stamps - 70+ standard sizes." },
+  SELF_INK_STAMP: { icon: "🖋️", desc: "Self-inking / pre-ink stamps, Printer series." },
+  DIGITAL_BANNER: { icon: "🏳️", desc: "Flex, stickers, sunpack & acrylic - any size." },
+  THAMBOOLA_BAG: { icon: "👝", desc: "Printed thamboola / gift bags." },
+};
+
+let categories = [];
+let currentCategory = null;
+let cart = JSON.parse(localStorage.getItem("sjp_cart") || "[]");
+
+function saveCart() {
+  localStorage.setItem("sjp_cart", JSON.stringify(cart));
+  renderCartBadge();
+}
+function renderCartBadge() {
+  $("cartBadge").textContent = cart.reduce((n, i) => n + 1, 0);
+}
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  setTimeout(() => (t.style.display = "none"), 2200);
+}
+
+async function api(path, options) {
+  const res = await fetch(API + path, { headers: { "Content-Type": "application/json" }, ...options });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `Request failed (${res.status})`);
+  }
+  return res.json();
+}
+
+function showView(name) {
+  document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+  $("view-" + name).classList.add("active");
+  document.querySelectorAll(".topnav button[data-view]").forEach((b) => b.classList.toggle("active", b.dataset.view === name));
+  if (name === "cart") renderCart();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function init() {
+  try {
+    await api("/");
+    $("apiStatusPill").textContent = "Live pricing connected";
+  } catch (e) {
+    $("apiStatusPill").textContent = "Backend not reachable - start `python main.py`";
+  }
+  try {
+    categories = await api("/catalog/categories");
+    renderCatalog();
+  } catch (e) {
+    $("catGrid").innerHTML = `<div class="empty-state">Could not load catalog: ${e.message}</div>`;
+  }
+  renderCartBadge();
+}
+
+function renderCatalog() {
+  $("catGrid").innerHTML = categories.map((c) => {
+    const meta = CATEGORY_META[c.code] || { icon: "🖨️", desc: "Custom printing service." };
+    return `
+      <div class="cat-card" onclick="openConfigure('${c.code}')">
+        <div class="icon">${meta.icon}</div>
+        <div class="name">${c.name}</div>
+        <div class="desc">${meta.desc}</div>
+        <div class="cta">Configure &amp; price &rarr;</div>
+      </div>`;
+  }).join("");
+}
+
+async function openConfigure(code) {
+  const meta = categories.find((c) => c.code === code);
+  const [attributes, extras] = await Promise.all([
+    api(`/catalog/categories/${code}/attributes`),
+    api(`/catalog/categories/${code}/extras`),
+  ]);
+  currentCategory = { ...meta, attributes, extras };
+  $("cfgTitle").textContent = meta.name;
+  $("cfgSub").textContent = (CATEGORY_META[code] || {}).desc || "";
+  $("cfgQty").value = 100;
+
+  if (meta.pricing_mode === "sku") {
+    const skus = await api(`/catalog/categories/${code}/skus`);
+    currentCategory.skus = skus;
+    $("cfgSkuField").style.display = "";
+    $("cfgAttrFields").innerHTML = "";
+    $("skuSelect").innerHTML = skus.map((s) => `<option value="${s.sku_code}">${s.name} — Rs.${s.price}</option>`).join("");
+    $("skuSelect").onchange = livePrice;
+  } else {
+    $("cfgSkuField").style.display = "none";
+    $("cfgAttrFields").innerHTML = attributes.map((attr) => `
+      <div class="field">
+        <label>${attr.name}</label>
+        <select data-attr-code="${attr.code}" onchange="livePrice()">
+          ${attr.options.map((o) => `<option value="${o.value}">${o.value}</option>`).join("")}
+        </select>
+      </div>`).join("");
+  }
+
+  if (extras.length) {
+    $("cfgExtraField").style.display = "";
+    $("cfgExtraChips").innerHTML = extras.map((e) => `
+      <div class="chip" data-extra-code="${e.code}" onclick="toggleChip(this)">${e.name}</div>
+    `).join("");
+  } else {
+    $("cfgExtraField").style.display = "none";
+    $("cfgExtraChips").innerHTML = "";
+  }
+
+  $("cfgError").textContent = "";
+  showView("configure");
+  livePrice();
+}
+
+function toggleChip(el) {
+  el.classList.toggle("selected");
+  livePrice();
+}
+
+function stepQty(delta) {
+  const el = $("cfgQty");
+  el.value = Math.max(1, (parseInt(el.value, 10) || 0) + delta);
+  livePrice();
+}
+
+function collectSelection() {
+  const quantity = parseInt($("cfgQty").value, 10) || 0;
+  let selected_options = {};
+  if (currentCategory.pricing_mode === "sku") {
+    selected_options = { SKU: $("skuSelect").value };
+  } else {
+    document.querySelectorAll("#cfgAttrFields select").forEach((sel) => {
+      selected_options[sel.dataset.attrCode] = sel.value;
+    });
+  }
+  const extra_codes = Array.from(document.querySelectorAll("#cfgExtraChips .chip.selected")).map((c) => c.dataset.extraCode);
+  return { category_code: currentCategory.code, quantity, selected_options, extra_codes };
+}
+
+async function livePrice() {
+  $("cfgError").textContent = "";
+  try {
+    const sel = collectSelection();
+    if (!sel.quantity || sel.quantity <= 0) throw new Error("Enter a valid quantity.");
+    const quote = await api("/quotes/calculate", { method: "POST", body: JSON.stringify(sel) });
+    $("cfgPriceBody").innerHTML = `
+      <div class="price-row"><span>Rate / unit</span><span>Rs. ${Number(quote.base_rate_per_unit).toFixed(2)}</span></div>
+      <div class="price-row"><span>Qty (${quote.slab_label})</span><span>${quote.quantity}</span></div>
+      <div class="price-row"><span>Subtotal</span><span>Rs. ${Number(quote.subtotal).toFixed(2)}</span></div>
+      ${quote.extras.map((e) => `<div class="price-row"><span>${e.name}</span><span>Rs. ${Number(e.amount).toFixed(2)}</span></div>`).join("")}
+      <div class="price-row total"><span>Total</span><span>Rs. ${Number(quote.total).toFixed(2)}</span></div>
+    `;
+    currentCategory._lastQuote = quote;
+  } catch (e) {
+    $("cfgError").textContent = e.message;
+  }
+}
+
+function addToCart() {
+  if (!currentCategory || !currentCategory._lastQuote) {
+    $("cfgError").textContent = "Fix the errors above before adding to cart.";
+    return;
+  }
+  const sel = collectSelection();
+  cart.push({ ...sel, quote: currentCategory._lastQuote, categoryName: currentCategory.name });
+  saveCart();
+  toast("Added to cart");
+  showView("cart");
+}
+
+function renderCart() {
+  if (!cart.length) {
+    $("cartPanel").innerHTML = `<div class="empty-state">Your cart is empty. <br/><br/><button class="btn btn-navy" style="width:auto;" onclick="showView('catalog')">Browse catalog</button></div>`;
+    return;
+  }
+  const lines = cart.map((item, idx) => `
+    <div class="cart-line">
+      <div class="info">
+        <div class="title">${item.categoryName}</div>
+        <div class="meta">Qty ${item.quantity} &middot; ${Object.entries(item.selected_options).map(([k, v]) => `${k}: ${v}`).join(", ")}</div>
+      </div>
+      <div class="amount">Rs. ${Number(item.quote.total).toFixed(2)}
+        <button class="remove-btn" onclick="removeFromCart(${idx})">Remove</button>
+      </div>
+    </div>`).join("");
+  const total = cart.reduce((s, i) => s + Number(i.quote.total), 0);
+  $("cartPanel").innerHTML = `
+    ${lines}
+    <div class="price-row total"><span>Cart Total</span><span>Rs. ${total.toFixed(2)}</span></div>
+    <button class="btn btn-primary" style="margin-top:16px;" onclick="showView('checkout')">Proceed to checkout</button>
+  `;
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  saveCart();
+  renderCart();
+}
+
+function renderCheckoutSummary() {
+  const total = cart.reduce((s, i) => s + Number(i.quote.total), 0);
+  $("checkoutSummary").innerHTML = cart.map((item) => `
+    <div class="price-row"><span>${item.categoryName} × ${item.quantity}</span><span>Rs. ${Number(item.quote.total).toFixed(2)}</span></div>
+  `).join("") + `<div class="price-row total"><span>Grand Total</span><span>Rs. ${total.toFixed(2)}</span></div>`;
+}
+
+async function placeOrder() {
+  $("chkError").textContent = "";
+  const name = $("chkName").value.trim();
+  const mobile = $("chkMobile").value.trim();
+  if (!name) { $("chkError").textContent = "Name is required."; return; }
+  if (!cart.length) { $("chkError").textContent = "Your cart is empty."; return; }
+
+  const payload = {
+    source: "online",
+    party: { name, mobile: mobile || null, alt_mobile: $("chkAltMobile").value || null, address: $("chkAddress").value || null },
+    items: cart.map((i) => ({
+      category_code: i.category_code, quantity: i.quantity,
+      selected_options: i.selected_options, extra_codes: i.extra_codes,
+    })),
+  };
+
+  try {
+    const order = await api("/orders", { method: "POST", body: JSON.stringify(payload) });
+    cart = [];
+    saveCart();
+    showConfirmation(order);
+  } catch (e) {
+    $("chkError").textContent = e.message;
+  }
+}
+
+function showConfirmation(order) {
+  $("confOrderNumber").textContent = order.order_number;
+  $("confTotal").textContent = "Rs. " + Number(order.grand_total).toFixed(2);
+  const tbody = document.querySelector("#confTable tbody");
+  tbody.innerHTML = order.items.map((it) => `
+    <tr><td>${it.category_code}</td><td>${it.quantity}</td><td>Rs. ${Number(it.computed_total).toFixed(2)}</td></tr>
+  `).join("");
+  showView("confirmation");
+}
+
+async function trackOrder() {
+  const num = $("trackInput").value.trim();
+  if (!num) return;
+  try {
+    const order = await api(`/orders/${encodeURIComponent(num)}`);
+    $("trackResult").innerHTML = `
+      <div style="margin-bottom:10px;"><strong>${order.order_number}</strong> &middot; ${order.party ? order.party.name : "-"} &middot; Rs. ${Number(order.grand_total).toFixed(2)}</div>
+      ${order.items.map((it) => `
+        <div class="cart-line">
+          <div class="info"><div class="title">${it.category_code}</div><div class="meta">Qty ${it.quantity} &middot; ${it.job_number}</div></div>
+          <span class="stage-badge stage-${it.stage}">${it.stage.replace('_',' ')}</span>
+        </div>
+      `).join("")}
+    `;
+  } catch (e) {
+    $("trackResult").innerHTML = `<div class="empty-state">${e.message}</div>`;
+  }
+}
+
+// re-render checkout summary whenever that view is shown
+const _origShowView = showView;
+showView = function (name) {
+  _origShowView(name);
+  if (name === "checkout") renderCheckoutSummary();
+};
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {});
+  });
+}
+
+init();
+</script>
+
+</body>
+</html>

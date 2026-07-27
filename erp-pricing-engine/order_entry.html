@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sri Jayam Printers - Order Entry &amp; Billing (Demo)</title>
+<style>
+  :root {
+    --navy: #1f3864;
+    --accent: #c55a11;
+    --bg: #f4f6f9;
+    --border: #d7dce3;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: #1b1f24;
+  }
+  header {
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 24px;
+  }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 15px;
+    margin: 0 0 12px;
+    color: var(--navy);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  label { display: block; font-size: 12.5px; font-weight: 600; margin: 10px 0 4px; color: #444; }
+  input, select {
+    width: 100%;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 13.5px;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .checkbox-row input { width: auto; }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .btn-primary { background: var(--navy); color: #fff; }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-ghost { background: #eceff3; color: #1b1f24; }
+  .actions { display: flex; gap: 10px; margin-top: 14px; }
+  #priceBox, #apiStatus { font-size: 13px; margin-top: 10px; }
+  .price-line { display: flex; justify-content: space-between; padding: 3px 0; }
+  .price-total { font-weight: 700; font-size: 16px; color: var(--navy); border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: #555; font-size: 11.5px; text-transform: uppercase; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #e8edf5; color: var(--navy); }
+  .muted { color: #777; font-size: 12px; }
+  .error { color: #b3261e; font-size: 13px; margin-top: 8px; }
+  #bill { display: none; }
+  #bill.visible { display: block; }
+  .bill-header { text-align: center; margin-bottom: 14px; }
+  .bill-header h2 { margin: 0; color: var(--navy); border: none; padding: 0; }
+  .bill-meta { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; }
+  @media print {
+    header, .no-print { display: none !important; }
+    .layout { display: block; padding: 0; }
+    #bill { display: block !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sri Jayam Printers &mdash; Order Entry &amp; Billing (Demo)</h1>
+  <p>Phase 2 prototype &middot; calls the pricing-engine API from Section 6 of the ERP blueprint. Not a production billing screen.</p>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT: Order entry form -->
+  <div>
+    <div class="card no-print">
+      <h2>API connection</h2>
+      <label>API base URL</label>
+      <input id="apiBase" value="http://localhost:8000" />
+      <div id="apiStatus" class="muted">Checking connection&hellip;</div>
+    </div>
+
+    <div class="card no-print">
+      <h2>1. Customer</h2>
+      <div class="row2">
+        <div><label>Name *</label><input id="custName" placeholder="Customer name" /></div>
+        <div><label>Mobile</label><input id="custMobile" placeholder="10-digit mobile" /></div>
+      </div>
+      <div class="row2">
+        <div><label>Alternate mobile</label><input id="custAltMobile" /></div>
+        <div><label>Order taken by</label><input id="orderTakenBy" placeholder="Staff name" /></div>
+      </div>
+      <label>Address</label>
+      <input id="custAddress" placeholder="Address" />
+    </div>
+
+    <div class="card no-print">
+      <h2>2. Product</h2>
+      <label>Category</label>
+      <select id="categorySelect"><option>Loading categories&hellip;</option></select>
+
+      <div id="skuFields" style="display:none;">
+        <label>Item (SKU)</label>
+        <select id="skuSelect"></select>
+      </div>
+
+      <div id="matrixFields" style="display:none;">
+        <div id="attributeFields"></div>
+      </div>
+
+      <label>Quantity</label>
+      <input id="quantity" type="number" min="1" value="100" />
+
+      <div id="extraFields"></div>
+
+      <div class="actions">
+        <button class="btn-ghost" id="btnPreview">Get live price</button>
+        <button class="btn-accent" id="btnCreateJob">Create Job Card (Generate Bill)</button>
+      </div>
+
+      <div id="priceBox"></div>
+      <div id="errorBox" class="error"></div>
+    </div>
+
+    <div class="card no-print">
+      <h2>Recent Job Cards</h2>
+      <table>
+        <thead><tr><th>Job #</th><th>Party</th><th>Category</th><th>Qty</th><th>Total</th><th>Stage</th><th></th></tr></thead>
+        <tbody id="jobsTableBody"><tr><td colspan="7" class="muted">No jobs yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT: Bill / Job Card preview -->
+  <div>
+    <div class="card" id="bill">
+      <div class="bill-header">
+        <h2>Sri Jayam Printers</h2>
+        <div class="muted">Job Card / Bill Preview</div>
+      </div>
+      <div class="bill-meta">
+        <div><strong>Job #:</strong> <span id="billJobNumber">-</span></div>
+        <div><strong>Date:</strong> <span id="billDate">-</span></div>
+      </div>
+      <div class="bill-meta">
+        <div><strong>Customer:</strong> <span id="billCustomer">-</span></div>
+        <div><span class="badge" id="billStage">-</span></div>
+      </div>
+      <table>
+        <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+        <tbody id="billLineItems"></tbody>
+      </table>
+      <div class="price-line price-total"><span>Total</span><span id="billTotal">Rs. 0.00</span></div>
+      <div class="actions no-print">
+        <button class="btn-primary" onclick="window.print()">Print bill</button>
+      </div>
+    </div>
+    <div class="card no-print" id="billPlaceholder">
+      <p class="muted">Fill in the order details on the left and click "Create Job Card" to generate a bill preview here.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let categories = [];
+let currentCategory = null; // full category object incl. attributes/extras/skus
+
+function apiBase() { return $('apiBase').value.replace(/\/$/, ''); }
+
+async function api(path, options) {
+  const res = await fetch(apiBase() + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || `Request failed (${res.status})`);
+  }
+  return res.json();
+}
+
+async function checkConnection() {
+  try {
+    await api('/');
+    $('apiStatus').textContent = 'Connected to ' + apiBase();
+    $('apiStatus').style.color = '#1a7f37';
+    return true;
+  } catch (e) {
+    $('apiStatus').textContent = 'Cannot reach API at ' + apiBase() + ' — is `python main.py` running?';
+    $('apiStatus').style.color = '#b3261e';
+    return false;
+  }
+}
+
+async function loadCategories() {
+  categories = await api('/catalog/categories');
+  const sel = $('categorySelect');
+  sel.innerHTML = categories.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
+  await onCategoryChange();
+}
+
+async function onCategoryChange() {
+  const code = $('categorySelect').value;
+  const meta = categories.find(c => c.code === code);
+  if (!meta) return;
+
+  const [attributes, extras] = await Promise.all([
+    api(`/catalog/categories/${code}/attributes`),
+    api(`/catalog/categories/${code}/extras`),
+  ]);
+
+  currentCategory = { ...meta, attributes, extras };
+
+  if (meta.pricing_mode === 'sku') {
+    $('skuFields').style.display = '';
+    $('matrixFields').style.display = 'none';
+    const skus = await api(`/catalog/categories/${code}/skus`);
+    currentCategory.skus = skus;
+    $('skuSelect').innerHTML = skus.map(s => `<option value="${s.sku_code}">${s.name} (${s.sku_code}) — Rs.${s.price}</option>`).join('');
+  } else {
+    $('skuFields').style.display = 'none';
+    $('matrixFields').style.display = '';
+    $('attributeFields').innerHTML = attributes.map(attr => `
+      <label>${attr.name}</label>
+      <select data-attr-code="${attr.code}">
+        ${attr.options.map(o => `<option value="${o.value}">${o.value}</option>`).join('')}
+      </select>
+    `).join('');
+  }
+
+  $('extraFields').innerHTML = extras.length
+    ? '<label>Extra work / add-ons</label>' + extras.map(e => `
+        <div class="checkbox-row">
+          <input type="checkbox" value="${e.code}" id="extra_${e.code}">
+          <label for="extra_${e.code}" style="margin:0;">${e.name} (${e.charge_type}, Rs.${e.amount}${e.minimum_amount ? ', min Rs.' + e.minimum_amount : ''})</label>
+        </div>`).join('')
+    : '';
+
+  $('priceBox').innerHTML = '';
+  $('errorBox').textContent = '';
+}
+
+function collectSelection() {
+  const code = $('categorySelect').value;
+  const quantity = parseInt($('quantity').value, 10) || 0;
+  let selected_options = {};
+  if (currentCategory.pricing_mode === 'sku') {
+    selected_options = { SKU: $('skuSelect').value };
+  } else {
+    document.querySelectorAll('#attributeFields select').forEach(sel => {
+      selected_options[sel.dataset.attrCode] = sel.value;
+    });
+  }
+  const extra_codes = Array.from(document.querySelectorAll('#extraFields input[type=checkbox]:checked')).map(c => c.value);
+  return { category_code: code, quantity, selected_options, extra_codes };
+}
+
+function renderPriceBox(quote) {
+  const extrasHtml = quote.extras.map(e => `<div class="price-line"><span>${e.name}</span><span>Rs. ${Number(e.amount).toFixed(2)}</span></div>`).join('');
+  $('priceBox').innerHTML = `
+    <div class="price-line"><span>Slab</span><span>${quote.slab_label}</span></div>
+    <div class="price-line"><span>Base rate / unit</span><span>Rs. ${Number(quote.base_rate_per_unit).toFixed(2)}</span></div>
+    <div class="price-line"><span>Subtotal (${quote.quantity} nos)</span><span>Rs. ${Number(quote.subtotal).toFixed(2)}</span></div>
+    ${extrasHtml}
+    <div class="price-line price-total"><span>Total</span><span>Rs. ${Number(quote.total).toFixed(2)}</span></div>
+  `;
+}
+
+async function getLivePrice() {
+  $('errorBox').textContent = '';
+  try {
+    const sel = collectSelection();
+    if (!sel.quantity || sel.quantity <= 0) throw new Error('Enter a valid quantity.');
+    const quote = await api('/quotes/calculate', { method: 'POST', body: JSON.stringify(sel) });
+    renderPriceBox(quote);
+  } catch (e) {
+    $('errorBox').textContent = e.message;
+  }
+}
+
+async function createJobCard() {
+  $('errorBox').textContent = '';
+  try {
+    const sel = collectSelection();
+    if (!$('custName').value.trim()) throw new Error('Customer name is required.');
+    if (!sel.quantity || sel.quantity <= 0) throw new Error('Enter a valid quantity.');
+
+    const payload = {
+      ...sel,
+      order_taken_by: $('orderTakenBy').value || null,
+      party: {
+        name: $('custName').value,
+        mobile: $('custMobile').value || null,
+        alt_mobile: $('custAltMobile').value || null,
+        address: $('custAddress').value || null,
+      },
+    };
+    const job = await api('/jobs', { method: 'POST', body: JSON.stringify(payload) });
+    renderPriceBox(job.price_breakdown);
+    renderBill(job);
+    await loadJobs();
+  } catch (e) {
+    $('errorBox').textContent = e.message;
+  }
+}
+
+function renderBill(job) {
+  $('bill').classList.add('visible');
+  $('billPlaceholder').style.display = 'none';
+  $('billJobNumber').textContent = job.job_number;
+  $('billDate').textContent = new Date(job.created_at || Date.now()).toLocaleString();
+  $('billCustomer').textContent = job.party ? job.party.name : '-';
+  $('billStage').textContent = job.stage;
+
+  const q = job.price_breakdown;
+  let rows = `<tr><td>${job.category_code} &mdash; ${JSON.stringify(job.selected_options)}</td><td>${job.quantity}</td><td>Rs. ${Number(q.base_rate_per_unit).toFixed(2)}</td><td>Rs. ${Number(q.subtotal).toFixed(2)}</td></tr>`;
+  q.extras.forEach(e => {
+    rows += `<tr><td>${e.name}</td><td>-</td><td>-</td><td>Rs. ${Number(e.amount).toFixed(2)}</td></tr>`;
+  });
+  $('billLineItems').innerHTML = rows;
+  $('billTotal').textContent = 'Rs. ' + Number(job.computed_total).toFixed(2);
+}
+
+async function loadJobs() {
+  const jobs = await api('/jobs');
+  if (!jobs.length) {
+    $('jobsTableBody').innerHTML = '<tr><td colspan="7" class="muted">No jobs yet.</td></tr>';
+    return;
+  }
+  $('jobsTableBody').innerHTML = jobs.map(j => `
+    <tr>
+      <td>${j.job_number}</td>
+      <td>${j.party ? j.party.name : '-'}</td>
+      <td>${j.category_code}</td>
+      <td>${j.quantity}</td>
+      <td>Rs. ${Number(j.computed_total || 0).toFixed(2)}</td>
+      <td><span class="badge">${j.stage}</span></td>
+      <td><button class="btn-ghost" onclick='reopenBill(${JSON.stringify(j).replace(/'/g, "&apos;")})'>View</button></td>
+    </tr>
+  `).join('');
+}
+
+function reopenBill(job) {
+  // job from /jobs list has no price_breakdown; reconstruct a minimal one from computed_total
+  job.price_breakdown = job.price_breakdown || {
+    base_rate_per_unit: 0, subtotal: job.computed_total, extras: [],
+  };
+  renderBill(job);
+}
+window.reopenBill = reopenBill;
+
+async function init() {
+  const ok = await checkConnection();
+  if (!ok) return;
+  await loadCategories();
+  await loadJobs();
+  $('categorySelect').addEventListener('change', onCategoryChange);
+  $('btnPreview').addEventListener('click', getLivePrice);
+  $('btnCreateJob').addEventListener('click', createJobCard);
+  $('apiBase').addEventListener('change', checkConnection);
+}
+
+init();
+</script>
+
+</body>
+</html>
