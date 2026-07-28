@@ -1,20 +1,186 @@
-import { Box, Typography, Paper } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import {
+  Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
+  Button, IconButton, TextField, Dialog, DialogTitle, DialogContent, DialogActions,
+  Stack, CircularProgress,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
+import { customersApi } from '../api/customersApi';
+import type { Customer, CustomerInput } from '../types/customers';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function Customers() {
-  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [search, setSearch] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<Customer | null>(null);
+  const [deleting, setDeleting] = useState<Customer | null>(null);
+
+  const listQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
+  const searchQuery = useQuery({
+    queryKey: ['customers', 'search', search],
+    queryFn: () => customersApi.search(search),
+    enabled: search.length > 0,
+  });
+
+  const rows = search.length > 0 ? searchQuery.data ?? [] : listQuery.data ?? [];
+  const loading = search.length > 0 ? searchQuery.isFetching : listQuery.isLoading;
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<CustomerInput>();
+
+  const saveMutation = useMutation({
+    mutationFn: (data: CustomerInput) =>
+      editing ? customersApi.update(editing.id, data) : customersApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      setDialogOpen(false);
+      setEditing(null);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => customersApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      setDeleting(null);
+    },
+  });
+
+  const openCreate = () => {
+    setEditing(null);
+    reset({ name: '', phone: '', email: '', address: '', gstin: '', notes: '' });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (customer: Customer) => {
+    setEditing(customer);
+    reset({
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email ?? '',
+      address: customer.address ?? '',
+      gstin: customer.gstin ?? '',
+      notes: customer.notes ?? '',
+    });
+    setDialogOpen(true);
+  };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f5f5', p: 3 }}>
-      <Typography variant="h4" fontWeight="bold" mb={2}>
-        Customers
-      </Typography>
-      <Typography mb={4}>
-        Welcome back, {user?.name}. This page will display your customer records.
-      </Typography>
-      <Paper sx={{ p: 3, borderRadius: 2 }}>
-        <Typography color="text.secondary">Customer list will appear here once data is connected.</Typography>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          Customers
+        </Typography>
+        <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={openCreate}>
+          Add Customer
+        </Button>
+      </Box>
+
+      <TextField
+        placeholder="Search by name or phone..."
+        size="small"
+        fullWidth
+        sx={{ mb: 2, bgcolor: 'white' }}
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        slotProps={{ input: { startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} /> } }}
+      />
+
+      <Paper sx={{ borderRadius: 2 }}>
+        {loading ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Phone</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>GSTIN</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((customer) => (
+                <TableRow key={customer.id}>
+                  <TableCell>{customer.name}</TableCell>
+                  <TableCell>{customer.phone}</TableCell>
+                  <TableCell>{customer.email || '-'}</TableCell>
+                  <TableCell>{customer.gstin || '-'}</TableCell>
+                  <TableCell align="right">
+                    <IconButton size="small" onClick={() => openEdit(customer)}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => setDeleting(customer)}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {rows.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                    No customers yet.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </Paper>
+
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+        <form onSubmit={handleSubmit((data) => saveMutation.mutate(data))}>
+          <DialogTitle>{editing ? 'Edit Customer' : 'Add Customer'}</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ mt: 1 }}>
+              <TextField
+                label="Name"
+                required
+                fullWidth
+                autoFocus
+                error={Boolean(errors.name)}
+                {...register('name', { required: true })}
+              />
+              <TextField
+                label="Phone"
+                required
+                fullWidth
+                error={Boolean(errors.phone)}
+                {...register('phone', { required: true })}
+              />
+              <TextField label="Email" fullWidth {...register('email')} />
+              <TextField label="Address" fullWidth {...register('address')} />
+              <TextField label="GSTIN" fullWidth {...register('gstin')} />
+              <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDialogOpen(false)} disabled={saveMutation.isPending}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained" disabled={saveMutation.isPending}>
+              Save
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        title="Delete Customer"
+        message={`Are you sure you want to delete "${deleting?.name}"? This cannot be undone.`}
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+        onCancel={() => setDeleting(null)}
+      />
     </Box>
   );
 }

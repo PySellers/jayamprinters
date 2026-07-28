@@ -5,6 +5,8 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.security import get_current_user
+from app.models.user import User
 from app.schemas.auth import AuthResponse, UserRead
 from app.services.auth_service import authenticate_user, create_access_token
 
@@ -15,9 +17,6 @@ class LoginRequest(BaseModel):
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-from app.core.database import get_db
 
 
 @router.post("/login", response_model=AuthResponse)
@@ -37,5 +36,5 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserRead)
-async def read_users_me(current_user: UserRead = Depends(lambda: None)):
+async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user

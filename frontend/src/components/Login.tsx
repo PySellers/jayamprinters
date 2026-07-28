@@ -29,7 +29,9 @@ export default function Login() {
       await login(email, password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed');
+      const detail = err.response?.data?.detail;
+      const message = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail.map((d: any) => d.msg).join(', ') : 'Login failed';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -48,7 +50,7 @@ export default function Login() {
       <Paper elevation={10} sx={{ p: 4, width: 380, borderRadius: 3 }}>
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <PrintIcon sx={{ fontSize: 50, color: '#1a237e' }} />
-          <Typography variant="h5" fontWeight="bold" color="#1a237e">
+          <Typography variant="h5" color="#1a237e" sx={{ fontWeight: 'bold' }}>
             Sri Jayam Printers
           </Typography>
           <Typography variant="body2" color="text.secondary">

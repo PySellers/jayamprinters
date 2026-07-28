@@ -1,0 +1,17 @@
+import api from '../utils/api';
+import type { JobCard, JobCardCreateInput, JobCardUpdateInput } from '../types/jobCards';
+import type { JobCardStatus } from '../types/common';
+
+export const jobCardsApi = {
+  list: async (): Promise<JobCard[]> => (await api.get('/job-cards/')).data,
+  get: async (id: number): Promise<JobCard> => (await api.get(`/job-cards/${id}`)).data,
+  create: async (data: JobCardCreateInput): Promise<JobCard> =>
+    (await api.post('/job-cards/', data)).data,
+  update: async (id: number, data: JobCardUpdateInput): Promise<JobCard> =>
+    (await api.put(`/job-cards/${id}`, data)).data,
+  updateStatus: async (id: number, status: JobCardStatus): Promise<JobCard> =>
+    (await api.patch(`/job-cards/${id}/status`, { status })).data,
+  remove: async (id: number): Promise<void> => {
+    await api.delete(`/job-cards/${id}`);
+  },
+};

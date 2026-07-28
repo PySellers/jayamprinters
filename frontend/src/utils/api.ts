@@ -16,4 +16,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Auto-logout on an expired/invalid token
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export function getErrorMessage(err: any, fallback: string): string {
+  const detail = err?.response?.data?.detail;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) return detail.map((d: any) => d.msg ?? JSON.stringify(d)).join(', ');
+  return fallback;
+}
+
 export default api;
