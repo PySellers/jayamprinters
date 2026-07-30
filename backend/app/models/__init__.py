@@ -13,6 +13,7 @@ from .quotation import (
     QuotationItemExtraCharge,
 )
 from .job_card import JobCard
+from .job_card_comment import JobCardComment
 from .invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment
 
 __all__ = [
@@ -34,6 +35,7 @@ __all__ = [
     "QuotationItemAttributeOption",
     "QuotationItemExtraCharge",
     "JobCard",
+    "JobCardComment",
     "Invoice",
     "InvoiceItem",
     "InvoiceItemAttributeOption",

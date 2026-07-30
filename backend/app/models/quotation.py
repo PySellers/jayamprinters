@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Date, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -23,6 +23,8 @@ class Quotation(Base):
     tax_amount = Column(Float, default=0.0)
     grand_total = Column(Float, default=0.0)
     notes = Column(String, nullable=True)
+    delivery_date = Column(Date, nullable=True)
+    delivery_time = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -41,6 +43,7 @@ class QuotationItem(Base):
     area_sqft = Column(Float, nullable=True)
     unit_price = Column(Float)
     total_price = Column(Float)
+    spec_notes = Column(String, nullable=True)
 
     quotation = relationship("Quotation", back_populates="items")
     product = relationship("Product")

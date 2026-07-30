@@ -4,7 +4,11 @@ from typing import List
 
 from app.core.database import get_db
 from app.models.job_card import JobCard
-from app.schemas.job_card import JobCardCreate, JobCardUpdate, JobCardOut, JobCardStatusUpdate
+from app.models.job_card_comment import JobCardComment
+from app.schemas.job_card import (
+    JobCardCreate, JobCardUpdate, JobCardOut, JobCardStatusUpdate,
+    JobCardCommentCreate, JobCardCommentOut,
+)
 from app.services.job_card_service import generate_job_number
 
 router = APIRouter(prefix="/job-cards", tags=["job-cards"])
@@ -63,3 +67,28 @@ def delete_job_card(job_card_id: int, db: Session = Depends(get_db)):
     db.delete(job_card)
     db.commit()
     return None
+
+
+@router.get("/{job_card_id}/comments", response_model=List[JobCardCommentOut])
+def get_job_card_comments(job_card_id: int, db: Session = Depends(get_db)):
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    return (
+        db.query(JobCardComment)
+        .filter(JobCardComment.job_card_id == job_card_id)
+        .order_by(JobCardComment.created_at.asc())
+        .all()
+    )
+
+
+@router.post("/{job_card_id}/comments", response_model=JobCardCommentOut, status_code=status.HTTP_201_CREATED)
+def create_job_card_comment(job_card_id: int, data: JobCardCommentCreate, db: Session = Depends(get_db)):
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    comment = JobCardComment(job_card_id=job_card_id, **data.model_dump())
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return comment

@@ -5,6 +5,8 @@ import { customersApi } from '../api/customersApi';
 import { quotationsApi } from '../api/quotationsApi';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { invoicesApi } from '../api/invoicesApi';
+import QuickOrderForm from '../components/dashboard/QuickOrderForm';
+import LiveJobStatusBoard from '../components/dashboard/LiveJobStatusBoard';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -26,28 +28,39 @@ export default function Dashboard() {
       <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3 }}>
         Overview
       </Typography>
+
       <Grid container spacing={3}>
-        {cards.map((card) => (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={card.label}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 2,
-                borderTop: `4px solid ${card.color}`,
-                cursor: 'pointer',
-                '&:hover': { boxShadow: 4 },
-              }}
-              onClick={() => navigate(card.path)}
-            >
-              <Typography color="text.secondary" variant="body2">
-                {card.label}
-              </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 'bold' }} color={card.color}>
-                {card.value}
-              </Typography>
-            </Paper>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <QuickOrderForm />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            {cards.map((card) => (
+              <Grid size={{ xs: 12, sm: 6 }} key={card.label}>
+                <Paper
+                  sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    borderTop: `4px solid ${card.color}`,
+                    cursor: 'pointer',
+                    '&:hover': { boxShadow: 4 },
+                  }}
+                  onClick={() => navigate(card.path)}
+                >
+                  <Typography color="text.secondary" variant="body2">
+                    {card.label}
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 'bold' }} color={card.color}>
+                    {card.value}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
           </Grid>
-        ))}
+
+          <LiveJobStatusBoard />
+        </Grid>
       </Grid>
     </Box>
   );

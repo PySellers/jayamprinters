@@ -25,6 +25,8 @@ def convert_quotation_to_job_cards(db: Session, quotation_id: int) -> List[JobCa
             quotation_item_id=item.id,
             customer_id=quotation.customer_id,
             product_id=item.product_id,
+            notes=item.spec_notes,
+            delivery_date=quotation.delivery_date,
         )
         db.add(job_card)
         db.flush()

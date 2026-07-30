@@ -12,6 +12,7 @@ class InvoiceItemOut(BaseModel):
     area_sqft: Optional[float]
     unit_price: float
     total_price: float
+    spec_notes: Optional[str] = None
     selected_options: List[SelectedOptionOut] = []
 
     class Config:

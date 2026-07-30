@@ -4,9 +4,10 @@ import { useForm, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, Chip, CircularProgress, Dialog, DialogTitle, DialogContent,
-  DialogActions, Stack, TextField, MenuItem,
+  DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import SendIcon from '@mui/icons-material/Send';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
@@ -40,6 +41,7 @@ const PRIORITY_COLORS: Record<string, 'default' | 'info' | 'warning' | 'error'> 
 export default function JobCards() {
   const queryClient = useQueryClient();
   const [assigning, setAssigning] = useState<JobCard | null>(null);
+  const [commentText, setCommentText] = useState('');
 
   const jobCardsQuery = useQuery({ queryKey: ['job-cards'], queryFn: jobCardsApi.list });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
@@ -69,6 +71,7 @@ export default function JobCards() {
 
   const openAssign = (jobCard: JobCard) => {
     setAssigning(jobCard);
+    setCommentText('');
     reset({
       machine_id: jobCard.machine_id,
       designer_id: jobCard.designer_id,
@@ -78,6 +81,20 @@ export default function JobCards() {
       notes: jobCard.notes ?? '',
     });
   };
+
+  const commentsQuery = useQuery({
+    queryKey: ['job-card-comments', assigning?.id],
+    queryFn: () => jobCardsApi.listComments(assigning!.id),
+    enabled: Boolean(assigning),
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: (text: string) => jobCardsApi.addComment(assigning!.id, { text }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job-card-comments', assigning?.id] });
+      setCommentText('');
+    },
+  });
 
   return (
     <Box sx={{ p: 3 }}>
@@ -211,6 +228,49 @@ export default function JobCards() {
                 ))}
               </TextField>
               <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
+
+              <Divider />
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                Update Log
+              </Typography>
+              {commentsQuery.isLoading ? (
+                <Box sx={{ textAlign: 'center', py: 2 }}>
+                  <CircularProgress size={20} />
+                </Box>
+              ) : (
+                <List dense sx={{ maxHeight: 200, overflowY: 'auto', bgcolor: 'action.hover', borderRadius: 1 }}>
+                  {(commentsQuery.data ?? []).map((comment) => (
+                    <ListItem key={comment.id}>
+                      <ListItemText
+                        primary={comment.text}
+                        secondary={new Date(comment.created_at).toLocaleString()}
+                      />
+                    </ListItem>
+                  ))}
+                  {(commentsQuery.data ?? []).length === 0 && (
+                    <ListItem>
+                      <ListItemText secondary="No updates logged yet." />
+                    </ListItem>
+                  )}
+                </List>
+              )}
+              <Stack direction="row" spacing={1}>
+                <TextField
+                  label="Add update (e.g. waiting on spirals for binding)"
+                  fullWidth
+                  size="small"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                />
+                <Button
+                  variant="outlined"
+                  startIcon={<SendIcon />}
+                  disabled={!commentText.trim() || addCommentMutation.isPending}
+                  onClick={() => addCommentMutation.mutate(commentText.trim())}
+                >
+                  Add
+                </Button>
+              </Stack>
             </Stack>
           </DialogContent>
           <DialogActions>

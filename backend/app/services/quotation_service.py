@@ -14,6 +14,8 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
         quotation_number=generate_quotation_number(db),
         customer_id=payload.customer_id,
         notes=payload.notes,
+        delivery_date=payload.delivery_date,
+        delivery_time=payload.delivery_time,
         status=QuotationStatus.draft,
     )
     db.add(quotation)
@@ -37,6 +39,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
             area_sqft=item.area_sqft,
             unit_price=unit_price,
             total_price=unit_price * item.quantity,
+            spec_notes=item.spec_notes,
         )
         db.add(db_item)
         db.flush()

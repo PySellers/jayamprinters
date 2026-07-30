@@ -45,6 +45,7 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
             area_sqft=item.area_sqft,
             unit_price=item.unit_price,
             total_price=item.total_price,
+            spec_notes=item.spec_notes,
         )
         db.add(invoice_item)
         db.flush()

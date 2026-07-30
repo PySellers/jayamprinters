@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from app.core.database import get_db
 from app.models.price_matrix import PriceMatrixCell, PriceMatrixCellOption
-from app.schemas.price_matrix import PriceMatrixCellCreate, PriceMatrixCellUpdate, PriceMatrixCellOut
+from app.schemas.price_matrix import PriceMatrixCellCreate, PriceMatrixCellUpdate, PriceMatrixCellOut, PriceMatrixCellBulkUpsert
 
 router = APIRouter(prefix="/price-matrix-cells", tags=["price-matrix"])
 
@@ -61,6 +61,41 @@ def create_price_matrix_cell(data: PriceMatrixCellCreate, db: Session = Depends(
     db.commit()
     db.refresh(cell)
     return cell
+
+
+@router.post("/bulk", response_model=List[PriceMatrixCellOut])
+def bulk_upsert_price_matrix_cells(data: PriceMatrixCellBulkUpsert, db: Session = Depends(get_db)):
+    """Create-or-update many cells in one request, for the bulk price-entry grid.
+
+    Each item is matched to an existing active cell by (product_id, quantity_slab_id,
+    exact option set); if found its unit_price is updated, otherwise a new cell is created.
+    """
+    results = []
+    for item in data.cells:
+        option_set = {(opt.attribute_id, opt.attribute_option_id) for opt in item.options}
+        existing = _find_duplicate(db, item.product_id, item.quantity_slab_id, option_set)
+        if existing:
+            existing.unit_price = item.unit_price
+            existing.is_active = item.is_active
+            db.flush()
+            results.append(existing)
+        else:
+            cell = PriceMatrixCell(
+                product_id=item.product_id,
+                quantity_slab_id=item.quantity_slab_id,
+                unit_price=item.unit_price,
+                is_active=item.is_active,
+            )
+            db.add(cell)
+            db.flush()
+            for opt in item.options:
+                db.add(PriceMatrixCellOption(price_matrix_cell_id=cell.id, **opt.model_dump()))
+            db.flush()
+            results.append(cell)
+    db.commit()
+    for cell in results:
+        db.refresh(cell)
+    return results
 
 
 @router.put("/{cell_id}", response_model=PriceMatrixCellOut)

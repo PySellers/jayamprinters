@@ -5,6 +5,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import PriceChangeIcon from '@mui/icons-material/PriceChange';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import TuneIcon from '@mui/icons-material/Tune';
 import { mastersConfig } from '../../api/mastersApi';
 
@@ -22,6 +23,7 @@ export const mainNavItems: NavItem[] = [
   { label: 'Invoices', path: '/invoices', icon: ReceiptIcon },
   { label: 'Products', path: '/products', icon: Inventory2Icon },
   { label: 'Pricing Setup', path: '/pricing-setup', icon: PriceChangeIcon },
+  { label: 'Reports', path: '/reports', icon: BarChartIcon },
 ];
 
 export const mastersNavItems: NavItem[] = [

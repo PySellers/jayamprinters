@@ -30,6 +30,10 @@ class PriceMatrixCellUpdate(BaseModel):
     options: Optional[List[PriceMatrixCellOptionIn]] = None
 
 
+class PriceMatrixCellBulkUpsert(BaseModel):
+    cells: List[PriceMatrixCellCreate]
+
+
 class PriceMatrixCellOut(BaseModel):
     id: int
     product_id: int

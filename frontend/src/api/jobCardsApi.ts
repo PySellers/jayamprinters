@@ -1,5 +1,5 @@
 import api from '../utils/api';
-import type { JobCard, JobCardCreateInput, JobCardUpdateInput } from '../types/jobCards';
+import type { JobCard, JobCardCreateInput, JobCardUpdateInput, JobCardComment, JobCardCommentInput } from '../types/jobCards';
 import type { JobCardStatus } from '../types/common';
 
 export const jobCardsApi = {
@@ -14,4 +14,8 @@ export const jobCardsApi = {
   remove: async (id: number): Promise<void> => {
     await api.delete(`/job-cards/${id}`);
   },
+  listComments: async (id: number): Promise<JobCardComment[]> =>
+    (await api.get(`/job-cards/${id}/comments`)).data,
+  addComment: async (id: number, data: JobCardCommentInput): Promise<JobCardComment> =>
+    (await api.post(`/job-cards/${id}/comments`, data)).data,
 };

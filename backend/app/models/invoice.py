@@ -52,6 +52,7 @@ class InvoiceItem(Base):
     area_sqft = Column(Float, nullable=True)
     unit_price = Column(Float)
     total_price = Column(Float)
+    spec_notes = Column(String, nullable=True)
 
     invoice = relationship("Invoice", back_populates="items")
     selected_options = relationship("InvoiceItemAttributeOption", cascade="all, delete-orphan")

@@ -3,18 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, IconButton, Chip, Stack, CircularProgress, Alert,
+  Button, IconButton, Chip, Stack, CircularProgress, Alert, ToggleButtonGroup, ToggleButton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import GridViewIcon from '@mui/icons-material/GridView';
 import { productsApi, productCategoriesApi } from '../api/productsApi';
 import { priceMatrixApi } from '../api/priceMatrixApi';
 import { attributesApi } from '../api/attributesApi';
 import { quantitySlabsApi } from '../api/quantitySlabsApi';
 import type { PriceMatrixCell, PriceMatrixCellInput } from '../types/priceMatrix';
 import PriceMatrixCellFormDialog from '../components/priceMatrix/PriceMatrixCellFormDialog';
+import BulkPriceGrid from '../components/priceMatrix/BulkPriceGrid';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function PriceMatrix() {
@@ -26,6 +29,7 @@ export default function PriceMatrix() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<PriceMatrixCell | null>(null);
   const [deleting, setDeleting] = useState<PriceMatrixCell | null>(null);
+  const [view, setView] = useState<'list' | 'grid'>('list');
 
   const productQuery = useQuery({ queryKey: ['product', id], queryFn: () => productsApi.get(id) });
   const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
@@ -60,6 +64,13 @@ export default function PriceMatrix() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['price-matrix-cells', id] });
       setDeleting(null);
+    },
+  });
+
+  const bulkSaveMutation = useMutation({
+    mutationFn: (cells: PriceMatrixCellInput[]) => priceMatrixApi.bulkUpsert(cells),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['price-matrix-cells', id] });
     },
   });
 
@@ -109,14 +120,27 @@ export default function PriceMatrix() {
           <Typography color="text.secondary">Category: {categoryName}</Typography>
         </Box>
         {product.pricing_type !== 'fixed' && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            sx={{ bgcolor: '#1a237e' }}
-            onClick={() => { setEditing(null); setDialogOpen(true); }}
-          >
-            Add Cell
-          </Button>
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+            <ToggleButtonGroup
+              size="small"
+              value={view}
+              exclusive
+              onChange={(_, v) => v && setView(v)}
+            >
+              <ToggleButton value="list"><ViewListIcon fontSize="small" sx={{ mr: 0.5 }} /> List</ToggleButton>
+              <ToggleButton value="grid"><GridViewIcon fontSize="small" sx={{ mr: 0.5 }} /> Bulk Grid</ToggleButton>
+            </ToggleButtonGroup>
+            {view === 'list' && (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                sx={{ bgcolor: '#1a237e' }}
+                onClick={() => { setEditing(null); setDialogOpen(true); }}
+              >
+                Add Cell
+              </Button>
+            )}
+          </Stack>
         )}
       </Box>
 
@@ -124,6 +148,21 @@ export default function PriceMatrix() {
         <Alert severity="info">
           This product uses a fixed price (₹{product.fixed_price?.toFixed(2)}) and doesn't use a price matrix.
         </Alert>
+      ) : view === 'grid' ? (
+        cellsQuery.isLoading || attributesQuery.isLoading || slabsQuery.isLoading ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <BulkPriceGrid
+            productId={id}
+            attributes={attributesQuery.data ?? []}
+            slabs={slabsQuery.data ?? []}
+            cells={cellsQuery.data ?? []}
+            onSaveAll={(cells) => bulkSaveMutation.mutate(cells)}
+            saving={bulkSaveMutation.isPending}
+          />
+        )
       ) : (
         <Paper sx={{ borderRadius: 2 }}>
           {cellsQuery.isLoading ? (

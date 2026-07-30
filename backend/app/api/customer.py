@@ -24,9 +24,10 @@ def get_customer(customer_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=CustomerResponse, status_code=status.HTTP_201_CREATED)
 def create_customer(data: CustomerCreate, db: Session = Depends(get_db)):
-    existing = db.query(Customer).filter(Customer.phone == data.phone).first()
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Phone number already exists")
+    if data.phone:
+        existing = db.query(Customer).filter(Customer.phone == data.phone).first()
+        if existing:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Phone number already exists")
     customer = Customer(**data.model_dump())
     db.add(customer)
     db.commit()

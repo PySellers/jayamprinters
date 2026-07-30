@@ -36,3 +36,16 @@ export interface JobCardUpdateInput {
   priority?: JobCardPriority;
   notes?: string | null;
 }
+
+export interface JobCardComment {
+  id: number;
+  job_card_id: number;
+  text: string;
+  created_by?: number | null;
+  created_at: string;
+}
+
+export interface JobCardCommentInput {
+  text: string;
+  created_by?: number | null;
+}

@@ -12,4 +12,6 @@ export const priceMatrixApi = {
   remove: async (id: number): Promise<void> => {
     await api.delete(`/price-matrix-cells/${id}`);
   },
+  bulkUpsert: async (cells: PriceMatrixCellInput[]): Promise<PriceMatrixCell[]> =>
+    (await api.post('/price-matrix-cells/bulk', { cells })).data,
 };

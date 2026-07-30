@@ -1,7 +1,7 @@
 export interface Customer {
   id: number;
   name: string;
-  phone: string;
+  phone?: string | null;
   email?: string | null;
   address?: string | null;
   gstin?: string | null;
@@ -11,7 +11,7 @@ export interface Customer {
 
 export interface CustomerInput {
   name: string;
-  phone: string;
+  phone?: string | null;
   email?: string | null;
   address?: string | null;
   gstin?: string | null;

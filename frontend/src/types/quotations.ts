@@ -25,6 +25,8 @@ export interface Quotation {
   tax_amount: number;
   grand_total: number;
   notes?: string | null;
+  delivery_date?: string | null;
+  delivery_time?: string | null;
   created_at: string;
   items: QuotationItem[];
 }
@@ -41,5 +43,7 @@ export interface QuotationCreateInput {
   customer_id: number;
   tax_id?: number | null;
   notes?: string | null;
+  delivery_date?: string | null;
+  delivery_time?: string | null;
   items: QuotationItemInput[];
 }

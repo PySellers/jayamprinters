@@ -37,3 +37,19 @@ class JobCardOut(JobCardCreate):
 
 class JobCardStatusUpdate(BaseModel):
     status: JobCardStatus
+
+
+class JobCardCommentCreate(BaseModel):
+    text: str
+    created_by: Optional[int] = None
+
+
+class JobCardCommentOut(BaseModel):
+    id: int
+    job_card_id: int
+    text: str
+    created_by: Optional[int]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

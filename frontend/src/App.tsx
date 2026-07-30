@@ -15,6 +15,7 @@ import Products from './pages/Products';
 import Taxes from './pages/Taxes';
 import PricingSetup from './pages/PricingSetup';
 import PriceMatrix from './pages/PriceMatrix';
+import Reports from './pages/Reports';
 import MasterTable from './components/masters/MasterTable';
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="products" element={<Products />} />
             <Route path="products/:productId/price-matrix" element={<PriceMatrix />} />
             <Route path="pricing-setup" element={<PricingSetup />} />
+            <Route path="reports" element={<Reports />} />
             <Route path="taxes" element={<Taxes />} />
             <Route path="masters/:slug" element={<MasterTable />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

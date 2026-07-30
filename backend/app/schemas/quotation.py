@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date
 from app.models.quotation import QuotationStatus
 
 class SelectedOptionIn(BaseModel):
@@ -17,6 +17,7 @@ class QuotationItemCreate(BaseModel):
     area_sqft: Optional[float] = None
     selected_options: List[SelectedOptionIn] = []
     extra_charge_ids: List[int] = []
+    spec_notes: Optional[str] = None
 
 class QuotationItemOut(BaseModel):
     id: int
@@ -25,6 +26,7 @@ class QuotationItemOut(BaseModel):
     area_sqft: Optional[float]
     unit_price: float
     total_price: float
+    spec_notes: Optional[str] = None
     selected_options: List[SelectedOptionOut] = []
 
     class Config:
@@ -34,6 +36,8 @@ class QuotationCreate(BaseModel):
     customer_id: int
     tax_id: Optional[int] = None
     notes: Optional[str] = None
+    delivery_date: Optional[date] = None
+    delivery_time: Optional[str] = None
     items: List[QuotationItemCreate]
 
 class QuotationOut(BaseModel):
@@ -46,6 +50,8 @@ class QuotationOut(BaseModel):
     tax_amount: float
     grand_total: float
     notes: Optional[str]
+    delivery_date: Optional[date] = None
+    delivery_time: Optional[str] = None
     created_at: datetime
     items: List[QuotationItemOut]
 

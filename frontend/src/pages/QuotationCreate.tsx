@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, useFieldArray, Controller, FormProvider } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { quotationsApi } from '../api/quotationsApi';
+import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
@@ -23,18 +24,41 @@ const emptyItem: QuotationItemInput = {
 export default function QuotationCreate() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+
+  const isQuick = searchParams.get('quick') === '1';
+  const initialCustomerId = searchParams.get('customerId');
+  const initialCustomerName = searchParams.get('customerName');
+  const initialProductId = searchParams.get('productId');
+  const initialDeliveryDate = searchParams.get('deliveryDate');
+  const initialDeliveryTime = searchParams.get('deliveryTime');
 
   const methods = useForm<QuotationCreateInput>({
-    defaultValues: { customer_id: undefined, tax_id: null, notes: '', items: [emptyItem] },
+    defaultValues: {
+      customer_id: initialCustomerId ? Number(initialCustomerId) : undefined,
+      tax_id: null,
+      notes: '',
+      delivery_date: initialDeliveryDate || undefined,
+      delivery_time: initialDeliveryTime || undefined,
+      items: [initialProductId ? { ...emptyItem, product_id: Number(initialProductId) } : emptyItem],
+    },
   });
   const { control, register, handleSubmit } = methods;
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
 
   const createMutation = useMutation({
     mutationFn: (data: QuotationCreateInput) => quotationsApi.create(data),
-    onSuccess: (quotation) => {
+    onSuccess: async (quotation) => {
       queryClient.invalidateQueries({ queryKey: ['quotations'] });
-      navigate(`/quotations/${quotation.id}`);
+      if (isQuick) {
+        await quotationsApi.convert(quotation.id);
+        const invoice = await invoicesApi.createFromQuotation(quotation.id);
+        queryClient.invalidateQueries({ queryKey: ['job-cards'] });
+        queryClient.invalidateQueries({ queryKey: ['invoices'] });
+        navigate(`/invoices/${invoice.id}`);
+      } else {
+        navigate(`/quotations/${quotation.id}`);
+      }
     },
   });
 
@@ -48,8 +72,13 @@ export default function QuotationCreate() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-        New Quotation
+        {isQuick ? 'Complete Order' : 'New Quotation'}
       </Typography>
+      {isQuick && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Fill in the details for this service — submitting will generate the job card and invoice automatically.
+        </Alert>
+      )}
 
       {createMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -62,23 +91,27 @@ export default function QuotationCreate() {
           <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="customer_id"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <EntitySelect
-                      label="Customer"
-                      required
-                      mode="search"
-                      queryKey="customer-picker"
-                      searchOptions={customersApi.search}
-                      getOptionLabel={(c) => `${c.name} (${c.phone})`}
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  )}
-                />
+                {isQuick && initialCustomerName ? (
+                  <TextField label="Customer" value={initialCustomerName} fullWidth size="small" disabled />
+                ) : (
+                  <Controller
+                    name="customer_id"
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field }) => (
+                      <EntitySelect
+                        label="Customer"
+                        required
+                        mode="search"
+                        queryKey="customer-picker"
+                        searchOptions={customersApi.search}
+                        getOptionLabel={(c) => `${c.name}${c.phone ? ` (${c.phone})` : ''}`}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                )}
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
@@ -95,6 +128,24 @@ export default function QuotationCreate() {
                       onChange={field.onChange}
                     />
                   )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  label="Delivery Date"
+                  type="date"
+                  fullWidth
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  {...register('delivery_date')}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  label="Delivery Time"
+                  type="time"
+                  fullWidth
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  {...register('delivery_time')}
                 />
               </Grid>
               <Grid size={{ xs: 12 }}>
@@ -127,7 +178,7 @@ export default function QuotationCreate() {
               sx={{ bgcolor: '#1a237e' }}
               disabled={createMutation.isPending}
             >
-              Create Quotation
+              {isQuick ? 'Generate Invoice' : 'Create Quotation'}
             </Button>
             <Button onClick={() => navigate('/quotations')} disabled={createMutation.isPending}>
               Cancel

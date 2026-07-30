@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class CustomerCreate(BaseModel):
     name: str
-    phone: str
+    phone: Optional[str] = None
     email: Optional[str] = None
     address: Optional[str] = None
     gstin: Optional[str] = None
@@ -25,7 +25,7 @@ class CustomerUpdate(BaseModel):
 class CustomerResponse(BaseModel):
     id: int
     name: str
-    phone: str
+    phone: Optional[str]
     email: Optional[str]
     address: Optional[str]
     gstin: Optional[str]

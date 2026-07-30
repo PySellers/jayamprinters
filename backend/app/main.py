@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, customer, quotation, masters, tax, product, job_card, invoice, user
-from app.api import attribute, quantity_slab, price_matrix, extra_charge
+from app.api import attribute, quantity_slab, price_matrix, extra_charge, reports
 from app.core.security import get_current_user
 
 app = FastAPI(
@@ -35,6 +35,7 @@ app.include_router(attribute.router, prefix="/api/v1", dependencies=authenticate
 app.include_router(quantity_slab.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(price_matrix.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(extra_charge.router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(reports.router, prefix="/api/v1", dependencies=authenticated)
 
 @app.get("/")
 def root():
