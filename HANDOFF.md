@@ -194,6 +194,39 @@ just being used to group staff in a picker right now). New migration `373232cd46
   explicitly too, for anyone re-seeding a fresh DB.
 
 ### Still open
-Purchases/Inventory module, real pricing data, mobile/offline visibility, general UI/UX polish, and
-deeper exploratory reporting are all still exactly as described above — none of that was touched
-this round.
+Real pricing data, mobile/offline visibility, general UI/UX polish, and deeper exploratory
+reporting are all still exactly as described above.
+
+## Update — 2026-07-31 (same day, second pass): Purchases/Inventory module
+
+Picked up item 4. Deliberately minimal — no purchase-order/draft/approval workflow, since nobody
+asked for one and it would be pure speculation about a process this shop doesn't have yet.
+
+- **New models**: `Vendor` (mirrors `Customer`'s shape), `InventoryItem` (name/unit/current_stock/
+  reorder_level — raw materials like paper/ink, not the finished-goods `Product` catalog),
+  `StockMovement` (append-only ledger: `purchase_in`/`consumption`/`adjustment`, signed quantity),
+  `Purchase`/`PurchaseItem` (a vendor bill with line items). Migration `d25026cfb851`.
+- **A `Purchase` is received on creation, not on a separate "receive" step** — `create_purchase`
+  (`services/purchase_service.py`) creates the bill *and* a `purchase_in` `StockMovement` per line
+  item, incrementing `InventoryItem.current_stock` immediately. This assumes purchases are recorded
+  after goods physically arrive (counter/accounts logging a delivery), not used to place orders in
+  advance. If the shop actually needs a "goods on order but not yet received" state, that's a
+  bigger change (a status field + a separate receive action) — didn't build it speculatively.
+- Deleting a purchase reverses the stock it added (a negative `adjustment` movement per item) rather
+  than leaving `current_stock` silently wrong — see `delete_purchase`.
+- Manual stock correction (miscount, wastage) is a separate endpoint,
+  `POST /inventory-items/{id}/adjust`, independent of purchases.
+- **RBAC**: reads open to everyone (so production/counter can see stock levels); vendor/purchase
+  mutations and stock adjustments are `accounts`+`admin`; inventory item master data (create/edit/
+  delete the item definitions themselves, as opposed to their stock levels) is `admin`-only.
+- **Frontend**: three new pages — `Vendors.tsx` (plain CRUD), `InventoryItems.tsx` (stock levels,
+  low-stock rows highlighted red when `current_stock <= reorder_level`, an "Adjust Stock" dialog),
+  `Purchases.tsx` (list + a create dialog with dynamic line items, live grand-total preview). All
+  three are nav-gated to `admin`/`accounts` in `navConfig.ts`.
+- Verified end-to-end against the real dev DB before committing: created a vendor, an inventory
+  item, a purchase — confirmed `current_stock` incremented by exactly the purchased quantity, then
+  cleaned up the test rows.
+
+### Still open
+Real pricing data, mobile/offline visibility, general UI/UX polish, and deeper exploratory
+reporting.

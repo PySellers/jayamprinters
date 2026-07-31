@@ -15,6 +15,9 @@ from .quotation import (
 from .job_card import JobCard
 from .job_card_comment import JobCardComment
 from .invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment
+from .vendor import Vendor
+from .inventory import InventoryItem, StockMovement
+from .purchase import Purchase, PurchaseItem
 
 __all__ = [
     "User",
@@ -40,4 +43,9 @@ __all__ = [
     "InvoiceItem",
     "InvoiceItemAttributeOption",
     "Payment",
+    "Vendor",
+    "InventoryItem",
+    "StockMovement",
+    "Purchase",
+    "PurchaseItem",
 ]

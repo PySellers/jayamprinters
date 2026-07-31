@@ -17,6 +17,9 @@ import PricingSetup from './pages/PricingSetup';
 import PriceMatrix from './pages/PriceMatrix';
 import Reports from './pages/Reports';
 import Users from './pages/Users';
+import Vendors from './pages/Vendors';
+import InventoryItems from './pages/InventoryItems';
+import Purchases from './pages/Purchases';
 import MasterTable from './components/masters/MasterTable';
 
 export default function App() {
@@ -88,6 +91,30 @@ export default function App() {
               element={
                 <ProtectedRoute roles={['admin']}>
                   <Users />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="vendors"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts']}>
+                  <Vendors />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="inventory"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts']}>
+                  <InventoryItems />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="purchases"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts']}>
+                  <Purchases />
                 </ProtectedRoute>
               }
             />
