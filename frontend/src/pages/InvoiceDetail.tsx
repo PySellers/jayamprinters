@@ -14,6 +14,7 @@ import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
+import { useAuth } from '../context/AuthContext';
 import type { PaymentInput } from '../types/invoices';
 import type { PaymentMethod } from '../types/common';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -29,6 +30,8 @@ export default function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();
   const invoiceId = Number(id);
   const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  const canManagePayments = hasRole('admin', 'accounts');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(null);
 
@@ -174,7 +177,7 @@ export default function InvoiceDetail() {
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                 Payments
               </Typography>
-              {balance > 0 && (
+              {balance > 0 && canManagePayments && (
                 <Button size="small" startIcon={<AddIcon />} onClick={() => setPaymentDialogOpen(true)}>
                   Record Payment
                 </Button>
@@ -198,9 +201,11 @@ export default function InvoiceDetail() {
                     <TableCell>{p.reference_number || '-'}</TableCell>
                     <TableCell>₹{p.amount.toFixed(2)}</TableCell>
                     <TableCell align="right">
-                      <IconButton size="small" onClick={() => setDeletingPaymentId(p.id)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      {canManagePayments && (
+                        <IconButton size="small" onClick={() => setDeletingPaymentId(p.id)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

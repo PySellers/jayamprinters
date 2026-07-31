@@ -13,6 +13,7 @@ import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
 import { usersApi } from '../api/usersApi';
 import { createMasterApi } from '../api/mastersApi';
+import { useAuth } from '../context/AuthContext';
 import type { JobCard, JobCardUpdateInput } from '../types/jobCards';
 import type { JobCardStatus, JobCardPriority } from '../types/common';
 import StatusMenu from '../components/StatusMenu';
@@ -40,6 +41,8 @@ const PRIORITY_COLORS: Record<string, 'default' | 'info' | 'warning' | 'error'> 
 
 export default function JobCards() {
   const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  const canManageProduction = hasRole('admin', 'production');
   const [assigning, setAssigning] = useState<JobCard | null>(null);
   const [commentText, setCommentText] = useState('');
 
@@ -141,13 +144,16 @@ export default function JobCards() {
                       status={jc.status}
                       allowedStatuses={STATUS_OPTIONS}
                       colorMap={STATUS_COLORS}
+                      disabled={!canManageProduction}
                       onChange={(status) => statusMutation.mutate({ id: jc.id, status: status as JobCardStatus })}
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => openAssign(jc)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
+                    {canManageProduction && (
+                      <IconButton size="small" onClick={() => openAssign(jc)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -192,7 +198,7 @@ export default function JobCards() {
                     mode="list"
                     queryKey="user-picker"
                     fetchOptions={usersApi.list}
-                    getOptionLabel={(o) => o.name}
+                    getOptionLabel={(o) => (o.department ? `${o.name} (${o.department})` : o.name)}
                     value={field.value}
                     onChange={field.onChange}
                   />
@@ -207,7 +213,7 @@ export default function JobCards() {
                     mode="list"
                     queryKey="user-picker"
                     fetchOptions={usersApi.list}
-                    getOptionLabel={(o) => o.name}
+                    getOptionLabel={(o) => (o.department ? `${o.name} (${o.department})` : o.name)}
                     value={field.value}
                     onChange={field.onChange}
                   />

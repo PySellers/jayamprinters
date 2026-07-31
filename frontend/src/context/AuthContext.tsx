@@ -1,16 +1,20 @@
 import { createContext, useContext, useState } from 'react';
 import api from '../utils/api';
+import type { UserRole } from '../types/users';
 
 interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
+  department?: string | null;
 }
 
 interface AuthContextValue {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  hasRole: (...roles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -37,8 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
+  const hasRole = (...roles: UserRole[]) => Boolean(user && roles.includes(user.role));
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, hasRole }}>
       {children}
     </AuthContext.Provider>
   );

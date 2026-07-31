@@ -12,6 +12,7 @@ export interface QuotationItem {
   area_sqft?: number | null;
   unit_price: number;
   total_price: number;
+  spec_notes?: string | null;
   selected_options: SelectedOption[];
 }
 
@@ -37,6 +38,7 @@ export interface QuotationItemInput {
   area_sqft?: number | null;
   selected_options?: SelectedOption[];
   extra_charge_ids?: number[];
+  spec_notes?: string | null;
 }
 
 export interface QuotationCreateInput {

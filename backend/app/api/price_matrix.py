@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.core.database import get_db
+from app.core.security import require_roles
+from app.models.user import UserRole
 from app.models.price_matrix import PriceMatrixCell, PriceMatrixCellOption
 from app.schemas.price_matrix import PriceMatrixCellCreate, PriceMatrixCellUpdate, PriceMatrixCellOut, PriceMatrixCellBulkUpsert
 
@@ -40,7 +42,7 @@ def get_price_matrix_cell(cell_id: int, db: Session = Depends(get_db)):
     return cell
 
 
-@router.post("/", response_model=PriceMatrixCellOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=PriceMatrixCellOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles(UserRole.admin))])
 def create_price_matrix_cell(data: PriceMatrixCellCreate, db: Session = Depends(get_db)):
     option_set = {(opt.attribute_id, opt.attribute_option_id) for opt in data.options}
     if _find_duplicate(db, data.product_id, data.quantity_slab_id, option_set):
@@ -63,7 +65,7 @@ def create_price_matrix_cell(data: PriceMatrixCellCreate, db: Session = Depends(
     return cell
 
 
-@router.post("/bulk", response_model=List[PriceMatrixCellOut])
+@router.post("/bulk", response_model=List[PriceMatrixCellOut], dependencies=[Depends(require_roles(UserRole.admin))])
 def bulk_upsert_price_matrix_cells(data: PriceMatrixCellBulkUpsert, db: Session = Depends(get_db)):
     """Create-or-update many cells in one request, for the bulk price-entry grid.
 
@@ -98,7 +100,7 @@ def bulk_upsert_price_matrix_cells(data: PriceMatrixCellBulkUpsert, db: Session 
     return results
 
 
-@router.put("/{cell_id}", response_model=PriceMatrixCellOut)
+@router.put("/{cell_id}", response_model=PriceMatrixCellOut, dependencies=[Depends(require_roles(UserRole.admin))])
 def update_price_matrix_cell(cell_id: int, data: PriceMatrixCellUpdate, db: Session = Depends(get_db)):
     cell = db.query(PriceMatrixCell).filter(PriceMatrixCell.id == cell_id).first()
     if not cell:
@@ -130,7 +132,7 @@ def update_price_matrix_cell(cell_id: int, data: PriceMatrixCellUpdate, db: Sess
     return cell
 
 
-@router.delete("/{cell_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{cell_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_roles(UserRole.admin))])
 def delete_price_matrix_cell(cell_id: int, db: Session = Depends(get_db)):
     cell = db.query(PriceMatrixCell).filter(PriceMatrixCell.id == cell_id).first()
     if not cell:

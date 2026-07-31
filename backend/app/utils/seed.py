@@ -1,4 +1,5 @@
 from app.core.database import Base, SessionLocal, engine
+from app.models.user import UserRole
 from app.repositories.user_repository import UserRepository
 from app.services.auth_service import get_password_hash
 
@@ -15,7 +16,12 @@ def seed_user():
             return
 
         hashed_password = get_password_hash("Admin@123")
-        repo.create(name="Admin User", email="admin@srijayam.com", hashed_password=hashed_password)
+        repo.create(
+            name="Admin User",
+            email="admin@srijayam.com",
+            hashed_password=hashed_password,
+            role=UserRole.admin,
+        )
         print("Seeded admin user: admin@srijayam.com / Admin@123")
     finally:
         db.close()

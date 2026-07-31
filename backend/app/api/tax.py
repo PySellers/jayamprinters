@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.core.security import require_roles
+from app.models.user import UserRole
 from app.models.masters import Tax
 from app.schemas.masters import TaxCreate, TaxUpdate, TaxOut
 
@@ -30,7 +32,7 @@ def get_tax(tax_id: int, db: Session = Depends(get_db)):
     return tax
 
 
-@router.post("/", response_model=TaxOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=TaxOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles(UserRole.admin))])
 def create_tax(data: TaxCreate, db: Session = Depends(get_db)):
     if data.is_default:
         _unset_other_defaults(db)
@@ -41,7 +43,7 @@ def create_tax(data: TaxCreate, db: Session = Depends(get_db)):
     return tax
 
 
-@router.put("/{tax_id}", response_model=TaxOut)
+@router.put("/{tax_id}", response_model=TaxOut, dependencies=[Depends(require_roles(UserRole.admin))])
 def update_tax(tax_id: int, data: TaxUpdate, db: Session = Depends(get_db)):
     tax = db.query(Tax).filter(Tax.id == tax_id).first()
     if not tax:
@@ -56,7 +58,7 @@ def update_tax(tax_id: int, data: TaxUpdate, db: Session = Depends(get_db)):
     return tax
 
 
-@router.delete("/{tax_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{tax_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_roles(UserRole.admin))])
 def delete_tax(tax_id: int, db: Session = Depends(get_db)):
     tax = db.query(Tax).filter(Tax.id == tax_id).first()
     if not tax:

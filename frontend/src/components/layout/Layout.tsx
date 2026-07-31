@@ -11,7 +11,7 @@ import TuneIcon from '@mui/icons-material/Tune';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useAuth } from '../../context/AuthContext';
-import { mainNavItems, mastersNavItems } from './navConfig';
+import { mainNavItems, mastersNavItems, type NavItem } from './navConfig';
 
 const SIDEBAR_WIDTH = 260;
 
@@ -20,6 +20,10 @@ export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mastersOpen, setMastersOpen] = useState(location.pathname.startsWith('/masters') || location.pathname === '/taxes');
+
+  const visibleFor = (item: NavItem) => !item.roles || (user && item.roles.includes(user.role));
+  const visibleMainNavItems = mainNavItems.filter(visibleFor);
+  const visibleMastersNavItems = mastersNavItems.filter(visibleFor);
 
   const isActive = (path: string) => location.pathname === path;
   const activeLabel =
@@ -51,7 +55,7 @@ export default function Layout() {
         </Box>
 
         <List sx={{ pt: 1, overflowY: 'auto' }}>
-          {mainNavItems.map((item) => (
+          {visibleMainNavItems.map((item) => (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
                 onClick={() => navigate(item.path)}
@@ -71,6 +75,7 @@ export default function Layout() {
             </ListItem>
           ))}
 
+          {visibleMastersNavItems.length > 0 && (
           <ListItem disablePadding>
             <ListItemButton
               onClick={() => setMastersOpen((prev) => !prev)}
@@ -83,9 +88,10 @@ export default function Layout() {
               {mastersOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </ListItemButton>
           </ListItem>
+          )}
           <Collapse in={mastersOpen} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {mastersNavItems.map((item) => (
+              {visibleMastersNavItems.map((item) => (
                 <ListItem key={item.path} disablePadding>
                   <ListItemButton
                     onClick={() => navigate(item.path)}
@@ -113,7 +119,10 @@ export default function Layout() {
             <Typography variant="h6" sx={{ flexGrow: 1 }}>
               {activeLabel}
             </Typography>
-            <Typography sx={{ mr: 2 }}>Welcome, {user?.name}</Typography>
+            <Typography sx={{ mr: 2 }}>
+              Welcome, {user?.name}
+              {user?.role && ` (${user.role})`}
+            </Typography>
             <Button color="inherit" onClick={logout} startIcon={<LogoutIcon />}>
               Logout
             </Button>

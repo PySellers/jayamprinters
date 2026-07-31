@@ -1,5 +1,14 @@
-from sqlalchemy import Boolean, Column, Integer, String
+import enum
+
+from sqlalchemy import Boolean, Column, Enum, Integer, String
 from app.core.database import Base
+
+
+class UserRole(str, enum.Enum):
+    admin = "admin"
+    counter = "counter"
+    production = "production"
+    accounts = "accounts"
 
 
 class User(Base):
@@ -10,3 +19,5 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
+    role = Column(Enum(UserRole), nullable=False, default=UserRole.counter, server_default=UserRole.counter.value)
+    department = Column(String, nullable=True)

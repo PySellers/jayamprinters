@@ -144,3 +144,56 @@ See `README.md` for the full setup (Postgres + FastAPI backend, Vite + React fro
 now depends on `openpyxl` in addition to what's already listed — `pip install -r requirements.txt`
 picks it up. Local admin login for testing: `admin@srijayam.com` / `Admin@123` (seeded via
 `backend/app/utils/seed.py`).
+
+## Update — 2026-07-31: migration fix, spec_notes UI, RBAC
+
+Picked up the next-steps list above (items 2, 3, 5) plus part of item 8 from the client punch list
+(assign-by-department). Real pricing entry (item 1) still needs the client's actual rate data, so
+it's untouched — nobody has real numbers to enter for the other 16 categories yet.
+
+### Fixed the broken `79e5c16ffacc` migration
+It's the root migration (`down_revision = None`) but had an empty `upgrade()`. Turned out `customers`
+was already being created as a side effect of a later migration (`1bab961191b5`), but `users` was
+never created anywhere — a truly empty database would fail as soon as `job_cards` tried to add its
+`designer_id`/`operator_id` foreign keys to a nonexistent table. `upgrade()` now creates `users`
+(not `customers` — that's still `1bab961191b5`'s job, duplicating it would break a fresh DB the
+other way). Verified by running the full chain against a throwaway Postgres schema from empty —
+`alembic check` also confirms models and migrations now match exactly.
+
+### `spec_notes` UI field
+Added the "Paper Color / Custom Notes" free-text field to `QuotationLineItem.tsx`, wired to the
+`spec_notes` column that already existed on the backend. It's intentionally *not* reset when the
+product changes (unlike `selected_options`/`extra_charge_ids`) since it's free text, not tied to a
+category's attribute set.
+
+### RBAC
+Four roles on `User`: `admin`, `counter`, `production`, `accounts` (+ a free-text `department`
+column for filtering/labeling, not a full Department table — that felt like overkill for what's
+just being used to group staff in a picker right now). New migration `373232cd4694`. Enforcement:
+
+- `require_roles(*roles)` in `core/security.py`, used as a route `dependencies=[...]`.
+- **Admin only**: Pricing Setup (attributes/quantity-slabs/extra-charges/price-matrix), Masters,
+  Taxes, Product/Category mutations, User management, job-card/invoice deletion.
+- **Production or admin**: job-card status updates and assignment (machine/designer/operator).
+- **Accounts or admin**: payment recording/deletion, the whole Reports router.
+- Left deliberately **open to every role**: customer/quotation/invoice creation (the counter-driven
+  quick-order flow needs this), job-card comments (anyone should be able to log a production
+  update), all GET endpoints (staff still need to read the catalog/attributes to build a quotation).
+- `POST /users/` and `PUT /users/{id}` (admin-only) are new — there was previously no way to create
+  a second user at all except direct DB/seed-script access. New `/users` frontend page (admin-only
+  nav item) covers this.
+- Frontend: `ProtectedRoute` now takes an optional `roles` prop, nav items in `navConfig.ts` take an
+  optional `roles` array and get filtered in `Layout.tsx`, and a few pages (`JobCards.tsx`,
+  `InvoiceDetail.tsx`, `Products.tsx`) hide role-gated buttons/icons client-side to match what the
+  API will actually allow — but the API-level check is what actually matters, the UI hiding is just
+  to avoid dead-end clicks.
+- The designer/operator pickers on the Job Cards assign dialog now show `Name (Department)` instead
+  of just `Name`, so assignment can be done by department at a glance, per the client ask.
+- The pre-existing `admin@srijayam.com` seed user is promoted to `role='admin'` by the migration
+  itself (everyone else defaults to `counter`); `backend/app/utils/seed.py` now sets `role=admin`
+  explicitly too, for anyone re-seeding a fresh DB.
+
+### Still open
+Purchases/Inventory module, real pricing data, mobile/offline visibility, general UI/UX polish, and
+deeper exploratory reporting are all still exactly as described above — none of that was touched
+this round.

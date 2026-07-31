@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.core.security import require_roles
 from app.models.job_card import JobCard
 from app.models.job_card_comment import JobCardComment
+from app.models.user import UserRole
 from app.schemas.job_card import (
     JobCardCreate, JobCardUpdate, JobCardOut, JobCardStatusUpdate,
     JobCardCommentCreate, JobCardCommentOut,
@@ -12,6 +14,7 @@ from app.schemas.job_card import (
 from app.services.job_card_service import generate_job_number
 
 router = APIRouter(prefix="/job-cards", tags=["job-cards"])
+production_only = [Depends(require_roles(UserRole.production, UserRole.admin))]
 
 
 @router.get("/", response_model=List[JobCardOut])
@@ -36,7 +39,7 @@ def create_job_card(data: JobCardCreate, db: Session = Depends(get_db)):
     return job_card
 
 
-@router.put("/{job_card_id}", response_model=JobCardOut)
+@router.put("/{job_card_id}", response_model=JobCardOut, dependencies=production_only)
 def update_job_card(job_card_id: int, data: JobCardUpdate, db: Session = Depends(get_db)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:
@@ -48,7 +51,7 @@ def update_job_card(job_card_id: int, data: JobCardUpdate, db: Session = Depends
     return job_card
 
 
-@router.patch("/{job_card_id}/status", response_model=JobCardOut)
+@router.patch("/{job_card_id}/status", response_model=JobCardOut, dependencies=production_only)
 def update_job_card_status(job_card_id: int, payload: JobCardStatusUpdate, db: Session = Depends(get_db)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:
@@ -59,7 +62,7 @@ def update_job_card_status(job_card_id: int, payload: JobCardStatusUpdate, db: S
     return job_card
 
 
-@router.delete("/{job_card_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{job_card_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_roles(UserRole.admin))])
 def delete_job_card(job_card_id: int, db: Session = Depends(get_db)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:

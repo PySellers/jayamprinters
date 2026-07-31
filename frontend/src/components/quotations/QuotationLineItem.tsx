@@ -157,6 +157,20 @@ export default function QuotationLineItem({ index, onRemove, canRemove }: Quotat
           </Grid>
         )}
 
+        {product && (
+          <Grid size={{ xs: 12 }}>
+            <TextField
+              label="Paper Color / Custom Notes"
+              placeholder="e.g. cream paper, gold foil model, customer's own artwork..."
+              fullWidth
+              size="small"
+              multiline
+              maxRows={3}
+              {...register(`items.${index}.spec_notes`)}
+            />
+          </Grid>
+        )}
+
         {product && (extraChargesQuery.data ?? []).length > 0 && (
           <Grid size={{ xs: 12 }}>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>

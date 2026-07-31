@@ -12,6 +12,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import { productsApi, productCategoriesApi } from '../api/productsApi';
+import { useAuth } from '../context/AuthContext';
 import type { Product, ProductInput, ProductPricingType } from '../types/products';
 import EntitySelect from '../components/pickers/EntitySelect';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -26,6 +27,8 @@ const PRICING_TYPE_LABELS: Record<ProductPricingType, string> = {
 export default function Products() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('admin');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
@@ -81,9 +84,11 @@ export default function Products() {
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
           Products
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={openCreate}>
-          Add Product
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={openCreate}>
+            Add Product
+          </Button>
+        )}
       </Box>
 
       <Paper sx={{ borderRadius: 2 }}>
@@ -114,17 +119,21 @@ export default function Products() {
                     <Chip label={product.is_active ? 'Active' : 'Inactive'} color={product.is_active ? 'success' : 'default'} size="small" />
                   </TableCell>
                   <TableCell align="right">
-                    {product.pricing_type !== 'fixed' && (
+                    {product.pricing_type !== 'fixed' && isAdmin && (
                       <IconButton size="small" onClick={() => navigate(`/products/${product.id}/price-matrix`)} title="Price Matrix">
                         <GridOnIcon fontSize="small" />
                       </IconButton>
                     )}
-                    <IconButton size="small" onClick={() => openEdit(product)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(product)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    {isAdmin && (
+                      <>
+                        <IconButton size="small" onClick={() => openEdit(product)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => setDeleting(product)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

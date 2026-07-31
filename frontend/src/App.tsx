@@ -16,6 +16,7 @@ import Taxes from './pages/Taxes';
 import PricingSetup from './pages/PricingSetup';
 import PriceMatrix from './pages/PriceMatrix';
 import Reports from './pages/Reports';
+import Users from './pages/Users';
 import MasterTable from './components/masters/MasterTable';
 
 export default function App() {
@@ -42,11 +43,54 @@ export default function App() {
             <Route path="invoices" element={<Invoices />} />
             <Route path="invoices/:id" element={<InvoiceDetail />} />
             <Route path="products" element={<Products />} />
-            <Route path="products/:productId/price-matrix" element={<PriceMatrix />} />
-            <Route path="pricing-setup" element={<PricingSetup />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="taxes" element={<Taxes />} />
-            <Route path="masters/:slug" element={<MasterTable />} />
+            <Route
+              path="products/:productId/price-matrix"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <PriceMatrix />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="pricing-setup"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <PricingSetup />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="reports"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts']}>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="taxes"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Taxes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="masters/:slug"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <MasterTable />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="users"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Users />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

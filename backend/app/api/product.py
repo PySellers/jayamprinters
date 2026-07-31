@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.core.security import require_roles
+from app.models.user import UserRole
 from app.models.product import ProductCategory, Product
 from app.schemas.product import (
     ProductCategoryCreate, ProductCategoryUpdate, ProductCategoryOut,
@@ -28,7 +30,7 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     return category
 
 
-@category_router.post("/", response_model=ProductCategoryOut, status_code=status.HTTP_201_CREATED)
+@category_router.post("/", response_model=ProductCategoryOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles(UserRole.admin))])
 def create_category(data: ProductCategoryCreate, db: Session = Depends(get_db)):
     category = ProductCategory(**data.model_dump())
     db.add(category)
@@ -37,7 +39,7 @@ def create_category(data: ProductCategoryCreate, db: Session = Depends(get_db)):
     return category
 
 
-@category_router.put("/{category_id}", response_model=ProductCategoryOut)
+@category_router.put("/{category_id}", response_model=ProductCategoryOut, dependencies=[Depends(require_roles(UserRole.admin))])
 def update_category(category_id: int, data: ProductCategoryUpdate, db: Session = Depends(get_db)):
     category = db.query(ProductCategory).filter(ProductCategory.id == category_id).first()
     if not category:
@@ -49,7 +51,7 @@ def update_category(category_id: int, data: ProductCategoryUpdate, db: Session =
     return category
 
 
-@category_router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+@category_router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_roles(UserRole.admin))])
 def delete_category(category_id: int, db: Session = Depends(get_db)):
     category = db.query(ProductCategory).filter(ProductCategory.id == category_id).first()
     if not category:
@@ -76,7 +78,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     return product
 
 
-@product_router.post("/", response_model=ProductOut, status_code=status.HTTP_201_CREATED)
+@product_router.post("/", response_model=ProductOut, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_roles(UserRole.admin))])
 def create_product(data: ProductCreate, db: Session = Depends(get_db)):
     product = Product(**data.model_dump())
     db.add(product)
@@ -85,7 +87,7 @@ def create_product(data: ProductCreate, db: Session = Depends(get_db)):
     return product
 
 
-@product_router.put("/{product_id}", response_model=ProductOut)
+@product_router.put("/{product_id}", response_model=ProductOut, dependencies=[Depends(require_roles(UserRole.admin))])
 def update_product(product_id: int, data: ProductUpdate, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
@@ -97,7 +99,7 @@ def update_product(product_id: int, data: ProductUpdate, db: Session = Depends(g
     return product
 
 
-@product_router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+@product_router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_roles(UserRole.admin))])
 def delete_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
