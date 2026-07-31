@@ -4,13 +4,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, Chip, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Alert,
+  TablePagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { quotationsApi } from '../api/quotationsApi';
+import { useNotify } from '../context/NotificationContext';
 import EntitySelect from '../components/pickers/EntitySelect';
+import EmptyState from '../components/EmptyState';
+import { usePagination } from '../hooks/usePagination';
 
 const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
   unpaid: 'default',
@@ -21,6 +25,8 @@ const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
 export default function Invoices() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const notify = useNotify();
+  const { page, rowsPerPage, paginate, handleChangePage, handleChangeRowsPerPage } = usePagination();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedQuotationId, setSelectedQuotationId] = useState<number | null>(null);
 
@@ -35,6 +41,7 @@ export default function Invoices() {
     mutationFn: (quotationId: number) => invoicesApi.createFromQuotation(quotationId),
     onSuccess: (invoice) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      notify('Invoice created');
       setPickerOpen(false);
       setSelectedQuotationId(null);
       navigate(`/invoices/${invoice.id}`);
@@ -71,7 +78,7 @@ export default function Invoices() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(invoicesQuery.data ?? []).map((inv) => (
+              {paginate(invoicesQuery.data ?? []).map((inv) => (
                 <TableRow key={inv.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/invoices/${inv.id}`)}>
                   <TableCell>{inv.invoice_number}</TableCell>
                   <TableCell>{customerName(inv.customer_id)}</TableCell>
@@ -86,15 +93,20 @@ export default function Invoices() {
                   <TableCell>₹{(inv.grand_total - inv.amount_paid).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
-              {(invoicesQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No invoices yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(invoicesQuery.data ?? []).length === 0 && <EmptyState colSpan={7} message="No invoices yet." />}
             </TableBody>
           </Table>
+        )}
+        {(invoicesQuery.data ?? []).length > 0 && (
+          <TablePagination
+            component="div"
+            count={invoicesQuery.data!.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 25, 50]}
+          />
         )}
       </Paper>
 

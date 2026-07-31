@@ -257,3 +257,52 @@ or fields, not two different order pipelines. Kept it exactly that scoped.
 ### Still open
 Real pricing data for the other 16 categories, mobile/offline visibility, general UI/UX polish, and
 the rest of "exploratory reporting" beyond this first pass (trends, comparisons, drill-downs).
+
+## Update — 2026-07-31 (fourth pass): deeper reporting + UI/UX polish
+
+Picked up the client's last two open asks ("enterprise-level UI/UX" and "maximum exploratory
+reporting") with concrete, bounded scope rather than trying to guess at everything either phrase
+could mean.
+
+### Reporting: five new metrics
+`report_service.py` gained `category_breakdown`, `payment_method_breakdown`, `period_comparison`
+(this range vs. the immediately preceding range of equal length, with a growth/decline %),
+`quotation_funnel` (counts by status for quotations created in range), and
+`avg_job_turnaround_days` (creation → delivery, for jobs delivered in range). All five are in
+`GET /reports/sales`, the Excel export, and new Reports page panels (a trend chip on the Total
+Sales stat, a turnaround stat card, and four new table panels). This still isn't the "maximum"
+version — no charts, no multi-period trend lines, no drill-down into a specific category/customer.
+That's deliberately deferred until there's more than a few days of real sales data to make it
+meaningful.
+
+### UI/UX: four concrete pieces, not a vague "polish pass"
+1. **Toast notifications** (`context/NotificationContext.tsx`, `useNotify()`) — wired into every
+   CRUD mutation across Customers/Products/Vendors/Inventory/Purchases/Users/Taxes/Masters, plus
+   Job Cards (status/assign/comment) and Quotations/Invoices (convert/invoice/payment). Several of
+   these previously failed **completely silently** on error - e.g. deleting a vendor still in use,
+   or a role-gated action getting a 403 - with zero UI feedback. That's now surfaced. Also fixed a
+   related bug in `QuotationCreate.tsx`'s quick-order flow: the auto-chain (create → convert →
+   invoice) ran inside the create mutation's `onSuccess`, so a failure in the second or third step
+   wasn't caught by the mutation's `onError` at all; it's now wrapped in try/catch.
+2. **Dashboard KPI cards** - replaced the four raw entity-count cards with ones that actually mean
+   something operationally: Today's Sales, Pending Jobs, Overdue Jobs (red when >0), plus the
+   original Customers/Quotations/Invoices counts. The overdue calculation reuses the exact
+   string-comparison logic from `LiveJobStatusBoard.tsx` (now extracted to `utils/jobCards.ts`)
+   rather than reimplementing it and risking the timezone bug noted earlier in this file.
+3. **Empty states** - new `components/EmptyState.tsx` (icon + message) replacing the plain "No X
+   yet." text rows across the 11 main list tables (Customers, Products, Vendors, Inventory,
+   Purchases, Quotations, Invoices, Job Cards, Users, Taxes, Masters). Left the smaller/nested
+   tables (invoice payments sub-table, pricing-setup admin panels) as-is - lower traffic, not worth
+   the churn right now.
+4. **Pagination** - `hooks/usePagination.ts` (client-side, since these lists are still small) added
+   to Customers, Quotations, and Invoices - the three that will accumulate the most rows in normal
+   use. Products/Vendors/Job Cards etc. weren't paginated; revisit if any of them grow large enough
+   to matter.
+
+Verified: `tsc --noEmit` and `npm run build` clean, backend imports clean, both dev servers picked
+up every change via hot-reload/HMR with no errors, and the reports endpoints (`/reports/sales` and
+`/reports/sales/export`) both returned 200 against live data.
+
+### Still open
+Real pricing data, mobile/offline visibility, and further reporting depth (charts, trends beyond
+one period-over-period comparison, drill-down) - all still exactly as described above.

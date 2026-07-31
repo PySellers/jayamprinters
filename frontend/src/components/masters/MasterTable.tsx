@@ -9,14 +9,18 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { getMasterConfig } from '../../api/mastersApi';
+import { getErrorMessage } from '../../utils/api';
+import { useNotify } from '../../context/NotificationContext';
 import type { MasterEntity, PricedMasterEntity } from '../../types/common';
 import MasterFormDialog from './MasterFormDialog';
 import ConfirmDialog from '../ConfirmDialog';
+import EmptyState from '../EmptyState';
 
 export default function MasterTable() {
   const { slug } = useParams<{ slug: string }>();
   const config = getMasterConfig(slug ?? '');
   const queryClient = useQueryClient();
+  const notify = useNotify();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<MasterEntity | PricedMasterEntity | null>(null);
@@ -33,15 +37,22 @@ export default function MasterTable() {
       editing ? config!.api.update(editing.id, values) : config!.api.create(values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['masters', slug] });
+      notify(editing ? `${config!.label} updated` : `${config!.label} added`);
       setDialogOpen(false);
       setEditing(null);
     },
+    onError: (error) => notify(getErrorMessage(error, `Failed to save ${config!.label.toLowerCase()}`), 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => config!.api.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['masters', slug] });
+      notify(`${config!.label} deleted`);
+      setDeleting(null);
+    },
+    onError: (error) => {
+      notify(getErrorMessage(error, `Failed to delete ${config!.label.toLowerCase()}`), 'error');
       setDeleting(null);
     },
   });
@@ -119,11 +130,7 @@ export default function MasterTable() {
                 </TableRow>
               ))}
               {(query.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={config.hasExtraPrice ? 4 : 3} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No records yet.
-                  </TableCell>
-                </TableRow>
+                <EmptyState colSpan={config.hasExtraPrice ? 4 : 3} message="No records yet." />
               )}
             </TableBody>
           </Table>

@@ -13,9 +13,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import { productsApi, productCategoriesApi } from '../api/productsApi';
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
+import { getErrorMessage } from '../utils/api';
 import type { Product, ProductInput, ProductPricingType } from '../types/products';
 import EntitySelect from '../components/pickers/EntitySelect';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
 
 const PRICING_TYPES: ProductPricingType[] = ['matrix', 'fixed', 'per_area'];
 const PRICING_TYPE_LABELS: Record<ProductPricingType, string> = {
@@ -29,6 +32,7 @@ export default function Products() {
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const isAdmin = hasRole('admin');
+  const notify = useNotify();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
@@ -46,15 +50,22 @@ export default function Products() {
     mutationFn: (data: ProductInput) => (editing ? productsApi.update(editing.id, data) : productsApi.create(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      notify(editing ? 'Product updated' : 'Product added');
       setDialogOpen(false);
       setEditing(null);
     },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to save product'), 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => productsApi.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      notify('Product deleted');
+      setDeleting(null);
+    },
+    onError: (error) => {
+      notify(getErrorMessage(error, 'Failed to delete product'), 'error');
       setDeleting(null);
     },
   });
@@ -137,13 +148,7 @@ export default function Products() {
                   </TableCell>
                 </TableRow>
               ))}
-              {(productsQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No products yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(productsQuery.data ?? []).length === 0 && <EmptyState colSpan={5} message="No products yet." />}
             </TableBody>
           </Table>
         )}

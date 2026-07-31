@@ -9,7 +9,9 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import { usersApi } from '../api/usersApi';
+import EmptyState from '../components/EmptyState';
 import { getErrorMessage } from '../utils/api';
+import { useNotify } from '../context/NotificationContext';
 import type { AppUser, UserCreateInput, UserRole, UserUpdateInput } from '../types/users';
 
 const ROLE_OPTIONS: UserRole[] = ['admin', 'counter', 'production', 'accounts'];
@@ -24,6 +26,7 @@ type FormValues = UserCreateInput;
 
 export default function Users() {
   const queryClient = useQueryClient();
+  const notify = useNotify();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<AppUser | null>(null);
 
@@ -40,6 +43,7 @@ export default function Users() {
         : usersApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      notify(editing ? 'User updated' : 'User created');
       setDialogOpen(false);
       setEditing(null);
       reset({ name: '', email: '', password: '', role: 'counter', department: '' });
@@ -59,9 +63,13 @@ export default function Users() {
   };
 
   const toggleActive = (user: AppUser) => {
-    usersApi.update(user.id, { is_active: !user.is_active }).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    });
+    usersApi
+      .update(user.id, { is_active: !user.is_active })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['users'] });
+        notify(user.is_active ? 'User deactivated' : 'User activated');
+      })
+      .catch((error) => notify(getErrorMessage(error, 'Failed to update user'), 'error'));
   };
 
   return (
@@ -117,13 +125,7 @@ export default function Users() {
                   </TableCell>
                 </TableRow>
               ))}
-              {(usersQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No staff users yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(usersQuery.data ?? []).length === 0 && <EmptyState colSpan={6} message="No staff users yet." />}
             </TableBody>
           </Table>
         )}

@@ -10,13 +10,17 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { taxesApi } from '../api/taxesApi';
+import { getErrorMessage } from '../utils/api';
+import { useNotify } from '../context/NotificationContext';
 import type { Tax } from '../types/masters';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
 
 type TaxInput = Omit<Tax, 'id'>;
 
 export default function Taxes() {
   const queryClient = useQueryClient();
+  const notify = useNotify();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Tax | null>(null);
   const [deleting, setDeleting] = useState<Tax | null>(null);
@@ -29,15 +33,22 @@ export default function Taxes() {
     mutationFn: (data: TaxInput) => (editing ? taxesApi.update(editing.id, data) : taxesApi.create(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxes'] });
+      notify(editing ? 'Tax updated' : 'Tax added');
       setDialogOpen(false);
       setEditing(null);
     },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to save tax'), 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => taxesApi.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['taxes'] });
+      notify('Tax deleted');
+      setDeleting(null);
+    },
+    onError: (error) => {
+      notify(getErrorMessage(error, 'Failed to delete tax'), 'error');
       setDeleting(null);
     },
   });
@@ -100,13 +111,7 @@ export default function Taxes() {
                   </TableCell>
                 </TableRow>
               ))}
-              {(taxesQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No taxes yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(taxesQuery.data ?? []).length === 0 && <EmptyState colSpan={5} message="No taxes yet." />}
             </TableBody>
           </Table>
         )}

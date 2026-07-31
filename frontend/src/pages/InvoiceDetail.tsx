@@ -15,6 +15,7 @@ import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
 import type { PaymentInput } from '../types/invoices';
 import type { PaymentMethod } from '../types/common';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -32,6 +33,7 @@ export default function InvoiceDetail() {
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const canManagePayments = hasRole('admin', 'accounts');
+  const notify = useNotify();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(null);
 
@@ -50,6 +52,7 @@ export default function InvoiceDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      notify('Payment recorded');
       setPaymentDialogOpen(false);
       reset({ amount: 0, method: 'cash', reference_number: '', notes: '' });
     },
@@ -60,6 +63,11 @@ export default function InvoiceDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      notify('Payment deleted');
+      setDeletingPaymentId(null);
+    },
+    onError: (error) => {
+      notify(getErrorMessage(error, 'Failed to delete payment'), 'error');
       setDeletingPaymentId(null);
     },
   });

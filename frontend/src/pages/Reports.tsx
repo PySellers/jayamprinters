@@ -2,12 +2,22 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Button, TextField, Stack, Grid, Table, TableHead,
-  TableRow, TableCell, TableBody, CircularProgress, ToggleButtonGroup, ToggleButton,
+  TableRow, TableCell, TableBody, CircularProgress, ToggleButtonGroup, ToggleButton, Chip,
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { reportsApi } from '../api/reportsApi';
 
 type Preset = 'today' | 'week' | 'month' | 'custom';
+
+const FUNNEL_LABELS: Record<string, string> = {
+  draft: 'Draft',
+  sent: 'Sent',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  converted: 'Converted',
+};
 
 function toDateString(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -51,6 +61,9 @@ export default function Reports() {
     queryFn: () => reportsApi.sales(start, end),
     enabled: Boolean(start && end),
   });
+
+  const comparison = salesQuery.data?.comparison;
+  const percentChange = comparison?.percent_change ?? null;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -110,17 +123,34 @@ export default function Reports() {
       </Paper>
 
       <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
-        <Stack direction="row" spacing={4}>
+        <Stack direction="row" spacing={4} sx={{ flexWrap: 'wrap', rowGap: 2 }}>
           <Box>
             <Typography color="text.secondary" variant="body2">Total Sales</Typography>
             <Typography variant="h3" sx={{ fontWeight: 'bold' }} color="#1a237e">
               ₹{(salesQuery.data?.grand_total ?? 0).toFixed(2)}
             </Typography>
+            {percentChange !== null && (
+              <Chip
+                size="small"
+                icon={percentChange >= 0 ? <TrendingUpIcon /> : <TrendingDownIcon />}
+                label={`${percentChange >= 0 ? '+' : ''}${percentChange}% vs previous period`}
+                color={percentChange >= 0 ? 'success' : 'error'}
+                sx={{ mt: 0.5 }}
+              />
+            )}
           </Box>
           <Box>
             <Typography color="text.secondary" variant="body2">Invoices</Typography>
             <Typography variant="h3" sx={{ fontWeight: 'bold' }} color="#00695c">
               {salesQuery.data?.breakdown.reduce((sum, row) => sum + row.invoice_count, 0) ?? 0}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography color="text.secondary" variant="body2">Avg. Job Turnaround</Typography>
+            <Typography variant="h3" sx={{ fontWeight: 'bold' }} color="#e65100">
+              {salesQuery.data?.avg_job_turnaround_days != null
+                ? `${salesQuery.data.avg_job_turnaround_days}d`
+                : '—'}
             </Typography>
           </Box>
         </Stack>
@@ -160,7 +190,7 @@ export default function Reports() {
         )}
       </Paper>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ borderRadius: 2 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
@@ -186,6 +216,38 @@ export default function Reports() {
                   <TableRow>
                     <TableCell colSpan={3} align="center" sx={{ color: 'text.secondary', py: 2 }}>
                       No sales in this date range.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper sx={{ borderRadius: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
+              By Payment Method
+            </Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Method</TableCell>
+                  <TableCell>Payments</TableCell>
+                  <TableCell>Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(salesQuery.data?.by_payment_method ?? []).map((row) => (
+                  <TableRow key={row.method}>
+                    <TableCell>{row.method.replace('_', ' ')}</TableCell>
+                    <TableCell>{row.payment_count}</TableCell>
+                    <TableCell>₹{row.total.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+                {(salesQuery.data?.by_payment_method ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center" sx={{ color: 'text.secondary', py: 2 }}>
+                      No payments recorded in this date range.
                     </TableCell>
                   </TableRow>
                 )}
@@ -223,6 +285,62 @@ export default function Reports() {
                 )}
               </TableBody>
             </Table>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper sx={{ borderRadius: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
+              By Category
+            </Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Category</TableCell>
+                  <TableCell>Qty</TableCell>
+                  <TableCell>Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(salesQuery.data?.by_category ?? []).map((row) => (
+                  <TableRow key={row.category_name}>
+                    <TableCell>{row.category_name}</TableCell>
+                    <TableCell>{row.quantity}</TableCell>
+                    <TableCell>₹{row.total.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+                {(salesQuery.data?.by_category ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center" sx={{ color: 'text.secondary', py: 2 }}>
+                      No sales in this date range.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <Paper sx={{ p: 2, borderRadius: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+              Quotation Funnel
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              Quotations created in this date range, by current status.
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+              {(salesQuery.data?.quotation_funnel ?? []).map((row) => (
+                <Chip
+                  key={row.status}
+                  label={`${FUNNEL_LABELS[row.status] ?? row.status}: ${row.count}`}
+                  variant="outlined"
+                />
+              ))}
+              {(salesQuery.data?.quotation_funnel ?? []).length === 0 && (
+                <Typography color="text.secondary" variant="body2">
+                  No quotations created in this date range.
+                </Typography>
+              )}
+            </Stack>
           </Paper>
         </Grid>
       </Grid>

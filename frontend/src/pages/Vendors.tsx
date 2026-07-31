@@ -11,13 +11,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { vendorsApi } from '../api/purchasesApi';
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
+import { getErrorMessage } from '../utils/api';
 import type { Vendor, VendorInput } from '../types/purchases';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
 
 export default function Vendors() {
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const canManage = hasRole('admin', 'accounts');
+  const notify = useNotify();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Vendor | null>(null);
   const [deleting, setDeleting] = useState<Vendor | null>(null);
@@ -32,15 +36,22 @@ export default function Vendors() {
     mutationFn: (data: VendorInput) => (editing ? vendorsApi.update(editing.id, data) : vendorsApi.create(data)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendors'] });
+      notify(editing ? 'Vendor updated' : 'Vendor added');
       setDialogOpen(false);
       setEditing(null);
     },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to save vendor'), 'error'),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => vendorsApi.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendors'] });
+      notify('Vendor deleted');
+      setDeleting(null);
+    },
+    onError: (error) => {
+      notify(getErrorMessage(error, 'Failed to delete vendor'), 'error');
       setDeleting(null);
     },
   });
@@ -117,13 +128,7 @@ export default function Vendors() {
                   )}
                 </TableRow>
               ))}
-              {(vendorsQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No vendors yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(vendorsQuery.data ?? []).length === 0 && <EmptyState colSpan={6} message="No vendors yet." />}
             </TableBody>
           </Table>
         )}

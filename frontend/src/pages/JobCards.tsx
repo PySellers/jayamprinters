@@ -14,10 +14,13 @@ import { productsApi } from '../api/productsApi';
 import { usersApi } from '../api/usersApi';
 import { createMasterApi } from '../api/mastersApi';
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
+import { getErrorMessage } from '../utils/api';
 import type { JobCard, JobCardUpdateInput } from '../types/jobCards';
 import type { JobCardStatus, JobCardPriority } from '../types/common';
 import StatusMenu from '../components/StatusMenu';
 import EntitySelect from '../components/pickers/EntitySelect';
+import EmptyState from '../components/EmptyState';
 
 const machinesApi = createMasterApi('/machines');
 
@@ -43,6 +46,7 @@ export default function JobCards() {
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const canManageProduction = hasRole('admin', 'production');
+  const notify = useNotify();
   const [assigning, setAssigning] = useState<JobCard | null>(null);
   const [commentText, setCommentText] = useState('');
 
@@ -59,7 +63,11 @@ export default function JobCards() {
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: JobCardStatus }) => jobCardsApi.updateStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['job-cards'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['job-cards'] });
+      notify('Job status updated');
+    },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to update status'), 'error'),
   });
 
   const { control, register, handleSubmit, reset } = useForm<JobCardUpdateInput>();
@@ -68,8 +76,10 @@ export default function JobCards() {
     mutationFn: (data: JobCardUpdateInput) => jobCardsApi.update(assigning!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['job-cards'] });
+      notify('Job card updated');
       setAssigning(null);
     },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to update job card'), 'error'),
   });
 
   const openAssign = (jobCard: JobCard) => {
@@ -97,6 +107,7 @@ export default function JobCards() {
       queryClient.invalidateQueries({ queryKey: ['job-card-comments', assigning?.id] });
       setCommentText('');
     },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to add update'), 'error'),
   });
 
   return (
@@ -158,11 +169,7 @@ export default function JobCards() {
                 </TableRow>
               ))}
               {(jobCardsQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={10} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No job cards yet. Convert a quotation to create some.
-                  </TableCell>
-                </TableRow>
+                <EmptyState colSpan={10} message="No job cards yet. Convert a quotation to create some." />
               )}
             </TableBody>
           </Table>

@@ -5,8 +5,13 @@ import { customersApi } from '../api/customersApi';
 import { quotationsApi } from '../api/quotationsApi';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { invoicesApi } from '../api/invoicesApi';
+import { isOverdue } from '../utils/jobCards';
 import QuickOrderForm from '../components/dashboard/QuickOrderForm';
 import LiveJobStatusBoard from '../components/dashboard/LiveJobStatusBoard';
+
+function todayDateString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,11 +21,25 @@ export default function Dashboard() {
   const jobCards = useQuery({ queryKey: ['job-cards'], queryFn: jobCardsApi.list });
   const invoices = useQuery({ queryKey: ['invoices'], queryFn: invoicesApi.list });
 
+  const todayStr = todayDateString();
+  const todaysSales = (invoices.data ?? [])
+    .filter((inv) => inv.invoice_date === todayStr)
+    .reduce((sum, inv) => sum + inv.grand_total, 0);
+  const pendingJobs = (jobCards.data ?? []).filter((jc) => jc.status !== 'delivered').length;
+  const overdueJobs = (jobCards.data ?? []).filter(isOverdue).length;
+
   const cards = [
-    { label: 'Customers', value: customers.data?.length ?? 0, color: '#1a237e', path: '/customers' },
+    { label: "Today's Sales", value: `₹${todaysSales.toFixed(2)}`, color: '#1a237e', path: '/reports' },
+    { label: 'Pending Jobs', value: pendingJobs, color: '#0277bd', path: '/job-cards' },
+    {
+      label: 'Overdue Jobs',
+      value: overdueJobs,
+      color: overdueJobs > 0 ? '#c62828' : '#2e7d32',
+      path: '/job-cards',
+    },
+    { label: 'Customers', value: customers.data?.length ?? 0, color: '#00695c', path: '/customers' },
     { label: 'Quotations', value: quotations.data?.length ?? 0, color: '#1565c0', path: '/quotations' },
-    { label: 'Job Cards', value: jobCards.data?.length ?? 0, color: '#0277bd', path: '/job-cards' },
-    { label: 'Invoices', value: invoices.data?.length ?? 0, color: '#00695c', path: '/invoices' },
+    { label: 'Invoices', value: invoices.data?.length ?? 0, color: '#6a1b9a', path: '/invoices' },
   ];
 
   return (

@@ -3,18 +3,10 @@ import { Box, Typography, Paper, Chip, Stack, CircularProgress } from '@mui/mate
 import { jobCardsApi } from '../../api/jobCardsApi';
 import { customersApi } from '../../api/customersApi';
 import { productsApi } from '../../api/productsApi';
+import { isOverdue } from '../../utils/jobCards';
 import type { JobCard } from '../../types/jobCards';
 
 const IN_PROGRESS_STATUSES = ['design', 'approval', 'printing', 'binding', 'packing'];
-
-function isOverdue(jobCard: JobCard): boolean {
-  if (!jobCard.delivery_date || jobCard.status === 'delivered') return false;
-  // Plain string comparison of YYYY-MM-DD dates avoids Date-object timezone
-  // mismatches (delivery_date has no time zone; parsing it as a Date and
-  // comparing against a local "today" can misfire by hours near midnight).
-  const todayStr = new Date().toISOString().slice(0, 10);
-  return jobCard.delivery_date < todayStr;
-}
 
 function JobChip({ jobCard, label }: { jobCard: JobCard; label: string }) {
   const overdue = isOverdue(jobCard);

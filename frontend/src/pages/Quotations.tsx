@@ -3,13 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, CircularProgress, Stack, Chip,
+  Button, CircularProgress, Stack, Chip, TablePagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { quotationsApi } from '../api/quotationsApi';
 import { customersApi } from '../api/customersApi';
 import { invoicesApi } from '../api/invoicesApi';
+import { getErrorMessage } from '../utils/api';
+import { useNotify } from '../context/NotificationContext';
 import StatusMenu from '../components/StatusMenu';
+import EmptyState from '../components/EmptyState';
+import { usePagination } from '../hooks/usePagination';
 import type { QuotationStatus } from '../types/common';
 
 const STATUS_OPTIONS: QuotationStatus[] = ['draft', 'sent', 'approved', 'rejected', 'converted'];
@@ -24,6 +28,8 @@ const STATUS_COLORS: Record<string, 'default' | 'info' | 'success' | 'error' | '
 export default function Quotations() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const notify = useNotify();
+  const { page, rowsPerPage, paginate, handleChangePage, handleChangeRowsPerPage } = usePagination();
   const [convertingId, setConvertingId] = useState<number | null>(null);
   const [invoicingId, setInvoicingId] = useState<number | null>(null);
 
@@ -35,7 +41,11 @@ export default function Quotations() {
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: QuotationStatus }) =>
       quotationsApi.updateStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quotations'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quotations'] });
+      notify('Quotation status updated');
+    },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to update status'), 'error'),
   });
 
   const convertMutation = useMutation({
@@ -43,19 +53,27 @@ export default function Quotations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quotations'] });
       queryClient.invalidateQueries({ queryKey: ['job-cards'] });
+      notify('Converted to job cards');
       setConvertingId(null);
     },
-    onError: () => setConvertingId(null),
+    onError: (error) => {
+      notify(getErrorMessage(error, 'Failed to convert quotation'), 'error');
+      setConvertingId(null);
+    },
   });
 
   const invoiceMutation = useMutation({
     mutationFn: (quotationId: number) => invoicesApi.createFromQuotation(quotationId),
     onSuccess: (invoice) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      notify('Invoice created');
       setInvoicingId(null);
       navigate(`/invoices/${invoice.id}`);
     },
-    onError: () => setInvoicingId(null),
+    onError: (error) => {
+      notify(getErrorMessage(error, 'Failed to create invoice'), 'error');
+      setInvoicingId(null);
+    },
   });
 
   return (
@@ -87,7 +105,7 @@ export default function Quotations() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(quotationsQuery.data ?? []).map((q) => (
+              {paginate(quotationsQuery.data ?? []).map((q) => (
                 <TableRow key={q.id} hover sx={{ cursor: 'pointer' }}>
                   <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>{q.quotation_number}</TableCell>
                   <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>{customerName(q.customer_id)}</TableCell>
@@ -133,15 +151,20 @@ export default function Quotations() {
                   </TableCell>
                 </TableRow>
               ))}
-              {(quotationsQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No quotations yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(quotationsQuery.data ?? []).length === 0 && <EmptyState colSpan={6} message="No quotations yet." />}
             </TableBody>
           </Table>
+        )}
+        {(quotationsQuery.data ?? []).length > 0 && (
+          <TablePagination
+            component="div"
+            count={quotationsQuery.data!.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 25, 50]}
+          />
         )}
       </Paper>
     </Box>

@@ -11,9 +11,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { purchasesApi, vendorsApi, inventoryItemsApi } from '../api/purchasesApi';
 import { getErrorMessage } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
 import type { Purchase, PurchaseInput } from '../types/purchases';
 import EntitySelect from '../components/pickers/EntitySelect';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
 
 const emptyItem = { inventory_item_id: 0, quantity: 1, unit_price: 0 };
 
@@ -21,6 +23,7 @@ export default function Purchases() {
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const canManage = hasRole('admin', 'accounts');
+  const notify = useNotify();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState<Purchase | null>(null);
 
@@ -44,6 +47,7 @@ export default function Purchases() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchases'] });
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
+      notify('Purchase recorded, stock updated');
       setDialogOpen(false);
       reset({ vendor_id: 0, tax_amount: 0, notes: '', items: [emptyItem] });
     },
@@ -54,6 +58,11 @@ export default function Purchases() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchases'] });
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
+      notify('Purchase deleted, stock reversed');
+      setDeleting(null);
+    },
+    onError: (error) => {
+      notify(getErrorMessage(error, 'Failed to delete purchase'), 'error');
       setDeleting(null);
     },
   });
@@ -123,13 +132,7 @@ export default function Purchases() {
                   )}
                 </TableRow>
               ))}
-              {(purchasesQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No purchases recorded yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(purchasesQuery.data ?? []).length === 0 && <EmptyState colSpan={6} message="No purchases recorded yet." />}
             </TableBody>
           </Table>
         )}

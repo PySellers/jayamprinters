@@ -9,6 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { quotationsApi } from '../api/quotationsApi';
 import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
+import { useNotify } from '../context/NotificationContext';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
 import type { OrderType } from '../types/common';
@@ -26,6 +27,7 @@ const emptyItem: QuotationItemInput = {
 export default function QuotationCreate() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const notify = useNotify();
   const [searchParams] = useSearchParams();
 
   const isQuick = searchParams.get('quick') === '1';
@@ -56,12 +58,24 @@ export default function QuotationCreate() {
     onSuccess: async (quotation) => {
       queryClient.invalidateQueries({ queryKey: ['quotations'] });
       if (isQuick) {
-        await quotationsApi.convert(quotation.id);
-        const invoice = await invoicesApi.createFromQuotation(quotation.id);
-        queryClient.invalidateQueries({ queryKey: ['job-cards'] });
-        queryClient.invalidateQueries({ queryKey: ['invoices'] });
-        navigate(`/invoices/${invoice.id}`);
+        // These run after react-query considers the mutation already "successful," so a
+        // failure here needs its own try/catch - the mutation's onError won't see it.
+        try {
+          await quotationsApi.convert(quotation.id);
+          const invoice = await invoicesApi.createFromQuotation(quotation.id);
+          queryClient.invalidateQueries({ queryKey: ['job-cards'] });
+          queryClient.invalidateQueries({ queryKey: ['invoices'] });
+          notify('Order completed and invoiced');
+          navigate(`/invoices/${invoice.id}`);
+        } catch (error) {
+          notify(
+            getErrorMessage(error, 'Quotation was created, but converting it to an invoice failed'),
+            'error',
+          );
+          navigate(`/quotations/${quotation.id}`);
+        }
       } else {
+        notify('Quotation created');
         navigate(`/quotations/${quotation.id}`);
       }
     },

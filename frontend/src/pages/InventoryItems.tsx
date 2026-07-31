@@ -11,13 +11,17 @@ import EditIcon from '@mui/icons-material/Edit';
 import TuneIcon from '@mui/icons-material/Tune';
 import { inventoryItemsApi } from '../api/purchasesApi';
 import { useAuth } from '../context/AuthContext';
+import { useNotify } from '../context/NotificationContext';
+import { getErrorMessage } from '../utils/api';
 import type { InventoryItem, InventoryItemInput, StockAdjustmentInput } from '../types/purchases';
+import EmptyState from '../components/EmptyState';
 
 export default function InventoryItems() {
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const isAdmin = hasRole('admin');
   const canAdjust = hasRole('admin', 'accounts');
+  const notify = useNotify();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [adjusting, setAdjusting] = useState<InventoryItem | null>(null);
@@ -33,9 +37,11 @@ export default function InventoryItems() {
       editing ? inventoryItemsApi.update(editing.id, data) : inventoryItemsApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
+      notify(editing ? 'Item updated' : 'Item added');
       setDialogOpen(false);
       setEditing(null);
     },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to save item'), 'error'),
   });
 
   const {
@@ -48,8 +54,10 @@ export default function InventoryItems() {
     mutationFn: (data: StockAdjustmentInput) => inventoryItemsApi.adjust(adjusting!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
+      notify('Stock adjusted');
       setAdjusting(null);
     },
+    onError: (error) => notify(getErrorMessage(error, 'Failed to adjust stock'), 'error'),
   });
 
   const openCreate = () => {
@@ -129,13 +137,7 @@ export default function InventoryItems() {
                   </TableRow>
                 );
               })}
-              {(itemsQuery.data ?? []).length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
-                    No inventory items yet.
-                  </TableCell>
-                </TableRow>
-              )}
+              {(itemsQuery.data ?? []).length === 0 && <EmptyState colSpan={6} message="No inventory items yet." />}
             </TableBody>
           </Table>
         )}
