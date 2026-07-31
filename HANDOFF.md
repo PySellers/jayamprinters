@@ -480,3 +480,24 @@ confirmed the fix), `tsc`/build clean, pushed to `dev`.
 Same as above, plus: the duplicate-category cleanup (old "Rubber Stamps"/"Lamination"/one stray
 quantity slab, all from pre-seed-script manual testing) is now actively causing confusion twice,
 not just cosmetic - worth an admin doing the merge via Pricing Setup sooner rather than later.
+
+## Update — 2026-07-31 (eighth pass): real logo added
+
+Added the actual "SJP / Sri Jayam Printers" circular badge logo (pink/gold ring, floral design,
+NAVALUR location, phone numbers) in place of the generic MUI print icon used as a placeholder
+everywhere since project start.
+
+- `frontend/src/assets/logo.jpg` - used in the app (sidebar header in `Layout.tsx`, login screen
+  in `Login.tsx`), rendered as a circle via `borderRadius: '50%'` + `objectFit: 'cover'` so the
+  JPG's white corner background is cropped out.
+- `frontend/public/logo.jpg` - static copy for `index.html`'s favicon (`<link rel="icon">`) and
+  browser tab; also updated the page `<title>` from the Vite default "frontend" to
+  "Sri Jayam Printers - ERP System".
+
+`tsc --noEmit` and `npm run build` both clean (logo bundles as a normal hashed asset, 59KB). Not
+yet confirmed in an actual browser (same no-browser-tool caveat as every other frontend change this
+session) - worth a quick visual check that the circular crop looks right against the dark navy
+sidebar background.
+
+### Still open
+Same as seventh pass, plus: eyeball the logo crop in an actual browser once someone has one open.

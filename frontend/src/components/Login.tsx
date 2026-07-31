@@ -10,7 +10,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import PrintIcon from '@mui/icons-material/Print';
+import logo from '../assets/logo.jpg';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -49,7 +49,12 @@ export default function Login() {
     >
       <Paper elevation={10} sx={{ p: 4, width: 380, borderRadius: 3 }}>
         <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <PrintIcon sx={{ fontSize: 50, color: '#1a237e' }} />
+          <Box
+            component="img"
+            src={logo}
+            alt="Sri Jayam Printers"
+            sx={{ width: 90, height: 90, borderRadius: '50%', objectFit: 'cover', mb: 1 }}
+          />
           <Typography variant="h5" color="#1a237e" sx={{ fontWeight: 'bold' }}>
             Sri Jayam Printers
           </Typography>

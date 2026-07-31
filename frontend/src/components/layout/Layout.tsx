@@ -5,13 +5,13 @@ import {
   Drawer, List, ListItem, ListItemIcon,
   ListItemText, ListItemButton, Collapse,
 } from '@mui/material';
-import PrintIcon from '@mui/icons-material/Print';
 import LogoutIcon from '@mui/icons-material/Logout';
 import TuneIcon from '@mui/icons-material/Tune';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useAuth } from '../../context/AuthContext';
 import { mainNavItems, mastersNavItems, type NavItem } from './navConfig';
+import logo from '../../assets/logo.jpg';
 
 const SIDEBAR_WIDTH = 260;
 
@@ -45,7 +45,12 @@ export default function Layout() {
         }}
       >
         <Box sx={{ p: 2, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-          <PrintIcon sx={{ fontSize: 40 }} />
+          <Box
+            component="img"
+            src={logo}
+            alt="Sri Jayam Printers"
+            sx={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', mb: 0.5 }}
+          />
           <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
             Sri Jayam Printers
           </Typography>
