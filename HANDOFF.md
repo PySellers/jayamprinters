@@ -305,4 +305,73 @@ up every change via hot-reload/HMR with no errors, and the reports endpoints (`/
 
 ### Still open
 Real pricing data, mobile/offline visibility, and further reporting depth (charts, trends beyond
+
+## Update — 2026-07-31 (fifth pass): the 13 category seed scripts had never actually been run
+
+Asked to cross-check the catalog against the client's PDF and test end-to-end. Found something
+more basic first: **`SELECT * FROM product_categories` on the real dev DB returned exactly 3 rows**
+(Visiting Card, Rubber Stamps, Xerox/Photocopy) despite `seed_invitation.py`,
+`seed_book_covers.py`, `seed_bill_books.py`, `seed_binding.py`, `seed_register.py`,
+`seed_transfer_certificate.py`, `seed_application_form.py`, `seed_id_card.py`, `seed_menu_card.py`,
+`seed_thamboola_bag.py`, `seed_digital_banner.py`, and `seed_visiting_card.py` all being present and
+committed in `backend/`. The scripts were correct and idempotent - they just had never been
+executed against this database. The earlier claim ("all 17 categories in the catalog") was true of
+the *code*, not the *data*.
+
+**Fixed by running all 13 scripts** (`python seed_invitation.py`, etc., each idempotent, safe to
+re-run). Catalog is now actually populated: 15 `product_categories` rows, ~130 products, ~1180
+price-matrix cells across the board.
+
+### Cross-check against the PDF
+Spot-checked three scripts in detail against their source pages:
+- `seed_visiting_card.py` (page 18): 23 quantity brackets, 5 finish/lamination types, 2 sides - all
+  match exactly. The PDF has one unlabeled 6th finish column; the script folds it in as a combined
+  "Special Finish" option since it has no name in the source to give it.
+- `seed_rubber_stamp.py` (pages 20-21): spot-checked ~10 of the 71 real Polymer Stamp prices
+  (A1=₹30, A21=₹140, C15=₹200, D1=₹150, X7=₹500, X16=₹300, etc.) against the PDF - all exact matches.
+- `seed_bill_books.py` (pages 12-13): 12 size-fractions and the 15-option GSM/paper list match the
+  PDF's grid exactly; the "1st 1000 Nos" / "Add. 1000 Nos" column pair is correctly modeled as two
+  quantity slabs rather than two products.
+- Did not exhaustively re-derive every cell of the remaining 10 scripts - the ones checked were
+  faithful enough, and most of those tables are blank-price templates in the source PDF anyway (see
+  below), so the highest-value use of time was running the missing scripts and testing the pipeline
+  end-to-end rather than re-verifying already-correct catalog structure line by line.
+
+### Known minor issue found, deliberately not auto-fixed
+Two near-duplicate categories now exist: **"Rubber Stamps"** (singular test artifact, 1 product,
+`id=2`) alongside the properly-seeded **"Rubber Stamp"** (`id=15`, 89 products with real prices),
+and a stray extra **"Lamination"** attribute on the Visiting Card category alongside the properly-
+seeded "Finish/Lamination Type" attribute. Root cause: earlier manual testing in the live app
+(clicking around, not a seed script) created a category/attribute with an almost-but-not-exactly
+matching name, so the seed scripts' get-or-create-by-name logic didn't recognize it as the same
+thing and created a second one. **Left as-is rather than deleted**, because the old "Rubber Stamps"
+category's one product and the old "Lamination" attribute are referenced by real quotations/
+invoices/job-cards that appear to be the team's own manual testing in the live app - didn't want to
+delete someone else's data without being asked. Recommend an admin merge/deactivate these two via
+the UI (Pricing Setup page) when convenient; it's cosmetic, not a functional bug.
+
+### End-to-end verification performed
+Ran a full cycle against live data (Postgres dev DB, both dev servers): set a real price on a
+Wedding Invitation cell → created a quotation (100 Nos, with `spec_notes` and `order_type=offline`)
+→ confirmed price computed correctly (100 × ₹12.50 + 18% tax = ₹1,475) → converted to job card
+→ confirmed `spec_notes` carried through to the job card's `notes` field → generated an invoice
+→ recorded a full payment (status flipped to `paid`) → downloaded the PDF (valid, 1 page)
+→ added a job-card comment → changed job-card status → confirmed the sale showed up correctly in
+`/reports/sales` (`by_category`, `by_payment_method`, `top_products` all correct). Also ran a full
+RBAC sweep with fresh counter/production/accounts test accounts against real endpoints (create
+quotation, create purchase, view reports, update job-card status, record payment, create vendor) -
+every boundary behaved exactly as coded (200 where allowed, 403 where not). Cleaned up all test
+records (quotation/invoice/job-card/comment/payment/test users) afterward; reverted the demo price
+back to ₹0 since it wasn't a real client-provided rate.
+
+**Not tested**: no browser-automation tool was available in this environment, so the frontend UI
+itself was verified via typecheck/build (clean) and by confirming the API endpoints the frontend
+consumes return well-formed data for every one of the 15 categories (attributes/slabs/extra-charges
+counts per category) - not by actually clicking through the React app in a browser. Worth a manual
+click-through before relying on this for real orders.
+
+### Still open
+Everything from the prior passes, plus: real pricing for every category except Rubber Stamp (still
+₹0 placeholders - this was always explicitly out of scope, not a regression), and the cosmetic
+duplicate-category cleanup noted above.
 one period-over-period comparison, drill-down) - all still exactly as described above.
