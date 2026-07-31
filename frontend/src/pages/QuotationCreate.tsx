@@ -12,7 +12,7 @@ import { getErrorMessage } from '../utils/api';
 import { useNotify } from '../context/NotificationContext';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
-import type { OrderType } from '../types/common';
+import type { DocumentType, OrderType } from '../types/common';
 import type { QuotationCreateInput, QuotationItemInput } from '../types/quotations';
 import EntitySelect from '../components/pickers/EntitySelect';
 import QuotationLineItem from '../components/quotations/QuotationLineItem';
@@ -37,10 +37,12 @@ export default function QuotationCreate() {
   const initialDeliveryDate = searchParams.get('deliveryDate');
   const initialDeliveryTime = searchParams.get('deliveryTime');
   const initialOrderType = (searchParams.get('orderType') as OrderType | null) ?? 'offline';
+  const initialDocumentType = (searchParams.get('docType') as DocumentType | null) ?? 'quotation';
 
   const methods = useForm<QuotationCreateInput>({
     defaultValues: {
       customer_id: initialCustomerId ? Number(initialCustomerId) : undefined,
+      document_type: initialDocumentType,
       order_type: initialOrderType,
       tax_id: null,
       notes: '',
@@ -51,6 +53,8 @@ export default function QuotationCreate() {
   });
   const { control, register, handleSubmit, watch, setValue } = methods;
   const orderType = watch('order_type');
+  const documentType = watch('document_type');
+  const isEstimate = documentType === 'estimate';
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
 
   const createMutation = useMutation({
@@ -75,7 +79,7 @@ export default function QuotationCreate() {
           navigate(`/quotations/${quotation.id}`);
         }
       } else {
-        notify('Quotation created');
+        notify(quotation.document_type === 'estimate' ? 'Estimate created' : 'Quotation created');
         navigate(`/quotations/${quotation.id}`);
       }
     },
@@ -91,7 +95,7 @@ export default function QuotationCreate() {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-        {isQuick ? 'Complete Order' : 'New Quotation'}
+        {isQuick ? 'Complete Order' : isEstimate ? 'New Estimate' : 'New Quotation'}
       </Typography>
       {isQuick && (
         <Alert severity="info" sx={{ mb: 2 }}>
@@ -132,6 +136,22 @@ export default function QuotationCreate() {
                   />
                 )}
               </Grid>
+              {!isQuick && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Document Type
+                  </Typography>
+                  <ToggleButtonGroup
+                    size="small"
+                    exclusive
+                    value={documentType}
+                    onChange={(_, v) => v && setValue('document_type', v)}
+                  >
+                    <ToggleButton value="quotation">Quotation</ToggleButton>
+                    <ToggleButton value="estimate">Estimate</ToggleButton>
+                  </ToggleButtonGroup>
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                   Order Type
@@ -212,7 +232,7 @@ export default function QuotationCreate() {
               sx={{ bgcolor: '#1a237e' }}
               disabled={createMutation.isPending}
             >
-              {isQuick ? 'Generate Invoice' : 'Create Quotation'}
+              {isQuick ? 'Generate Invoice' : isEstimate ? 'Create Estimate' : 'Create Quotation'}
             </Button>
             <Button onClick={() => navigate('/quotations')} disabled={createMutation.isPending}>
               Cancel

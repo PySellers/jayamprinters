@@ -15,6 +15,10 @@ class OrderType(str, enum.Enum):
     offline = "offline"
     online = "online"
 
+class DocumentType(str, enum.Enum):
+    quotation = "quotation"
+    estimate = "estimate"
+
 class Quotation(Base):
     __tablename__ = "quotations"
 
@@ -23,6 +27,11 @@ class Quotation(Base):
     customer_id = Column(Integer, ForeignKey("customers.id"))
     status = Column(Enum(QuotationStatus), default=QuotationStatus.draft)
     order_type = Column(Enum(OrderType), default=OrderType.offline, nullable=False, server_default=OrderType.offline.value)
+    # An Estimate is the same structure as a Quotation (customer + priced line items) - the PDF
+    # spec lists them as separate nav items, but the difference is purely how staff use the
+    # document (rough figure vs. a formal offer), not its data shape. Modeled as one field
+    # rather than a parallel table to avoid duplicating the whole pricing/conversion pipeline.
+    document_type = Column(Enum(DocumentType), default=DocumentType.quotation, nullable=False, server_default=DocumentType.quotation.value)
     tax_id = Column(Integer, ForeignKey("taxes.id"), nullable=True)
     total_amount = Column(Float, default=0.0)
     tax_amount = Column(Float, default=0.0)

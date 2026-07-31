@@ -6,8 +6,9 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.services.report_service import (
-    avg_job_turnaround_days, category_breakdown, order_type_breakdown, payment_method_breakdown,
-    period_comparison, quotation_funnel, sales_breakdown, sales_report_excel, top_products,
+    avg_job_turnaround_days, category_breakdown, expense_graph, order_type_breakdown,
+    payment_method_breakdown, period_comparison, quotation_funnel, sales_breakdown,
+    sales_graph, sales_report_excel, top_products,
 )
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -33,6 +34,18 @@ def _build_report(db: Session, start: date, end: date) -> dict:
 @router.get("/sales")
 def get_sales_report(start: date = Query(...), end: date = Query(...), db: Session = Depends(get_db)):
     return _build_report(db, start, end)
+
+
+@router.get("/graph")
+def get_graph(
+    metric: str = Query(..., pattern="^(sales|expense)$"),
+    granularity: str = Query("daily", pattern="^(daily|weekly|monthly|yearly)$"),
+    start: date = Query(...),
+    end: date = Query(...),
+    db: Session = Depends(get_db),
+):
+    series = sales_graph(db, granularity, start, end) if metric == "sales" else expense_graph(db, granularity, start, end)
+    return {"metric": metric, "granularity": granularity, "series": series}
 
 
 @router.get("/sales/export")

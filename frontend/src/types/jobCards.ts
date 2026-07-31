@@ -14,6 +14,13 @@ export interface JobCard {
   status: JobCardStatus;
   notes?: string | null;
   created_at: string;
+  order_taken_by_id?: number | null;
+  rubber_stamp_by_id?: number | null;
+  numbering_by_id?: number | null;
+  binding_by_id?: number | null;
+  proof_verified_customer?: string | null;
+  proof_verified_press_id?: number | null;
+  proof_verified_press_at?: string | null;
 }
 
 export interface JobCardCreateInput {
@@ -35,6 +42,13 @@ export interface JobCardUpdateInput {
   delivery_date?: string | null;
   priority?: JobCardPriority;
   notes?: string | null;
+  order_taken_by_id?: number | null;
+  rubber_stamp_by_id?: number | null;
+  numbering_by_id?: number | null;
+  binding_by_id?: number | null;
+  proof_verified_customer?: string | null;
+  proof_verified_press_id?: number | null;
+  proof_verified_press_at?: string | null;
 }
 
 export interface JobCardComment {

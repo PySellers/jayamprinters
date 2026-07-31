@@ -18,6 +18,14 @@ class PaymentMethod(str, enum.Enum):
     card = "card"
     credit = "credit"
     bank_transfer = "bank_transfer"
+    cheque = "cheque"
+
+
+class ChequeStatus(str, enum.Enum):
+    pending = "pending"
+    deposited = "deposited"
+    cleared = "cleared"
+    bounced = "bounced"
 
 
 class Invoice(Base):
@@ -83,5 +91,11 @@ class Payment(Base):
     payment_date = Column(Date, default=lambda: datetime.utcnow().date())
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # Only populated when method == cheque.
+    cheque_number = Column(String, nullable=True)
+    cheque_date = Column(Date, nullable=True)
+    issued_branch = Column(String, nullable=True)
+    cheque_status = Column(Enum(ChequeStatus), nullable=True)
+    cheque_deposit_date = Column(Date, nullable=True)
 
     invoice = relationship("Invoice", back_populates="payments")

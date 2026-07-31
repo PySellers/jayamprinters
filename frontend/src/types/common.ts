@@ -25,4 +25,10 @@ export type JobCardPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export type InvoiceStatus = 'unpaid' | 'partially_paid' | 'paid';
 
-export type PaymentMethod = 'cash' | 'upi' | 'card' | 'credit' | 'bank_transfer';
+export type PaymentMethod = 'cash' | 'upi' | 'card' | 'credit' | 'bank_transfer' | 'cheque';
+
+export type ChequeStatus = 'pending' | 'deposited' | 'cleared' | 'bounced';
+
+export type DocumentType = 'quotation' | 'estimate';
+
+export type DeliveryChallanBillType = 'cash_bill' | 'tax_gst_bill';

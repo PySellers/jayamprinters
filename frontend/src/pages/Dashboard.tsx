@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Grid } from '@mui/material';
+import { Box, Typography, Paper, Grid, List, ListItemButton, ListItemText, Chip } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { customersApi } from '../api/customersApi';
@@ -27,6 +27,12 @@ export default function Dashboard() {
     .reduce((sum, inv) => sum + inv.grand_total, 0);
   const pendingJobs = (jobCards.data ?? []).filter((jc) => jc.status !== 'delivered').length;
   const overdueJobs = (jobCards.data ?? []).filter(isOverdue).length;
+
+  const paymentsDue = (invoices.data ?? [])
+    .filter((inv) => inv.status !== 'paid')
+    .map((inv) => ({ ...inv, balance: inv.grand_total - inv.amount_paid }))
+    .sort((a, b) => a.invoice_date.localeCompare(b.invoice_date))
+    .slice(0, 8);
 
   const cards = [
     { label: "Today's Sales", value: `₹${todaysSales.toFixed(2)}`, color: '#1a237e', path: '/reports' },
@@ -79,6 +85,32 @@ export default function Dashboard() {
           </Grid>
 
           <LiveJobStatusBoard />
+
+          <Paper sx={{ borderRadius: 2, mt: 3 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 1 }}>
+              Payments Due
+            </Typography>
+            <List dense disablePadding>
+              {paymentsDue.map((inv) => (
+                <ListItemButton key={inv.id} onClick={() => navigate(`/invoices/${inv.id}`)}>
+                  <ListItemText
+                    primary={`${inv.invoice_number} — ₹${inv.balance.toFixed(2)}`}
+                    secondary={`Invoiced ${inv.invoice_date}`}
+                  />
+                  <Chip
+                    label={inv.status.replace('_', ' ')}
+                    size="small"
+                    color={inv.status === 'partially_paid' ? 'warning' : 'default'}
+                  />
+                </ListItemButton>
+              ))}
+              {paymentsDue.length === 0 && (
+                <Typography color="text.secondary" variant="body2" sx={{ p: 2, pt: 0 }}>
+                  Nothing outstanding.
+                </Typography>
+              )}
+            </List>
+          </Paper>
         </Grid>
       </Grid>
     </Box>

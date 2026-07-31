@@ -21,6 +21,9 @@ import Users from './pages/Users';
 import Vendors from './pages/Vendors';
 import InventoryItems from './pages/InventoryItems';
 import Purchases from './pages/Purchases';
+import PurchaseDetail from './pages/PurchaseDetail';
+import CashLedger from './pages/CashLedger';
+import DeliveryChallans from './pages/DeliveryChallans';
 import MasterTable from './components/masters/MasterTable';
 
 export default function App() {
@@ -120,6 +123,23 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="purchases/:id"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts']}>
+                  <PurchaseDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="cash-ledger"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts']}>
+                  <CashLedger />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="delivery-challans" element={<DeliveryChallans />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

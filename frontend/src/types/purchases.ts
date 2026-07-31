@@ -1,3 +1,5 @@
+import type { ChequeStatus, InvoiceStatus, PaymentMethod } from './common';
+
 export interface Vendor {
   id: number;
   name: string;
@@ -54,6 +56,34 @@ export interface PurchaseItemInput {
   unit_price: number;
 }
 
+export interface PurchasePayment {
+  id: number;
+  purchase_id: number;
+  amount: number;
+  method: PaymentMethod;
+  reference_number?: string | null;
+  notes?: string | null;
+  payment_date: string;
+  created_at: string;
+  cheque_number?: string | null;
+  cheque_date?: string | null;
+  issued_branch?: string | null;
+  cheque_status?: ChequeStatus | null;
+  cheque_deposit_date?: string | null;
+}
+
+export interface PurchasePaymentInput {
+  amount: number;
+  method: PaymentMethod;
+  reference_number?: string | null;
+  notes?: string | null;
+  cheque_number?: string | null;
+  cheque_date?: string | null;
+  issued_branch?: string | null;
+  cheque_status?: ChequeStatus | null;
+  cheque_deposit_date?: string | null;
+}
+
 export interface Purchase {
   id: number;
   purchase_number: string;
@@ -62,9 +92,12 @@ export interface Purchase {
   subtotal: number;
   tax_amount: number;
   grand_total: number;
+  amount_paid: number;
+  status: InvoiceStatus;
   notes?: string | null;
   created_at: string;
   items: PurchaseItem[];
+  payments: PurchasePayment[];
 }
 
 export interface PurchaseInput {

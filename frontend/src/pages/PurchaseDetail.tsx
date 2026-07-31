@@ -9,14 +9,11 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DownloadIcon from '@mui/icons-material/Download';
-import { invoicesApi } from '../api/invoicesApi';
+import { purchasesApi, vendorsApi, inventoryItemsApi } from '../api/purchasesApi';
 import { getErrorMessage } from '../utils/api';
-import { customersApi } from '../api/customersApi';
-import { productsApi } from '../api/productsApi';
 import { useAuth } from '../context/AuthContext';
 import { useNotify } from '../context/NotificationContext';
-import type { PaymentInput } from '../types/invoices';
+import type { PurchasePaymentInput } from '../types/purchases';
 import type { ChequeStatus, PaymentMethod } from '../types/common';
 import ConfirmDialog from '../components/ConfirmDialog';
 
@@ -28,9 +25,9 @@ const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
 const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'upi', 'card', 'credit', 'bank_transfer', 'cheque'];
 const CHEQUE_STATUSES: ChequeStatus[] = ['pending', 'deposited', 'cleared', 'bounced'];
 
-export default function InvoiceDetail() {
+export default function PurchaseDetail() {
   const { id } = useParams<{ id: string }>();
-  const invoiceId = Number(id);
+  const purchaseId = Number(id);
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const canManagePayments = hasRole('admin', 'accounts');
@@ -38,22 +35,22 @@ export default function InvoiceDetail() {
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(null);
 
-  const invoiceQuery = useQuery({ queryKey: ['invoices', invoiceId], queryFn: () => invoicesApi.get(invoiceId) });
-  const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
-  const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
+  const purchaseQuery = useQuery({ queryKey: ['purchases', purchaseId], queryFn: () => purchasesApi.get(purchaseId) });
+  const vendorsQuery = useQuery({ queryKey: ['vendors'], queryFn: vendorsApi.list });
+  const inventoryQuery = useQuery({ queryKey: ['inventory-items'], queryFn: inventoryItemsApi.list });
 
-  const productName = (pid: number) => productsQuery.data?.find((p) => p.id === pid)?.name ?? `#${pid}`;
+  const itemName = (id: number) => inventoryQuery.data?.find((i) => i.id === id)?.name ?? `#${id}`;
 
-  const { control, register, handleSubmit, reset, watch, formState: { errors } } = useForm<PaymentInput>({
+  const { control, register, handleSubmit, reset, watch, formState: { errors } } = useForm<PurchasePaymentInput>({
     defaultValues: { amount: 0, method: 'cash', reference_number: '', notes: '' },
   });
   const paymentMethod = watch('method');
 
   const paymentMutation = useMutation({
-    mutationFn: (data: PaymentInput) => invoicesApi.addPayment(invoiceId, data),
+    mutationFn: (data: PurchasePaymentInput) => purchasesApi.addPayment(purchaseId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['purchases', purchaseId] });
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
       notify('Payment recorded');
       setPaymentDialogOpen(false);
       reset({ amount: 0, method: 'cash', reference_number: '', notes: '' });
@@ -61,10 +58,10 @@ export default function InvoiceDetail() {
   });
 
   const deletePaymentMutation = useMutation({
-    mutationFn: (paymentId: number) => invoicesApi.removePayment(paymentId),
+    mutationFn: (paymentId: number) => purchasesApi.removePayment(paymentId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['purchases', purchaseId] });
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
       notify('Payment deleted');
       setDeletingPaymentId(null);
     },
@@ -74,11 +71,7 @@ export default function InvoiceDetail() {
     },
   });
 
-  const downloadPdfMutation = useMutation({
-    mutationFn: () => invoicesApi.downloadPdf(invoiceId, invoiceQuery.data!.invoice_number),
-  });
-
-  if (invoiceQuery.isLoading) {
+  if (purchaseQuery.isLoading) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
         <CircularProgress />
@@ -86,61 +79,45 @@ export default function InvoiceDetail() {
     );
   }
 
-  const invoice = invoiceQuery.data;
-  if (!invoice) {
+  const purchase = purchaseQuery.data;
+  if (!purchase) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography color="error">Invoice not found.</Typography>
+        <Typography color="error">Purchase not found.</Typography>
       </Box>
     );
   }
 
-  const balance = invoice.grand_total - invoice.amount_paid;
+  const balance = purchase.grand_total - purchase.amount_paid;
 
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            {invoice.invoice_number}
+            {purchase.purchase_number}
           </Typography>
           <Typography color="text.secondary">
-            {customersQuery.data?.find((c) => c.id === invoice.customer_id)?.name ?? `Customer #${invoice.customer_id}`}
+            {vendorsQuery.data?.find((v) => v.id === purchase.vendor_id)?.name ?? `Vendor #${purchase.vendor_id}`}
           </Typography>
         </Box>
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-          <Chip label={invoice.status.replace('_', ' ')} color={STATUS_COLORS[invoice.status]} />
-          <Button
-            variant="outlined"
-            startIcon={downloadPdfMutation.isPending ? <CircularProgress size={16} /> : <DownloadIcon />}
-            disabled={downloadPdfMutation.isPending}
-            onClick={() => downloadPdfMutation.mutate()}
-          >
-            Download PDF
-          </Button>
-        </Stack>
+        <Chip label={purchase.status.replace('_', ' ')} color={STATUS_COLORS[purchase.status]} />
       </Box>
-
-      {downloadPdfMutation.isError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {getErrorMessage(downloadPdfMutation.error, 'Failed to download PDF')}
-        </Alert>
-      )}
 
       <Paper sx={{ borderRadius: 2, mb: 3, overflowX: 'auto' }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Product</TableCell>
+              <TableCell>Item</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Unit Price</TableCell>
               <TableCell>Total</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {invoice.items.map((item) => (
+            {purchase.items.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{productName(item.product_id)}</TableCell>
+                <TableCell>{itemName(item.inventory_item_id)}</TableCell>
                 <TableCell>{item.quantity}</TableCell>
                 <TableCell>₹{item.unit_price.toFixed(2)}</TableCell>
                 <TableCell>₹{item.total_price.toFixed(2)}</TableCell>
@@ -159,20 +136,20 @@ export default function InvoiceDetail() {
             <Stack spacing={0.5}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color="text.secondary">Subtotal</Typography>
-                <Typography>₹{invoice.subtotal.toFixed(2)}</Typography>
+                <Typography>₹{purchase.subtotal.toFixed(2)}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color="text.secondary">Tax</Typography>
-                <Typography>₹{invoice.tax_amount.toFixed(2)}</Typography>
+                <Typography>₹{purchase.tax_amount.toFixed(2)}</Typography>
               </Box>
               <Divider sx={{ my: 1 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography sx={{ fontWeight: 'bold' }}>Grand Total</Typography>
-                <Typography sx={{ fontWeight: 'bold' }}>₹{invoice.grand_total.toFixed(2)}</Typography>
+                <Typography sx={{ fontWeight: 'bold' }}>₹{purchase.grand_total.toFixed(2)}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color="success.main">Paid</Typography>
-                <Typography color="success.main">₹{invoice.amount_paid.toFixed(2)}</Typography>
+                <Typography color="success.main">₹{purchase.amount_paid.toFixed(2)}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color={balance > 0 ? 'error.main' : 'text.secondary'}>Balance</Typography>
@@ -204,7 +181,7 @@ export default function InvoiceDetail() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {invoice.payments.map((p) => (
+                {purchase.payments.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>{p.payment_date}</TableCell>
                     <TableCell>
@@ -222,7 +199,7 @@ export default function InvoiceDetail() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {invoice.payments.length === 0 && (
+                {purchase.payments.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} align="center" sx={{ color: 'text.secondary', py: 2 }}>
                       No payments recorded yet.
@@ -308,7 +285,7 @@ export default function InvoiceDetail() {
       <ConfirmDialog
         open={Boolean(deletingPaymentId)}
         title="Delete Payment"
-        message="Are you sure you want to delete this payment? The invoice balance will be recalculated."
+        message="Are you sure you want to delete this payment? The purchase balance will be recalculated."
         loading={deletePaymentMutation.isPending}
         onConfirm={() => deletingPaymentId && deletePaymentMutation.mutate(deletingPaymentId)}
         onCancel={() => setDeletingPaymentId(null)}

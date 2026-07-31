@@ -1,9 +1,11 @@
 import api from '../utils/api';
-import type { SalesReport } from '../types/reports';
+import type { GraphGranularity, GraphSeries, SalesReport } from '../types/reports';
 
 export const reportsApi = {
   sales: async (start: string, end: string): Promise<SalesReport> =>
     (await api.get('/reports/sales', { params: { start, end } })).data,
+  graph: async (metric: 'sales' | 'expense', granularity: GraphGranularity, start: string, end: string): Promise<GraphSeries> =>
+    (await api.get('/reports/graph', { params: { metric, granularity, start, end } })).data,
   downloadSalesExcel: async (start: string, end: string): Promise<void> => {
     const response = await api.get('/reports/sales/export', { params: { start, end }, responseType: 'blob' });
     const url = window.URL.createObjectURL(

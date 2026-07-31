@@ -82,9 +82,14 @@ export default function Quotations() {
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
           Quotations
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={() => navigate('/quotations/new')}>
-          New Quotation
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button variant="outlined" startIcon={<AddIcon />} onClick={() => navigate('/quotations/new?docType=estimate')}>
+            New Estimate
+          </Button>
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={() => navigate('/quotations/new')}>
+            New Quotation
+          </Button>
+        </Stack>
       </Box>
 
       <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
@@ -98,6 +103,7 @@ export default function Quotations() {
               <TableRow>
                 <TableCell>Quotation #</TableCell>
                 <TableCell>Customer</TableCell>
+                <TableCell>Document</TableCell>
                 <TableCell>Type</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Grand Total</TableCell>
@@ -109,6 +115,13 @@ export default function Quotations() {
                 <TableRow key={q.id} hover sx={{ cursor: 'pointer' }}>
                   <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>{q.quotation_number}</TableCell>
                   <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>{customerName(q.customer_id)}</TableCell>
+                  <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>
+                    <Chip
+                      label={q.document_type === 'estimate' ? 'Estimate' : 'Quotation'}
+                      size="small"
+                      color={q.document_type === 'estimate' ? 'secondary' : 'default'}
+                    />
+                  </TableCell>
                   <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>
                     <Chip label={q.order_type === 'offline' ? 'Walk-in' : 'Phone/Remote'} size="small" variant="outlined" />
                   </TableCell>
@@ -151,7 +164,7 @@ export default function Quotations() {
                   </TableCell>
                 </TableRow>
               ))}
-              {(quotationsQuery.data ?? []).length === 0 && <EmptyState colSpan={6} message="No quotations yet." />}
+              {(quotationsQuery.data ?? []).length === 0 && <EmptyState colSpan={7} message="No quotations yet." />}
             </TableBody>
           </Table>
         )}

@@ -17,7 +17,8 @@ from .job_card_comment import JobCardComment
 from .invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment
 from .vendor import Vendor
 from .inventory import InventoryItem, StockMovement
-from .purchase import Purchase, PurchaseItem
+from .purchase import Purchase, PurchaseItem, PurchasePayment
+from .delivery_challan import DeliveryChallan
 
 __all__ = [
     "User",
@@ -48,4 +49,6 @@ __all__ = [
     "StockMovement",
     "Purchase",
     "PurchaseItem",
+    "PurchasePayment",
+    "DeliveryChallan",
 ]

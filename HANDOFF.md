@@ -374,4 +374,71 @@ click-through before relying on this for real orders.
 Everything from the prior passes, plus: real pricing for every category except Rubber Stamp (still
 ₹0 placeholders - this was always explicitly out of scope, not a regression), and the cosmetic
 duplicate-category cleanup noted above.
-one period-over-period comparison, drill-down) - all still exactly as described above.
+
+## Update — 2026-07-31 (sixth pass): the rest of the client's original wireframe (pages 2-3 of the PDF)
+
+Went back through the PDF's home-page/navigation wireframe (not the catalog pages, which were
+already fully implemented and verified) and found several things it called for that were never
+built: a cash/cheque ledger, sales & expense graphs, per-production-stage staff sign-off on job
+cards, Estimate as a real document type, and Delivery Challans. Built all of them.
+
+### Cash Ledger + cheque lifecycle
+- `Payment` (invoice) and the new `PurchasePayment` (vendor bills) both gained `cheque` as a
+  payment method plus `cheque_number`/`cheque_date`/`issued_branch`/`cheque_status`/
+  `cheque_deposit_date`. **Adding `'cheque'` to the existing `paymentmethod` Postgres enum needed
+  `ALTER TYPE ... ADD VALUE`, not a fresh `CREATE TYPE`** - easy to miss since it only breaks at
+  query time (`invalid input value for enum`), not at migration time. Caught this live-testing
+  the cash ledger endpoint, not from the migration dry-run.
+- New `/api/v1/cash-ledger/summary` and `/cash-ledger/cheques` (accounts/admin only) and a new
+  **Cash Ledger** page: Cash in Hand and Cash in Bank as simple running totals (received minus paid
+  out; cash-method payments vs. everything else), plus a unified cheques table combining cheques
+  received from customers and issued to vendors. This is deliberately **not** a full double-entry
+  ledger - it's the two numbers plus a cheque tracker the PDF actually asked for, nothing more.
+- **Purchases now support partial payment tracking**, mirroring Invoices exactly: `Purchase`
+  gained `amount_paid`/`status`, a new `PurchaseDetail.tsx` page (route `/purchases/:id`) has the
+  same record-payment/delete-payment/cheque-fields UI as `InvoiceDetail.tsx`. This was the "Stock
+  Value - Cash Paid/Balance" gap from the PDF.
+
+### Sales & Expense graphs
+`GET /reports/graph?metric=sales|expense&granularity=daily|weekly|monthly|yearly` (Postgres
+`date_trunc`, since this app is Postgres-only - no SQLite fallback needed). "Expense" here means
+money spent on purchases; there's no separate operating-expense ledger (rent, salaries, etc.).
+Rendered with a small custom `components/BarChart.tsx` rather than pulling in a charting library -
+deliberately just bars sized by value, no dependency added, since the requirement was two simple
+trend graphs, not an analytics dashboard.
+
+### Per-production-stage job card fields
+The PDF's paper job-card layout lists stages (Order Taken By, DTP, Machine Man, Rubber Stamp,
+Numbering, Binding, Proof Verified-Customer, Proof Verified-Press) that weren't all modeled - only
+`designer_id`/`operator_id`/`machine_id` existed (covering DTP/Machine Man). Added
+`order_taken_by_id`, `rubber_stamp_by_id`, `numbering_by_id`, `binding_by_id` (all `User` FKs),
+`proof_verified_customer` (a nullable timestamp, not a separate bool+date pair - null means not
+yet verified), and `proof_verified_press_id`/`proof_verified_press_at`. Surfaced in Job Cards' assign
+dialog under a collapsible "Production Stages" section so the common fields (machine/designer/
+operator/priority/delivery) aren't buried under eight more pickers.
+
+### Estimate as a real document type
+`Quotation.document_type` (`quotation` | `estimate`) rather than a parallel table - an Estimate is
+structurally identical to a Quotation (customer + priced line items going through the same pricing
+engine), the PDF just lists them as separate nav items because staff use them differently. Gets its
+own numbering sequence (`EST-00001` vs `QT-00001`, counted independently). `QuotationCreate.tsx` has
+a Quotation/Estimate toggle (hidden in the quick-order flow, which is always a real quotation), and
+the Quotations list has a "New Estimate" button plus a Document column.
+
+### Delivery Challans
+New `DeliveryChallan` model/page - always references an existing `Invoice` for item/pricing detail
+(this shop invoices at or before delivery, so there's no "challan without a bill" case to support),
+with a `bill_type` of `cash_bill` or `tax_gst_bill` matching the PDF's split. No PDF export yet, and
+no data model changes elsewhere - open to all authenticated roles the same as creating an invoice.
+
+### Verified
+Full migration chain re-tested from empty (including the `ALTER TYPE` fix). Live-tested every new
+endpoint against the real dev DB: recorded a cheque payment on a purchase (status flipped to
+`paid`, cheque appeared correctly in the cheques list), created a Delivery Challan against a real
+invoice, created an Estimate (`EST-00001`), set job-card stage fields via the API. `tsc --noEmit`
+and `npm run build` both clean. Cleaned up all test records afterward.
+
+### Still open
+Real pricing data, mobile/offline visibility, further UI polish, deeper exploratory reporting
+(trends/drill-downs beyond what's here), and a real browser click-through of everything in this
+update (verified via API + build only, same caveat as the previous pass).

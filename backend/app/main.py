@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, customer, quotation, masters, tax, product, job_card, invoice, user
 from app.api import attribute, quantity_slab, price_matrix, extra_charge, reports
-from app.api import vendor, inventory, purchase
+from app.api import vendor, inventory, purchase, cash_ledger, delivery_challan
 from app.core.security import get_current_user, require_roles
 from app.models.user import UserRole
 
@@ -45,6 +45,12 @@ app.include_router(
 app.include_router(vendor.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(inventory.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(purchase.router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(
+    cash_ledger.router,
+    prefix="/api/v1",
+    dependencies=[Depends(require_roles(UserRole.accounts, UserRole.admin))],
+)
+app.include_router(delivery_challan.router, prefix="/api/v1", dependencies=authenticated)
 
 @app.get("/")
 def root():

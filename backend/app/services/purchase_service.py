@@ -2,8 +2,8 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.inventory import InventoryItem, StockMovement, StockMovementType
-from app.models.purchase import Purchase, PurchaseItem
-from app.schemas.purchase import PurchaseCreate
+from app.models.purchase import Purchase, PurchaseItem, PurchasePayment, PurchasePaymentStatus
+from app.schemas.purchase import PurchaseCreate, PurchasePaymentCreate
 
 
 def generate_purchase_number(db: Session) -> str:
@@ -59,6 +59,43 @@ def create_purchase(db: Session, data: PurchaseCreate) -> Purchase:
     db.commit()
     db.refresh(purchase)
     return purchase
+
+
+def _recompute_purchase_status(db: Session, purchase: Purchase) -> None:
+    total_paid = sum(p.amount for p in purchase.payments)
+    purchase.amount_paid = total_paid
+    if total_paid <= 0:
+        purchase.status = PurchasePaymentStatus.unpaid
+    elif total_paid >= purchase.grand_total:
+        purchase.status = PurchasePaymentStatus.paid
+    else:
+        purchase.status = PurchasePaymentStatus.partially_paid
+    db.commit()
+    db.refresh(purchase)
+
+
+def record_purchase_payment(db: Session, purchase_id: int, payload: PurchasePaymentCreate) -> Purchase:
+    purchase = db.query(Purchase).filter(Purchase.id == purchase_id).first()
+    if not purchase:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Purchase not found")
+    if payload.amount <= 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payment amount must be positive")
+
+    db.add(PurchasePayment(purchase_id=purchase.id, **payload.model_dump()))
+    db.commit()
+    db.refresh(purchase)
+    _recompute_purchase_status(db, purchase)
+    return purchase
+
+
+def delete_purchase_payment(db: Session, payment_id: int) -> None:
+    payment = db.query(PurchasePayment).filter(PurchasePayment.id == payment_id).first()
+    if not payment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+    purchase = payment.purchase
+    db.delete(payment)
+    db.commit()
+    _recompute_purchase_status(db, purchase)
 
 
 def delete_purchase(db: Session, purchase_id: int) -> None:

@@ -9,7 +9,33 @@ from openpyxl import Workbook
 from app.models.invoice import Invoice, InvoiceItem, Payment
 from app.models.job_card import JobCard, JobCardStatus
 from app.models.product import Product, ProductCategory
+from app.models.purchase import Purchase
 from app.models.quotation import Quotation
+
+GRANULARITY_TO_POSTGRES_FIELD = {"daily": "day", "weekly": "week", "monthly": "month", "yearly": "year"}
+
+
+def _graph_series(db: Session, model, date_column, amount_column, granularity: str, start: date, end: date) -> List[dict]:
+    field = GRANULARITY_TO_POSTGRES_FIELD.get(granularity, "day")
+    bucket = func.date_trunc(field, date_column)
+    rows = (
+        db.query(bucket.label("bucket"), func.coalesce(func.sum(amount_column), 0.0).label("total"))
+        .filter(date_column >= start, date_column <= end)
+        .group_by("bucket")
+        .order_by("bucket")
+        .all()
+    )
+    return [{"period": row.bucket.date().isoformat(), "total": float(row.total)} for row in rows]
+
+
+def sales_graph(db: Session, granularity: str, start: date, end: date) -> List[dict]:
+    return _graph_series(db, Invoice, Invoice.invoice_date, Invoice.grand_total, granularity, start, end)
+
+
+def expense_graph(db: Session, granularity: str, start: date, end: date) -> List[dict]:
+    """"Expense" here means money spent on purchases - there's no separate operating-expense
+    ledger (rent, salaries, etc.) in this system, only material purchases."""
+    return _graph_series(db, Purchase, Purchase.purchase_date, Purchase.grand_total, granularity, start, end)
 
 
 def sales_breakdown(db: Session, start: date, end: date) -> Tuple[float, List[dict]]:

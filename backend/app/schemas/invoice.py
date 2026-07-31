@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import date, datetime
-from app.models.invoice import InvoiceStatus, PaymentMethod
+from app.models.invoice import ChequeStatus, InvoiceStatus, PaymentMethod
 from app.models.quotation import OrderType
 from app.schemas.quotation import SelectedOptionOut
 
@@ -25,6 +25,11 @@ class PaymentCreate(BaseModel):
     method: PaymentMethod
     reference_number: Optional[str] = None
     notes: Optional[str] = None
+    cheque_number: Optional[str] = None
+    cheque_date: Optional[date] = None
+    issued_branch: Optional[str] = None
+    cheque_status: Optional[ChequeStatus] = None
+    cheque_deposit_date: Optional[date] = None
 
 
 class PaymentOut(PaymentCreate):

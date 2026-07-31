@@ -5,7 +5,9 @@ import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, Chip, CircularProgress, Dialog, DialogTitle, DialogContent,
   DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText,
+  FormControlLabel, Switch, Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import EditIcon from '@mui/icons-material/Edit';
 import SendIcon from '@mui/icons-material/Send';
 import { jobCardsApi } from '../api/jobCardsApi';
@@ -70,7 +72,9 @@ export default function JobCards() {
     onError: (error) => notify(getErrorMessage(error, 'Failed to update status'), 'error'),
   });
 
-  const { control, register, handleSubmit, reset } = useForm<JobCardUpdateInput>();
+  const { control, register, handleSubmit, reset, watch, setValue } = useForm<JobCardUpdateInput>();
+  const proofVerifiedCustomer = watch('proof_verified_customer');
+  const proofVerifiedPressAt = watch('proof_verified_press_at');
 
   const assignMutation = useMutation({
     mutationFn: (data: JobCardUpdateInput) => jobCardsApi.update(assigning!.id, data),
@@ -92,6 +96,13 @@ export default function JobCards() {
       delivery_date: jobCard.delivery_date,
       priority: jobCard.priority,
       notes: jobCard.notes ?? '',
+      order_taken_by_id: jobCard.order_taken_by_id,
+      rubber_stamp_by_id: jobCard.rubber_stamp_by_id,
+      numbering_by_id: jobCard.numbering_by_id,
+      binding_by_id: jobCard.binding_by_id,
+      proof_verified_customer: jobCard.proof_verified_customer,
+      proof_verified_press_id: jobCard.proof_verified_press_id,
+      proof_verified_press_at: jobCard.proof_verified_press_at,
     });
   };
 
@@ -241,6 +252,111 @@ export default function JobCards() {
                 ))}
               </TextField>
               <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
+
+              <Accordion disableGutters>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                    Production Stages
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={2}>
+                    <Controller
+                      name="order_taken_by_id"
+                      control={control}
+                      render={({ field }) => (
+                        <EntitySelect
+                          label="Order Taken By"
+                          mode="list"
+                          queryKey="user-picker"
+                          fetchOptions={usersApi.list}
+                          getOptionLabel={(o) => (o.department ? `${o.name} (${o.department})` : o.name)}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="rubber_stamp_by_id"
+                      control={control}
+                      render={({ field }) => (
+                        <EntitySelect
+                          label="Rubber Stamp By"
+                          mode="list"
+                          queryKey="user-picker"
+                          fetchOptions={usersApi.list}
+                          getOptionLabel={(o) => (o.department ? `${o.name} (${o.department})` : o.name)}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="numbering_by_id"
+                      control={control}
+                      render={({ field }) => (
+                        <EntitySelect
+                          label="Numbering By"
+                          mode="list"
+                          queryKey="user-picker"
+                          fetchOptions={usersApi.list}
+                          getOptionLabel={(o) => (o.department ? `${o.name} (${o.department})` : o.name)}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="binding_by_id"
+                      control={control}
+                      render={({ field }) => (
+                        <EntitySelect
+                          label="Binding By"
+                          mode="list"
+                          queryKey="user-picker"
+                          fetchOptions={usersApi.list}
+                          getOptionLabel={(o) => (o.department ? `${o.name} (${o.department})` : o.name)}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={Boolean(proofVerifiedCustomer)}
+                          onChange={(e) => setValue('proof_verified_customer', e.target.checked ? new Date().toISOString() : null)}
+                        />
+                      }
+                      label={proofVerifiedCustomer ? `Proof Verified by Customer (${new Date(proofVerifiedCustomer).toLocaleString()})` : 'Proof Verified by Customer'}
+                    />
+                    <Controller
+                      name="proof_verified_press_id"
+                      control={control}
+                      render={({ field }) => (
+                        <EntitySelect
+                          label="Proof Verified By (Press)"
+                          mode="list"
+                          queryKey="user-picker"
+                          fetchOptions={usersApi.list}
+                          getOptionLabel={(o) => (o.department ? `${o.name} (${o.department})` : o.name)}
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={Boolean(proofVerifiedPressAt)}
+                          onChange={(e) => setValue('proof_verified_press_at', e.target.checked ? new Date().toISOString() : null)}
+                        />
+                      }
+                      label={proofVerifiedPressAt ? `Proof Verified by Press (${new Date(proofVerifiedPressAt).toLocaleString()})` : 'Proof Verified by Press'}
+                    />
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
 
               <Divider />
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>

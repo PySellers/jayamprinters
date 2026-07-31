@@ -11,6 +11,8 @@ import BadgeIcon from '@mui/icons-material/Badge';
 import StoreIcon from '@mui/icons-material/Store';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import { mastersConfig } from '../../api/mastersApi';
 import type { UserRole } from '../../types/users';
 
@@ -33,6 +35,8 @@ export const mainNavItems: NavItem[] = [
   { label: 'Vendors', path: '/vendors', icon: StoreIcon, roles: ['admin', 'accounts'] },
   { label: 'Inventory', path: '/inventory', icon: WarehouseIcon, roles: ['admin', 'accounts'] },
   { label: 'Purchases', path: '/purchases', icon: ShoppingCartIcon, roles: ['admin', 'accounts'] },
+  { label: 'Delivery Challans', path: '/delivery-challans', icon: LocalShippingIcon },
+  { label: 'Cash Ledger', path: '/cash-ledger', icon: AccountBalanceIcon, roles: ['admin', 'accounts'] },
   { label: 'Reports', path: '/reports', icon: BarChartIcon, roles: ['admin', 'accounts'] },
   { label: 'Users', path: '/users', icon: BadgeIcon, roles: ['admin'] },
 ];

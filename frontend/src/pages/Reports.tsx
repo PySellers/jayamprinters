@@ -8,8 +8,12 @@ import DownloadIcon from '@mui/icons-material/Download';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { reportsApi } from '../api/reportsApi';
+import BarChart from '../components/BarChart';
+import type { GraphGranularity } from '../types/reports';
 
 type Preset = 'today' | 'week' | 'month' | 'custom';
+
+const GRANULARITIES: GraphGranularity[] = ['daily', 'weekly', 'monthly', 'yearly'];
 
 const FUNNEL_LABELS: Record<string, string> = {
   draft: 'Draft',
@@ -59,6 +63,18 @@ export default function Reports() {
   const salesQuery = useQuery({
     queryKey: ['reports', 'sales', start, end],
     queryFn: () => reportsApi.sales(start, end),
+    enabled: Boolean(start && end),
+  });
+
+  const [granularity, setGranularity] = useState<GraphGranularity>('daily');
+  const salesGraphQuery = useQuery({
+    queryKey: ['reports', 'graph', 'sales', granularity, start, end],
+    queryFn: () => reportsApi.graph('sales', granularity, start, end),
+    enabled: Boolean(start && end),
+  });
+  const expenseGraphQuery = useQuery({
+    queryKey: ['reports', 'graph', 'expense', granularity, start, end],
+    queryFn: () => reportsApi.graph('expense', granularity, start, end),
     enabled: Boolean(start && end),
   });
 
@@ -154,6 +170,44 @@ export default function Reports() {
             </Typography>
           </Box>
         </Stack>
+      </Paper>
+
+      <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            Sales &amp; Expense Graphs
+          </Typography>
+          <ToggleButtonGroup
+            size="small"
+            value={granularity}
+            exclusive
+            onChange={(_, v) => v && setGranularity(v)}
+          >
+            {GRANULARITIES.map((g) => (
+              <ToggleButton key={g} value={g} sx={{ whiteSpace: 'nowrap', textTransform: 'capitalize' }}>
+                {g}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Sales</Typography>
+            {salesGraphQuery.isLoading ? (
+              <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress size={24} /></Box>
+            ) : (
+              <BarChart color="#1a237e" data={(salesGraphQuery.data?.series ?? []).map((p) => ({ label: p.period, value: p.total }))} />
+            )}
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Expense (Purchases)</Typography>
+            {expenseGraphQuery.isLoading ? (
+              <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress size={24} /></Box>
+            ) : (
+              <BarChart color="#c62828" data={(expenseGraphQuery.data?.series ?? []).map((p) => ({ label: p.period, value: p.total }))} />
+            )}
+          </Grid>
+        </Grid>
       </Paper>
 
       <Paper sx={{ borderRadius: 2, mb: 3 }}>

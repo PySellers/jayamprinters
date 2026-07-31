@@ -1,18 +1,20 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.product import Product
-from app.models.quotation import Quotation, QuotationItem, QuotationStatus, QuotationItemAttributeOption, QuotationItemExtraCharge
+from app.models.quotation import DocumentType, Quotation, QuotationItem, QuotationStatus, QuotationItemAttributeOption, QuotationItemExtraCharge
 from app.schemas.quotation import QuotationCreate
 from app.services import pricing_service
 
-def generate_quotation_number(db: Session) -> str:
-    count = db.query(Quotation).count() + 1
-    return f"QT-{count:05d}"
+def generate_quotation_number(db: Session, document_type: DocumentType = DocumentType.quotation) -> str:
+    prefix = "EST" if document_type == DocumentType.estimate else "QT"
+    count = db.query(Quotation).filter(Quotation.document_type == document_type).count() + 1
+    return f"{prefix}-{count:05d}"
 
 def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     quotation = Quotation(
-        quotation_number=generate_quotation_number(db),
+        quotation_number=generate_quotation_number(db, payload.document_type),
         customer_id=payload.customer_id,
+        document_type=payload.document_type,
         order_type=payload.order_type,
         notes=payload.notes,
         delivery_date=payload.delivery_date,

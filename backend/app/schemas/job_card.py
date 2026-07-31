@@ -23,6 +23,13 @@ class JobCardUpdate(BaseModel):
     delivery_date: Optional[date] = None
     priority: Optional[JobCardPriority] = None
     notes: Optional[str] = None
+    order_taken_by_id: Optional[int] = None
+    rubber_stamp_by_id: Optional[int] = None
+    numbering_by_id: Optional[int] = None
+    binding_by_id: Optional[int] = None
+    proof_verified_customer: Optional[datetime] = None
+    proof_verified_press_id: Optional[int] = None
+    proof_verified_press_at: Optional[datetime] = None
 
 
 class JobCardOut(JobCardCreate):
@@ -30,6 +37,13 @@ class JobCardOut(JobCardCreate):
     job_number: str
     status: JobCardStatus
     created_at: datetime
+    order_taken_by_id: Optional[int] = None
+    rubber_stamp_by_id: Optional[int] = None
+    numbering_by_id: Optional[int] = None
+    binding_by_id: Optional[int] = None
+    proof_verified_customer: Optional[datetime] = None
+    proof_verified_press_id: Optional[int] = None
+    proof_verified_press_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

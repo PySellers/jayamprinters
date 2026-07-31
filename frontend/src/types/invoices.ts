@@ -1,4 +1,4 @@
-import type { InvoiceStatus, OrderType, PaymentMethod } from './common';
+import type { ChequeStatus, InvoiceStatus, OrderType, PaymentMethod } from './common';
 
 export interface InvoiceItem {
   id: number;
@@ -16,6 +16,11 @@ export interface Payment {
   notes?: string | null;
   payment_date: string;
   created_at: string;
+  cheque_number?: string | null;
+  cheque_date?: string | null;
+  issued_branch?: string | null;
+  cheque_status?: ChequeStatus | null;
+  cheque_deposit_date?: string | null;
 }
 
 export interface Invoice {
@@ -42,4 +47,9 @@ export interface PaymentInput {
   method: PaymentMethod;
   reference_number?: string | null;
   notes?: string | null;
+  cheque_number?: string | null;
+  cheque_date?: string | null;
+  issued_branch?: string | null;
+  cheque_status?: ChequeStatus | null;
+  cheque_deposit_date?: string | null;
 }

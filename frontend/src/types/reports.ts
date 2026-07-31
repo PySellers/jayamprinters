@@ -43,6 +43,19 @@ export interface QuotationFunnelRow {
   count: number;
 }
 
+export type GraphGranularity = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+export interface GraphPoint {
+  period: string;
+  total: number;
+}
+
+export interface GraphSeries {
+  metric: 'sales' | 'expense';
+  granularity: GraphGranularity;
+  series: GraphPoint[];
+}
+
 export interface SalesReport {
   start: string;
   end: string;

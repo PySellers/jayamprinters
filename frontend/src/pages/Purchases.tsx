@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, CircularProgress, Dialog, DialogTitle, DialogContent,
-  DialogActions, Stack, TextField, Grid, Alert,
+  DialogActions, Stack, TextField, Grid, Alert, Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,8 +19,14 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 
 const emptyItem = { inventory_item_id: 0, quantity: 1, unit_price: 0 };
+const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
+  unpaid: 'default',
+  partially_paid: 'warning',
+  paid: 'success',
+};
 
 export default function Purchases() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { hasRole } = useAuth();
   const canManage = hasRole('admin', 'accounts');
@@ -112,27 +119,31 @@ export default function Purchases() {
                 <TableCell>Date</TableCell>
                 <TableCell>Items</TableCell>
                 <TableCell>Grand Total</TableCell>
+                <TableCell>Status</TableCell>
                 {canManage && <TableCell align="right">Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
               {(purchasesQuery.data ?? []).map((p) => (
-                <TableRow key={p.id}>
+                <TableRow key={p.id} hover sx={{ cursor: 'pointer' }} onClick={() => navigate(`/purchases/${p.id}`)}>
                   <TableCell>{p.purchase_number}</TableCell>
                   <TableCell>{vendorName(p.vendor_id)}</TableCell>
                   <TableCell>{p.purchase_date}</TableCell>
                   <TableCell>{p.items.map((it) => `${itemName(it.inventory_item_id)} (${it.quantity})`).join(', ')}</TableCell>
                   <TableCell>₹{p.grand_total.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Chip label={p.status.replace('_', ' ')} color={STATUS_COLORS[p.status]} size="small" />
+                  </TableCell>
                   {canManage && (
                     <TableCell align="right">
-                      <IconButton size="small" onClick={() => setDeleting(p)}>
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); setDeleting(p); }}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </TableCell>
                   )}
                 </TableRow>
               ))}
-              {(purchasesQuery.data ?? []).length === 0 && <EmptyState colSpan={6} message="No purchases recorded yet." />}
+              {(purchasesQuery.data ?? []).length === 0 && <EmptyState colSpan={7} message="No purchases recorded yet." />}
             </TableBody>
           </Table>
         )}

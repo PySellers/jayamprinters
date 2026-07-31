@@ -1,7 +1,7 @@
 import api from '../utils/api';
 import type {
   Vendor, VendorInput, InventoryItem, InventoryItemInput,
-  StockMovement, StockAdjustmentInput, Purchase, PurchaseInput,
+  StockMovement, StockAdjustmentInput, Purchase, PurchaseInput, PurchasePaymentInput,
 } from '../types/purchases';
 
 export const vendorsApi = {
@@ -37,5 +37,10 @@ export const purchasesApi = {
   create: async (data: PurchaseInput): Promise<Purchase> => (await api.post('/purchases/', data)).data,
   remove: async (id: number): Promise<void> => {
     await api.delete(`/purchases/${id}`);
+  },
+  addPayment: async (purchaseId: number, data: PurchasePaymentInput): Promise<Purchase> =>
+    (await api.post(`/purchases/${purchaseId}/payments`, data)).data,
+  removePayment: async (paymentId: number): Promise<void> => {
+    await api.delete(`/purchase-payments/${paymentId}`);
   },
 };
