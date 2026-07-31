@@ -9,6 +9,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { productsApi } from '../../api/productsApi';
 import { attributesApi } from '../../api/attributesApi';
 import { extraChargesApi } from '../../api/extraChargesApi';
+import { quantitySlabsApi } from '../../api/quantitySlabsApi';
+import { priceMatrixApi } from '../../api/priceMatrixApi';
 import type { QuotationCreateInput, SelectedOption } from '../../types/quotations';
 import EntitySelect from '../pickers/EntitySelect';
 
@@ -37,6 +39,31 @@ export default function QuotationLineItem({ index, onRemove, canRemove }: Quotat
     queryFn: () => extraChargesApi.list(categoryId),
     enabled: Boolean(categoryId),
   });
+  const quantitySlabsQuery = useQuery({
+    queryKey: ['quantity-slabs', categoryId],
+    queryFn: () => quantitySlabsApi.list(categoryId),
+    enabled: Boolean(categoryId) && product?.pricing_type === 'matrix',
+  });
+  // Quantity slabs are category-scoped, but a category can carry old/leftover slabs that this
+  // particular product's price matrix was never built against (e.g. a stray range slab from
+  // earlier testing sitting alongside a full set of real discrete slabs). Scoping to the slab IDs
+  // this product actually has active price cells for - not just "every slab in the category" -
+  // avoids that contamination and matches what the backend actually checks.
+  const priceCellsQuery = useQuery({
+    queryKey: ['price-matrix-cells', productId],
+    queryFn: () => priceMatrixApi.list(productId),
+    enabled: Boolean(productId) && product?.pricing_type === 'matrix',
+  });
+  const usedSlabIds = new Set((priceCellsQuery.data ?? []).filter((c) => c.is_active).map((c) => c.quantity_slab_id));
+  const quantitySlabs = (quantitySlabsQuery.data ?? []).filter((s) => usedSlabIds.has(s.id));
+  // Some categories (e.g. Visiting Card) price by exact discrete quantities from the PDF's rate
+  // card rather than ranges - min===max for every slab. Free-typing an in-between number there
+  // silently fails server-side ("no price matrix entry"), so surface the valid values up front
+  // instead of only after a rejected submission.
+  const isDiscreteQuantities = quantitySlabs.length > 0 && quantitySlabs.every((s) => s.min_quantity === s.max_quantity);
+  const quantityHelperText = isDiscreteQuantities
+    ? `Valid quantities: ${quantitySlabs.map((s) => s.min_quantity).sort((a, b) => a - b).join(', ')}`
+    : undefined;
 
   const prevProductId = useRef(productId);
   useEffect(() => {
@@ -88,7 +115,16 @@ export default function QuotationLineItem({ index, onRemove, canRemove }: Quotat
             fullWidth
             size="small"
             error={Boolean(itemErrors?.quantity)}
-            {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
+            helperText={itemErrors?.quantity ? itemErrors.quantity.message : quantityHelperText}
+            {...register(`items.${index}.quantity`, {
+              required: true,
+              valueAsNumber: true,
+              min: 1,
+              validate: (value) =>
+                !isDiscreteQuantities
+                || quantitySlabs.some((s) => s.min_quantity === value)
+                || `Must be one of: ${quantitySlabs.map((s) => s.min_quantity).sort((a, b) => a - b).join(', ')}`,
+            })}
           />
         </Grid>
         <Grid size={{ xs: 4, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>

@@ -36,6 +36,36 @@ def find_price_matrix_cell(
     return None
 
 
+def _no_price_match_message(db: Session, product_id: int, quantity: int) -> str:
+    """find_price_matrix_cell just says "no match" - this distinguishes *why*, since "quantity
+    isn't one of the configured slabs" and "quantity is fine but this exact option combination
+    has no price" are different problems with different fixes, and lumping them into one generic
+    message left staff with no idea what to actually do about it."""
+    slabs = (
+        db.query(QuantitySlab)
+        .join(PriceMatrixCell, PriceMatrixCell.quantity_slab_id == QuantitySlab.id)
+        .filter(PriceMatrixCell.product_id == product_id, PriceMatrixCell.is_active.is_(True))
+        .distinct()
+        .all()
+    )
+    quantity_in_range = any(
+        slab.min_quantity <= quantity and (slab.max_quantity is None or slab.max_quantity >= quantity)
+        for slab in slabs
+    )
+    if slabs and not quantity_in_range:
+        ordered = sorted(slabs, key=lambda s: s.min_quantity)
+        labels = [
+            s.label or (f"{s.min_quantity}+" if s.max_quantity is None else f"{s.min_quantity}-{s.max_quantity}")
+            for s in ordered
+        ]
+        return f"No pricing configured for quantity {quantity}. Valid quantities for this product: {', '.join(labels)}."
+    return (
+        "No price configured for this exact combination of options at this quantity. "
+        "Check that every required option is selected, or ask an admin to add pricing for this "
+        "combination via Pricing Setup / Price Matrix."
+    )
+
+
 def calculate_unit_price(
     db: Session,
     product: Product,
@@ -55,7 +85,7 @@ def calculate_unit_price(
         if not cell:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No price matrix entry for this product/attribute combination/quantity",
+                detail=_no_price_match_message(db, product.id, quantity),
             )
         if product.pricing_type == ProductPricingType.per_area:
             base_unit = cell.unit_price * (area_sqft or 0)
