@@ -76,7 +76,7 @@ export default function Taxes() {
         </Button>
       </Box>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {taxesQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

@@ -116,7 +116,7 @@ export default function JobCards() {
         Job Cards
       </Typography>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {jobCardsQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

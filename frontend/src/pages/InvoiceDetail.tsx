@@ -125,7 +125,7 @@ export default function InvoiceDetail() {
         </Alert>
       )}
 
-      <Paper sx={{ borderRadius: 2, mb: 3 }}>
+      <Paper sx={{ borderRadius: 2, mb: 3, overflowX: 'auto' }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -180,7 +180,7 @@ export default function InvoiceDetail() {
           </Paper>
         </Grid>
         <Grid size={{ xs: 12, md: 7 }}>
-          <Paper sx={{ p: 3, borderRadius: 2 }}>
+          <Paper sx={{ p: 3, borderRadius: 2, overflowX: 'auto' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                 Payments

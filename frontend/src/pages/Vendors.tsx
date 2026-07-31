@@ -89,7 +89,7 @@ export default function Vendors() {
         )}
       </Box>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {vendorsQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

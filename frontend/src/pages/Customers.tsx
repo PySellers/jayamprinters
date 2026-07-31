@@ -104,7 +104,7 @@ export default function Customers() {
         slotProps={{ input: { startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} /> } }}
       />
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {loading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

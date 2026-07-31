@@ -83,7 +83,7 @@ export default function Users() {
         </Button>
       </Box>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {usersQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

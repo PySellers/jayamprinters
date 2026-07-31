@@ -84,7 +84,7 @@ export default function MasterTable() {
         </Button>
       </Box>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {query.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

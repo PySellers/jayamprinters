@@ -99,7 +99,7 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
         </Button>
       </Box>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {attributesQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

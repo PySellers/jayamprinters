@@ -72,21 +72,21 @@ export default function Reports() {
       </Typography>
 
       <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
+        <Box sx={{ mb: 2, overflowX: 'auto' }}>
+          <ToggleButtonGroup
+            size="small"
+            value={preset}
+            exclusive
+            onChange={(_, v) => v && handlePreset(v)}
+          >
+            <ToggleButton value="today" sx={{ whiteSpace: 'nowrap' }}>Today</ToggleButton>
+            <ToggleButton value="week" sx={{ whiteSpace: 'nowrap' }}>This Week</ToggleButton>
+            <ToggleButton value="month" sx={{ whiteSpace: 'nowrap' }}>This Month</ToggleButton>
+            <ToggleButton value="custom" sx={{ whiteSpace: 'nowrap' }}>Custom</ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
         <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <ToggleButtonGroup
-              size="small"
-              value={preset}
-              exclusive
-              onChange={(_, v) => v && handlePreset(v)}
-            >
-              <ToggleButton value="today">Today</ToggleButton>
-              <ToggleButton value="week">This Week</ToggleButton>
-              <ToggleButton value="month">This Month</ToggleButton>
-              <ToggleButton value="custom">Custom</ToggleButton>
-            </ToggleButtonGroup>
-          </Grid>
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <TextField
               label="Start"
               type="date"
@@ -97,7 +97,7 @@ export default function Reports() {
               slotProps={{ inputLabel: { shrink: true } }}
             />
           </Grid>
-          <Grid size={{ xs: 6, md: 3 }}>
+          <Grid size={{ xs: 6, md: 4 }}>
             <TextField
               label="End"
               type="date"
@@ -108,7 +108,7 @@ export default function Reports() {
               slotProps={{ inputLabel: { shrink: true } }}
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 2 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Button
               variant="contained"
               startIcon={<DownloadIcon />}
@@ -192,7 +192,7 @@ export default function Reports() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ borderRadius: 2 }}>
+          <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
               Walk-in vs. Phone/Remote
             </Typography>
@@ -224,7 +224,7 @@ export default function Reports() {
           </Paper>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ borderRadius: 2 }}>
+          <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
               By Payment Method
             </Typography>
@@ -256,7 +256,7 @@ export default function Reports() {
           </Paper>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ borderRadius: 2 }}>
+          <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
               Top Products by Revenue
             </Typography>
@@ -288,7 +288,7 @@ export default function Reports() {
           </Paper>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ borderRadius: 2 }}>
+          <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
               By Category
             </Typography>

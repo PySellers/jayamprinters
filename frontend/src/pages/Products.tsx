@@ -43,7 +43,9 @@ export default function Products() {
   const categoryName = (id?: number | null) =>
     id ? categoriesQuery.data?.find((c) => c.id === id)?.name ?? `#${id}` : '-';
 
-  const { control, register, handleSubmit, reset, watch } = useForm<ProductInput>();
+  const { control, register, handleSubmit, reset, watch } = useForm<ProductInput>({
+    defaultValues: { name: '', category_id: null, description: '', pricing_type: 'matrix', fixed_price: null, is_active: true },
+  });
   const pricingType = watch('pricing_type');
 
   const saveMutation = useMutation({
@@ -102,7 +104,7 @@ export default function Products() {
         )}
       </Box>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {productsQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />

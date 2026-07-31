@@ -96,7 +96,7 @@ export default function QuotationDetail() {
         />
       </Box>
 
-      <Paper sx={{ borderRadius: 2, mb: 3 }}>
+      <Paper sx={{ borderRadius: 2, mb: 3, overflowX: 'auto' }}>
         <Table>
           <TableHead>
             <TableRow>

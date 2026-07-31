@@ -70,7 +70,7 @@ export default function Dashboard() {
                   <Typography color="text.secondary" variant="body2">
                     {card.label}
                   </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 'bold' }} color={card.color}>
+                  <Typography variant="h3" sx={{ fontWeight: 'bold', wordBreak: 'break-word' }} color={card.color}>
                     {card.value}
                   </Typography>
                 </Paper>

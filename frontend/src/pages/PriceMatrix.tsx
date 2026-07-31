@@ -164,7 +164,7 @@ export default function PriceMatrix() {
           />
         )
       ) : (
-        <Paper sx={{ borderRadius: 2 }}>
+        <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
           {cellsQuery.isLoading ? (
             <Box sx={{ p: 4, textAlign: 'center' }}>
               <CircularProgress />
