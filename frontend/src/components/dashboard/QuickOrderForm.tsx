@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { customersApi } from '../../api/customersApi';
 import { productsApi, productCategoriesApi } from '../../api/productsApi';
+import { getErrorMessage } from '../../utils/api';
 import EntitySelect from '../pickers/EntitySelect';
 import type { Product } from '../../types/products';
 import type { OrderType } from '../../types/common';
@@ -48,9 +49,19 @@ export default function QuickOrderForm() {
 
   const createOrderMutation = useMutation({
     mutationFn: async () => {
+      const trimmedPhone = phone.trim();
+      // Repeat callers hit the backend's duplicate-phone check otherwise - reuse the existing
+      // customer record instead of trying (and failing) to create a second one with the same
+      // number. Matches by phone only, not name, since that's what the backend enforces as unique.
+      const existing = trimmedPhone
+        ? customersQuery.data?.find((c) => c.phone === trimmedPhone)
+        : undefined;
+      if (existing) {
+        return existing;
+      }
       const customer = await customersApi.create({
         name: name.trim() || `Person ${(customersQuery.data?.length ?? 0) + 1}`,
-        phone: phone.trim() || null,
+        phone: trimmedPhone || null,
         email: email.trim() || null,
         gstin: gstin.trim() || null,
         address: address.trim() || null,
@@ -81,7 +92,7 @@ export default function QuickOrderForm() {
 
       {createOrderMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Could not start the order. Please try again.
+          {getErrorMessage(createOrderMutation.error, 'Could not start the order. Please try again.')}
         </Alert>
       )}
 
