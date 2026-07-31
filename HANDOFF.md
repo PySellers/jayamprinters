@@ -442,3 +442,41 @@ and `npm run build` both clean. Cleaned up all test records afterward.
 Real pricing data, mobile/offline visibility, further UI polish, deeper exploratory reporting
 (trends/drill-downs beyond what's here), and a real browser click-through of everything in this
 update (verified via API + build only, same caveat as the previous pass).
+
+## Update — 2026-07-31 (seventh pass): two real bugs from live usage
+
+Both reported live (console errors while actually using the app, not found during a review pass) -
+worth calling out separately from the feature work above since they're pure bug fixes.
+
+**Dashboard quick-order form broke on repeat customers.** `POST /customers/` correctly 400s on a
+duplicate phone number, but the quick-order form always tried to create a brand-new customer on
+every order with no dedup and no real error message - so calling back a repeat customer (or just
+retesting with the same test phone number) silently broke order creation behind a generic "Could
+not start the order" alert. This is the "no customer dedup" item already on the known-gaps list;
+now fixed rather than just documented: `QuickOrderForm.tsx` looks up an existing customer by exact
+phone match in the already-loaded customer list before creating a new one, and the error alert now
+shows the real backend message via `getErrorMessage` instead of a generic string.
+
+**Confusing "no price matrix entry" errors creating quotations.** Root cause: categories like
+Visiting Card price by exact discrete quantities transcribed from the PDF rate card (50, 100,
+150...), not ranges - the quantity field gave zero indication of that, so typing anything in
+between (a very natural thing to try) failed with one generic message that also covered two
+unrelated failure modes (a missing required attribute, or a valid quantity with no price for that
+exact option combination). Fixed on both sides:
+- `pricing_service.py` now distinguishes *why* the lookup failed and returns an actionable message
+  - either the actual list of valid quantities for that product, or a pointer to check required
+  options / ask an admin to price that combination via Price Matrix.
+- `QuotationLineItem.tsx` shows valid quantities as helper text and validates client-side before
+  submission - scoped to the specific product's own active price-matrix cells, not "every quantity
+  slab in the category." That distinction mattered in practice: category 1 (Visiting Card) still
+  carries a stray leftover range slab from earlier manual testing (the same duplicate-data issue
+  flagged as cosmetic two passes ago) alongside the 23 real discrete slabs - naively using every
+  slab in the category would have produced wrong guidance instead of just wrong pricing.
+
+Both verified live against the real dev DB (reproduced each bug via direct API calls first, then
+confirmed the fix), `tsc`/build clean, pushed to `dev`.
+
+### Still open
+Same as above, plus: the duplicate-category cleanup (old "Rubber Stamps"/"Lamination"/one stray
+quantity slab, all from pre-seed-script manual testing) is now actively causing confusion twice,
+not just cosmetic - worth an admin doing the merge via Pricing Setup sooner rather than later.
