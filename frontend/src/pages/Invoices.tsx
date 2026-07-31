@@ -63,6 +63,7 @@ export default function Invoices() {
               <TableRow>
                 <TableCell>Invoice #</TableCell>
                 <TableCell>Customer</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Grand Total</TableCell>
                 <TableCell>Paid</TableCell>
@@ -75,6 +76,9 @@ export default function Invoices() {
                   <TableCell>{inv.invoice_number}</TableCell>
                   <TableCell>{customerName(inv.customer_id)}</TableCell>
                   <TableCell>
+                    <Chip label={inv.order_type === 'offline' ? 'Walk-in' : 'Phone/Remote'} size="small" variant="outlined" />
+                  </TableCell>
+                  <TableCell>
                     <Chip label={inv.status.replace('_', ' ')} color={STATUS_COLORS[inv.status]} size="small" />
                   </TableCell>
                   <TableCell>₹{inv.grand_total.toFixed(2)}</TableCell>
@@ -84,7 +88,7 @@ export default function Invoices() {
               ))}
               {(invoicesQuery.data ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                  <TableCell colSpan={7} align="center" sx={{ color: 'text.secondary', py: 4 }}>
                     No invoices yet.
                   </TableCell>
                 </TableRow>

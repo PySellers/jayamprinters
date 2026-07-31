@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Box, Typography, Paper, TextField, Button, Grid, Alert } from '@mui/material';
+import {
+  Box, Typography, Paper, TextField, Button, Grid, Alert,
+  ToggleButtonGroup, ToggleButton,
+} from '@mui/material';
 import { customersApi } from '../../api/customersApi';
 import { productsApi, productCategoriesApi } from '../../api/productsApi';
 import EntitySelect from '../pickers/EntitySelect';
 import type { Product } from '../../types/products';
+import type { OrderType } from '../../types/common';
 
 function todayDateString(): string {
   return new Date().toISOString().slice(0, 10);
@@ -25,6 +29,7 @@ export default function QuickOrderForm() {
   const [deliveryDate, setDeliveryDate] = useState(todayDateString());
   const [deliveryTime, setDeliveryTime] = useState('');
   const [productId, setProductId] = useState<number | null>(null);
+  const [orderType, setOrderType] = useState<OrderType>('offline');
 
   useEffect(() => {
     if (!name && customersQuery.data) {
@@ -60,6 +65,7 @@ export default function QuickOrderForm() {
         productId: String(productId),
         deliveryDate,
         deliveryTime,
+        orderType,
       });
       navigate(`/quotations/new?${params.toString()}`);
     },
@@ -85,6 +91,21 @@ export default function QuickOrderForm() {
         </Grid>
         <Grid size={{ xs: 6 }}>
           <TextField label="Order #" value="Assigned automatically on save" fullWidth size="small" disabled />
+        </Grid>
+
+        <Grid size={{ xs: 12 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+            Order Type
+          </Typography>
+          <ToggleButtonGroup
+            size="small"
+            exclusive
+            value={orderType}
+            onChange={(_, v) => v && setOrderType(v)}
+          >
+            <ToggleButton value="offline">Walk-in</ToggleButton>
+            <ToggleButton value="online">Phone / Remote</ToggleButton>
+          </ToggleButtonGroup>
         </Grid>
 
         <Grid size={{ xs: 12 }}>

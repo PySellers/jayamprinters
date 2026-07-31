@@ -3,6 +3,7 @@ import { useForm, useFieldArray, Controller, FormProvider } from 'react-hook-for
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Button, TextField, Stack, Grid, Alert,
+  ToggleButtonGroup, ToggleButton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { quotationsApi } from '../api/quotationsApi';
@@ -10,6 +11,7 @@ import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
+import type { OrderType } from '../types/common';
 import type { QuotationCreateInput, QuotationItemInput } from '../types/quotations';
 import EntitySelect from '../components/pickers/EntitySelect';
 import QuotationLineItem from '../components/quotations/QuotationLineItem';
@@ -32,10 +34,12 @@ export default function QuotationCreate() {
   const initialProductId = searchParams.get('productId');
   const initialDeliveryDate = searchParams.get('deliveryDate');
   const initialDeliveryTime = searchParams.get('deliveryTime');
+  const initialOrderType = (searchParams.get('orderType') as OrderType | null) ?? 'offline';
 
   const methods = useForm<QuotationCreateInput>({
     defaultValues: {
       customer_id: initialCustomerId ? Number(initialCustomerId) : undefined,
+      order_type: initialOrderType,
       tax_id: null,
       notes: '',
       delivery_date: initialDeliveryDate || undefined,
@@ -43,7 +47,8 @@ export default function QuotationCreate() {
       items: [initialProductId ? { ...emptyItem, product_id: Number(initialProductId) } : emptyItem],
     },
   });
-  const { control, register, handleSubmit } = methods;
+  const { control, register, handleSubmit, watch, setValue } = methods;
+  const orderType = watch('order_type');
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
 
   const createMutation = useMutation({
@@ -112,6 +117,21 @@ export default function QuotationCreate() {
                     )}
                   />
                 )}
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                  Order Type
+                </Typography>
+                <ToggleButtonGroup
+                  size="small"
+                  exclusive
+                  value={orderType}
+                  disabled={isQuick}
+                  onChange={(_, v) => v && setValue('order_type', v)}
+                >
+                  <ToggleButton value="offline">Walk-in</ToggleButton>
+                  <ToggleButton value="online">Phone / Remote</ToggleButton>
+                </ToggleButtonGroup>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller

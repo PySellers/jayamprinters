@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, CircularProgress, Stack,
+  Button, CircularProgress, Stack, Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { quotationsApi } from '../api/quotationsApi';
@@ -80,6 +80,7 @@ export default function Quotations() {
               <TableRow>
                 <TableCell>Quotation #</TableCell>
                 <TableCell>Customer</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Grand Total</TableCell>
                 <TableCell align="right">Actions</TableCell>
@@ -90,6 +91,9 @@ export default function Quotations() {
                 <TableRow key={q.id} hover sx={{ cursor: 'pointer' }}>
                   <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>{q.quotation_number}</TableCell>
                   <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>{customerName(q.customer_id)}</TableCell>
+                  <TableCell onClick={() => navigate(`/quotations/${q.id}`)}>
+                    <Chip label={q.order_type === 'offline' ? 'Walk-in' : 'Phone/Remote'} size="small" variant="outlined" />
+                  </TableCell>
                   <TableCell>
                     <StatusMenu
                       status={q.status}
@@ -131,7 +135,7 @@ export default function Quotations() {
               ))}
               {(quotationsQuery.data ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
                     No quotations yet.
                   </TableCell>
                 </TableRow>

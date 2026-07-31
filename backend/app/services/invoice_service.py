@@ -28,6 +28,7 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
         invoice_number=generate_invoice_number(db),
         quotation_id=quotation.id,
         customer_id=quotation.customer_id,
+        order_type=quotation.order_type,
         tax_id=quotation.tax_id,
         subtotal=quotation.total_amount,
         tax_amount=quotation.tax_amount,

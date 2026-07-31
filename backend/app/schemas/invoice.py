@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import date, datetime
 from app.models.invoice import InvoiceStatus, PaymentMethod
+from app.models.quotation import OrderType
 from app.schemas.quotation import SelectedOptionOut
 
 
@@ -40,6 +41,7 @@ class InvoiceOut(BaseModel):
     invoice_number: str
     quotation_id: int
     customer_id: int
+    order_type: OrderType
     tax_id: Optional[int]
     subtotal: float
     tax_amount: float

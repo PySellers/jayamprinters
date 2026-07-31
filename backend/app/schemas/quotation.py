@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime, date
-from app.models.quotation import QuotationStatus
+from app.models.quotation import OrderType, QuotationStatus
 
 class SelectedOptionIn(BaseModel):
     attribute_id: int
@@ -34,6 +34,7 @@ class QuotationItemOut(BaseModel):
 
 class QuotationCreate(BaseModel):
     customer_id: int
+    order_type: OrderType = OrderType.offline
     tax_id: Optional[int] = None
     notes: Optional[str] = None
     delivery_date: Optional[date] = None
@@ -45,6 +46,7 @@ class QuotationOut(BaseModel):
     quotation_number: str
     customer_id: int
     status: QuotationStatus
+    order_type: OrderType
     tax_id: Optional[int]
     total_amount: float
     tax_amount: float

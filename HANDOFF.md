@@ -230,3 +230,30 @@ asked for one and it would be pure speculation about a process this shop doesn't
 ### Still open
 Real pricing data, mobile/offline visibility, general UI/UX polish, and deeper exploratory
 reporting.
+
+## Update — 2026-07-31 (third pass): order type + light exploratory reporting
+
+Picked up "insert offline/online types in the orders" and made a start on "enhance the report to
+find out maximum level of exploratory analysis" — confirmed with the client that offline/online
+just means walk-in-at-the-counter vs. phone/relayed-order, a plain tag with no different workflow
+or fields, not two different order pipelines. Kept it exactly that scoped.
+
+- `OrderType` enum (`offline`/`online`) on `Quotation`, defaults to `offline`, propagates to
+  `Invoice` on conversion (same pattern as `spec_notes`). Migration `fad51d6558ec`.
+- Set via a Walk-in/Phone-Remote toggle on both order-entry paths: the dashboard `QuickOrderForm`
+  and the full `QuotationCreate` form (disabled there when arriving from a quick order, since it's
+  already been set and re-editing it there would just be confusing).
+- Shown as a column/chip on the Quotations and Invoices list pages.
+- **Reporting**: added `by_order_type` (walk-in vs. phone/remote revenue split) and `top_products`
+  (top 10 by revenue in the selected range) to `GET /reports/sales` and the Excel export, and two
+  new panels on the Reports page. This is a first pass at "exploratory analysis," not the whole of
+  it — no trend lines, no comparison-to-prior-period, no drill-down. Worth returning to once
+  there's actually a few months of data to make that kind of thing meaningful (same reasoning
+  HANDOFF already gave for deferring low-stock/reorder trend suggestions).
+- Verified end-to-end: created a quotation with `order_type=online` against a product with real
+  pricing (Rubber Stamp), converted it, confirmed the invoice inherited `order_type=online`, and
+  confirmed both new report fields reflected that sale correctly. Cleaned up the test records after.
+
+### Still open
+Real pricing data for the other 16 categories, mobile/offline visibility, general UI/UX polish, and
+the rest of "exploratory reporting" beyond this first pass (trends, comparisons, drill-downs).

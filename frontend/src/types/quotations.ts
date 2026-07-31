@@ -1,4 +1,4 @@
-import type { QuotationStatus } from './common';
+import type { OrderType, QuotationStatus } from './common';
 
 export interface SelectedOption {
   attribute_id: number;
@@ -21,6 +21,7 @@ export interface Quotation {
   quotation_number: string;
   customer_id: number;
   status: QuotationStatus;
+  order_type: OrderType;
   tax_id?: number | null;
   total_amount: number;
   tax_amount: number;
@@ -43,6 +44,7 @@ export interface QuotationItemInput {
 
 export interface QuotationCreateInput {
   customer_id: number;
+  order_type: OrderType;
   tax_id?: number | null;
   notes?: string | null;
   delivery_date?: string | null;

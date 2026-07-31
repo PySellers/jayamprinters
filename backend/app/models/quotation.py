@@ -11,6 +11,10 @@ class QuotationStatus(str, enum.Enum):
     rejected = "rejected"
     converted = "converted"
 
+class OrderType(str, enum.Enum):
+    offline = "offline"
+    online = "online"
+
 class Quotation(Base):
     __tablename__ = "quotations"
 
@@ -18,6 +22,7 @@ class Quotation(Base):
     quotation_number = Column(String, unique=True, index=True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
     status = Column(Enum(QuotationStatus), default=QuotationStatus.draft)
+    order_type = Column(Enum(OrderType), default=OrderType.offline, nullable=False, server_default=OrderType.offline.value)
     tax_id = Column(Integer, ForeignKey("taxes.id"), nullable=True)
     total_amount = Column(Float, default=0.0)
     tax_amount = Column(Float, default=0.0)

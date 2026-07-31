@@ -13,6 +13,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     quotation = Quotation(
         quotation_number=generate_quotation_number(db),
         customer_id=payload.customer_id,
+        order_type=payload.order_type,
         notes=payload.notes,
         delivery_date=payload.delivery_date,
         delivery_time=payload.delivery_time,

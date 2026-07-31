@@ -1,4 +1,4 @@
-import type { InvoiceStatus, PaymentMethod } from './common';
+import type { InvoiceStatus, OrderType, PaymentMethod } from './common';
 
 export interface InvoiceItem {
   id: number;
@@ -23,6 +23,7 @@ export interface Invoice {
   invoice_number: string;
   quotation_id: number;
   customer_id: number;
+  order_type: OrderType;
   tax_id?: number | null;
   subtotal: number;
   tax_amount: number;

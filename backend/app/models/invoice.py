@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
 from app.core.database import Base
+from app.models.quotation import OrderType
 
 
 class InvoiceStatus(str, enum.Enum):
@@ -26,6 +27,7 @@ class Invoice(Base):
     invoice_number = Column(String, unique=True, index=True)
     quotation_id = Column(Integer, ForeignKey("quotations.id"), unique=True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
+    order_type = Column(Enum(OrderType), default=OrderType.offline, nullable=False, server_default=OrderType.offline.value)
     tax_id = Column(Integer, ForeignKey("taxes.id"), nullable=True)
     subtotal = Column(Float, default=0.0)
     tax_amount = Column(Float, default=0.0)

@@ -126,7 +126,7 @@ export default function Reports() {
         </Stack>
       </Paper>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, mb: 3 }}>
         {salesQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />
@@ -159,6 +159,73 @@ export default function Reports() {
           </Table>
         )}
       </Paper>
+
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper sx={{ borderRadius: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
+              Walk-in vs. Phone/Remote
+            </Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Order Type</TableCell>
+                  <TableCell>Invoices</TableCell>
+                  <TableCell>Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(salesQuery.data?.by_order_type ?? []).map((row) => (
+                  <TableRow key={row.order_type}>
+                    <TableCell>{row.order_type === 'offline' ? 'Walk-in' : 'Phone/Remote'}</TableCell>
+                    <TableCell>{row.invoice_count}</TableCell>
+                    <TableCell>₹{row.total.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+                {(salesQuery.data?.by_order_type ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center" sx={{ color: 'text.secondary', py: 2 }}>
+                      No sales in this date range.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper sx={{ borderRadius: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', p: 2, pb: 0 }}>
+              Top Products by Revenue
+            </Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Product</TableCell>
+                  <TableCell>Qty</TableCell>
+                  <TableCell>Total</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(salesQuery.data?.top_products ?? []).map((row) => (
+                  <TableRow key={row.product_name}>
+                    <TableCell>{row.product_name}</TableCell>
+                    <TableCell>{row.quantity}</TableCell>
+                    <TableCell>₹{row.total.toFixed(2)}</TableCell>
+                  </TableRow>
+                ))}
+                {(salesQuery.data?.top_products ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} align="center" sx={{ color: 'text.secondary', py: 2 }}>
+                      No sales in this date range.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Paper>
+        </Grid>
+      </Grid>
     </Box>
   );
 }

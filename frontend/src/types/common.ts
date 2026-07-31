@@ -10,6 +10,8 @@ export interface PricedMasterEntity extends MasterEntity {
 
 export type QuotationStatus = 'draft' | 'sent' | 'approved' | 'rejected' | 'converted';
 
+export type OrderType = 'offline' | 'online';
+
 export type JobCardStatus =
   | 'pending'
   | 'design'
