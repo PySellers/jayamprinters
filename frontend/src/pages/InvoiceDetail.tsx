@@ -6,11 +6,16 @@ import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, Chip, CircularProgress, Grid, Stack, Divider,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Alert,
+  Menu, ListItemIcon, ListItemText,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
+import PrintIcon from '@mui/icons-material/Print';
+import DescriptionIcon from '@mui/icons-material/Description';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { invoicesApi } from '../api/invoicesApi';
+import type { InvoicePrintFormat } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
@@ -25,12 +30,20 @@ const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
 };
 const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'upi', 'card', 'credit', 'bank_transfer'];
 
+const PRINT_FORMATS: { format: InvoicePrintFormat; label: string; hint: string; icon: React.ReactNode }[] = [
+  { format: 'a4', label: 'A4 Invoice', hint: 'Office / laser printer, full page', icon: <DescriptionIcon fontSize="small" /> },
+  { format: 'thermal_80', label: 'Receipt (80mm)', hint: 'Small bill printer, 80mm roll', icon: <ReceiptLongIcon fontSize="small" /> },
+  { format: 'thermal_58', label: 'Receipt (58mm)', hint: 'Small bill printer, 58mm roll', icon: <ReceiptLongIcon fontSize="small" /> },
+];
+
 export default function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();
   const invoiceId = Number(id);
   const queryClient = useQueryClient();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(null);
+  const [printMenuAnchor, setPrintMenuAnchor] = useState<null | HTMLElement>(null);
+  const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
 
   const invoiceQuery = useQuery({ queryKey: ['invoices', invoiceId], queryFn: () => invoicesApi.get(invoiceId) });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
@@ -62,7 +75,11 @@ export default function InvoiceDetail() {
   });
 
   const downloadPdfMutation = useMutation({
-    mutationFn: () => invoicesApi.downloadPdf(invoiceId, invoiceQuery.data!.invoice_number),
+    mutationFn: (format: InvoicePrintFormat) => invoicesApi.downloadPdf(invoiceId, invoiceQuery.data!.invoice_number, format),
+  });
+
+  const printPdfMutation = useMutation({
+    mutationFn: (format: InvoicePrintFormat) => invoicesApi.printPdf(invoiceId, format),
   });
 
   if (invoiceQuery.isLoading) {
@@ -98,16 +115,57 @@ export default function InvoiceDetail() {
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <Chip label={invoice.status.replace('_', ' ')} color={STATUS_COLORS[invoice.status]} />
           <Button
+            variant="contained"
+            startIcon={printPdfMutation.isPending ? <CircularProgress size={16} color="inherit" /> : <PrintIcon />}
+            disabled={printPdfMutation.isPending}
+            onClick={(e) => setPrintMenuAnchor(e.currentTarget)}
+          >
+            Print
+          </Button>
+          <Menu anchorEl={printMenuAnchor} open={Boolean(printMenuAnchor)} onClose={() => setPrintMenuAnchor(null)}>
+            {PRINT_FORMATS.map(({ format, label, hint, icon }) => (
+              <MenuItem
+                key={format}
+                onClick={() => {
+                  setPrintMenuAnchor(null);
+                  printPdfMutation.mutate(format);
+                }}
+              >
+                <ListItemIcon>{icon}</ListItemIcon>
+                <ListItemText primary={label} secondary={hint} />
+              </MenuItem>
+            ))}
+          </Menu>
+          <Button
             variant="outlined"
             startIcon={downloadPdfMutation.isPending ? <CircularProgress size={16} /> : <DownloadIcon />}
             disabled={downloadPdfMutation.isPending}
-            onClick={() => downloadPdfMutation.mutate()}
+            onClick={(e) => setDownloadMenuAnchor(e.currentTarget)}
           >
-            Download PDF
+            Download
           </Button>
+          <Menu anchorEl={downloadMenuAnchor} open={Boolean(downloadMenuAnchor)} onClose={() => setDownloadMenuAnchor(null)}>
+            {PRINT_FORMATS.map(({ format, label, hint, icon }) => (
+              <MenuItem
+                key={format}
+                onClick={() => {
+                  setDownloadMenuAnchor(null);
+                  downloadPdfMutation.mutate(format);
+                }}
+              >
+                <ListItemIcon>{icon}</ListItemIcon>
+                <ListItemText primary={label} secondary={hint} />
+              </MenuItem>
+            ))}
+          </Menu>
         </Stack>
       </Box>
 
+      {printPdfMutation.isError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {getErrorMessage(printPdfMutation.error, 'Failed to open PDF for printing')}
+        </Alert>
+      )}
       {downloadPdfMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {getErrorMessage(downloadPdfMutation.error, 'Failed to download PDF')}

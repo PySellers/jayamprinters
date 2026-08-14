@@ -5,13 +5,20 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_RIGHT
+from reportlab.lib.enums import TA_RIGHT, TA_CENTER
 
 from app.models.invoice import Invoice
 from app.models.customer import Customer
 from app.models.product import Product
 
 BRAND_COLOR = colors.HexColor("#1a237e")
+
+# Common thermal POS roll widths. Printable area is narrower than the roll
+# itself (typically ~4mm margin per side on 58mm/80mm rolls) -- most drivers
+# handle that automatically, so we size the PDF to the full roll width and
+# rely on small page margins below rather than guessing the printer's own
+# hardware margin.
+THERMAL_WIDTHS_MM = {"thermal_58": 58.0, "thermal_80": 80.0}
 
 
 def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: dict[int, Product]) -> bytes:
@@ -120,6 +127,120 @@ def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: d
     if invoice.notes:
         elements.append(Spacer(1, 8 * mm))
         elements.append(Paragraph(f"<b>Notes:</b> {invoice.notes}", styles["Normal"]))
+
+    doc.build(elements)
+    return buffer.getvalue()
+
+
+def generate_invoice_thermal_pdf(
+    invoice: Invoice,
+    customer: Customer,
+    products_by_id: dict[int, Product],
+    roll_width_mm: float = 80.0,
+) -> bytes:
+    """Compact single-column receipt for small bill/POS thermal printers
+    (58mm or 80mm roll width), as an alternative to the full A4 layout.
+
+    The page HEIGHT is computed from actual content (header + one row per
+    item/payment + totals + footer) rather than fixed, so a short bill
+    doesn't print several extra inches of blank roll -- most thermal-printer
+    drivers accept a variable-length "continuous roll" page size and cut
+    right after the content, same as real POS software.
+    """
+    buffer = BytesIO()
+
+    item_count = len(invoice.items)
+    payment_count = len(invoice.payments)
+    est_height_mm = 62 + item_count * 7 + (10 + payment_count * 6 if payment_count else 0) + (8 if invoice.notes else 0)
+    page_size = (roll_width_mm * mm, max(est_height_mm, 90) * mm)
+
+    margin = 3 * mm
+    doc = SimpleDocTemplate(
+        buffer, pagesize=page_size,
+        topMargin=margin, bottomMargin=margin, leftMargin=margin, rightMargin=margin,
+    )
+
+    styles = getSampleStyleSheet()
+    center_style = ParagraphStyle("Center", parent=styles["Normal"], alignment=TA_CENTER, fontSize=8, leading=10)
+    center_bold = ParagraphStyle("CenterBold", parent=center_style, fontName="Helvetica-Bold", fontSize=10)
+    small = ParagraphStyle("Small", parent=styles["Normal"], fontSize=7.5, leading=9.5)
+    small_right = ParagraphStyle("SmallRight", parent=small, alignment=TA_RIGHT)
+    small_bold = ParagraphStyle("SmallBold", parent=small, fontName="Helvetica-Bold")
+    small_bold_right = ParagraphStyle("SmallBoldRight", parent=small_right, fontName="Helvetica-Bold")
+
+    content_width = roll_width_mm * mm - 2 * margin
+    elements = []
+
+    elements.append(Paragraph("SRI JAYAM PRINTERS", center_bold))
+    elements.append(Paragraph("Multi-Service Printing", center_style))
+    elements.append(Spacer(1, 2 * mm))
+    elements.append(Paragraph(f"Invoice: {invoice.invoice_number}", small))
+    elements.append(Paragraph(f"Date: {invoice.invoice_date.strftime('%d-%b-%Y')}", small))
+    elements.append(Paragraph(f"Customer: {customer.name}", small))
+    if customer.phone:
+        elements.append(Paragraph(f"Ph: {customer.phone}", small))
+    elements.append(Spacer(1, 1.5 * mm))
+
+    dash = "-" * 32
+    elements.append(Paragraph(dash, small))
+
+    name_col = content_width * 0.5
+    qty_col = content_width * 0.14
+    price_col = content_width * 0.18
+    total_col = content_width - name_col - qty_col - price_col
+
+    item_rows = [[
+        Paragraph("Item", small_bold), Paragraph("Qty", small_bold_right),
+        Paragraph("Rate", small_bold_right), Paragraph("Amt", small_bold_right),
+    ]]
+    for item in invoice.items:
+        product = products_by_id.get(item.product_id)
+        name = product.name if product else f"#{item.product_id}"
+        item_rows.append([
+            Paragraph(name, small), Paragraph(str(item.quantity), small_right),
+            Paragraph(f"{item.unit_price:.2f}", small_right), Paragraph(f"{item.total_price:.2f}", small_right),
+        ])
+    items_table = Table(item_rows, colWidths=[name_col, qty_col, price_col, total_col])
+    items_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.black),
+    ]))
+    elements.append(items_table)
+    elements.append(Paragraph(dash, small))
+
+    totals_rows = [
+        ["Subtotal", f"Rs.{invoice.subtotal:.2f}"],
+        ["Tax", f"Rs.{invoice.tax_amount:.2f}"],
+        ["GRAND TOTAL", f"Rs.{invoice.grand_total:.2f}"],
+        ["Paid", f"Rs.{invoice.amount_paid:.2f}"],
+        ["Balance", f"Rs.{invoice.grand_total - invoice.amount_paid:.2f}"],
+    ]
+    totals_table = Table(
+        [[Paragraph(l, small_bold if l == "GRAND TOTAL" else small),
+          Paragraph(v, small_bold_right if l == "GRAND TOTAL" else small_right)] for l, v in totals_rows],
+        colWidths=[content_width * 0.6, content_width * 0.4],
+    )
+    totals_table.setStyle(TableStyle([("TOPPADDING", (0, 0), (-1, -1), 1), ("BOTTOMPADDING", (0, 0), (-1, -1), 1)]))
+    elements.append(totals_table)
+
+    if invoice.payments:
+        elements.append(Paragraph(dash, small))
+        elements.append(Paragraph("Payments", small_bold))
+        for payment in invoice.payments:
+            method = payment.method.value.replace("_", " ").title()
+            elements.append(Paragraph(
+                f"{payment.payment_date.strftime('%d-%b')} {method}: Rs.{payment.amount:.2f}", small,
+            ))
+
+    if invoice.notes:
+        elements.append(Paragraph(dash, small))
+        elements.append(Paragraph(invoice.notes, small))
+
+    elements.append(Spacer(1, 2 * mm))
+    elements.append(Paragraph(dash, small))
+    elements.append(Paragraph("Thank you! Visit again.", center_style))
 
     doc.build(elements)
     return buffer.getvalue()
