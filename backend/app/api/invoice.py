@@ -4,13 +4,16 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models.invoice import Invoice
 from app.models.customer import Customer
 from app.models.product import Product
+from app.models.user import UserRole
 from app.schemas.invoice import InvoiceOut, PaymentCreate
 from app.services.invoice_service import create_invoice_from_quotation, record_payment, delete_payment
 from app.services.pdf_service import generate_invoice_pdf, generate_invoice_thermal_pdf, THERMAL_WIDTHS_MM
 
+admin_only = [Depends(require_role(UserRole.admin))]
 router = APIRouter(tags=["billing"])
 invoice_router = APIRouter(prefix="/invoices", tags=["billing"])
 payment_router = APIRouter(prefix="/payments", tags=["billing"])
@@ -78,7 +81,7 @@ def add_payment(invoice_id: int, payload: PaymentCreate, db: Session = Depends(g
     return record_payment(db, invoice_id, payload)
 
 
-@invoice_router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT)
+@invoice_router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_only)
 def delete_invoice(invoice_id: int, db: Session = Depends(get_db)):
     invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
     if not invoice:
@@ -88,7 +91,10 @@ def delete_invoice(invoice_id: int, db: Session = Depends(get_db)):
     return None
 
 
-@payment_router.delete("/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)
+@payment_router.delete(
+    "/{payment_id}", status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_role(UserRole.admin, UserRole.accounts))],
+)
 def remove_payment(payment_id: int, db: Session = Depends(get_db)):
     delete_payment(db, payment_id)
     return None

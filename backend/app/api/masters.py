@@ -4,11 +4,15 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models.masters import PrintingType, Machine
+from app.models.user import UserRole
 from app.schemas.masters import (
     PrintingTypeCreate, PrintingTypeUpdate, PrintingTypeOut,
     MachineCreate, MachineUpdate, MachineOut,
 )
+
+admin_write = [Depends(require_role(UserRole.admin))]
 
 
 def make_master_router(model, create_schema, update_schema, out_schema, prefix, tag):
@@ -25,7 +29,7 @@ def make_master_router(model, create_schema, update_schema, out_schema, prefix, 
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{tag} not found")
         return item
 
-    @router.post("/", response_model=out_schema, status_code=status.HTTP_201_CREATED)
+    @router.post("/", response_model=out_schema, status_code=status.HTTP_201_CREATED, dependencies=admin_write)
     def create_item(data: create_schema, db: Session = Depends(get_db)):
         item = model(**data.model_dump())
         db.add(item)
@@ -33,7 +37,7 @@ def make_master_router(model, create_schema, update_schema, out_schema, prefix, 
         db.refresh(item)
         return item
 
-    @router.put("/{item_id}", response_model=out_schema)
+    @router.put("/{item_id}", response_model=out_schema, dependencies=admin_write)
     def update_item(item_id: int, data: update_schema, db: Session = Depends(get_db)):
         item = db.query(model).filter(model.id == item_id).first()
         if not item:
@@ -44,7 +48,7 @@ def make_master_router(model, create_schema, update_schema, out_schema, prefix, 
         db.refresh(item)
         return item
 
-    @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+    @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_write)
     def delete_item(item_id: int, db: Session = Depends(get_db)):
         item = db.query(model).filter(model.id == item_id).first()
         if not item:

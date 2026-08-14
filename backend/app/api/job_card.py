@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models.job_card import JobCard
 from app.models.job_card_comment import JobCardComment
+from app.models.user import UserRole
 from app.schemas.job_card import (
     JobCardCreate, JobCardUpdate, JobCardOut, JobCardStatusUpdate,
     JobCardCommentCreate, JobCardCommentOut,
@@ -12,6 +14,11 @@ from app.schemas.job_card import (
 from app.services.job_card_service import generate_job_number
 
 router = APIRouter(prefix="/job-cards", tags=["job-cards"])
+# Everyday job-card work (create, update status/assignment, add comments) stays
+# open to any logged-in staff -- counter, production, and accounts all
+# legitimately touch a job card during its life. Only deleting one outright is
+# Admin-only, matching "cancel/update/delete orders" being an Admin power.
+admin_only = [Depends(require_role(UserRole.admin))]
 
 
 @router.get("/", response_model=List[JobCardOut])
@@ -59,7 +66,7 @@ def update_job_card_status(job_card_id: int, payload: JobCardStatusUpdate, db: S
     return job_card
 
 
-@router.delete("/{job_card_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{job_card_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_only)
 def delete_job_card(job_card_id: int, db: Session = Depends(get_db)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:

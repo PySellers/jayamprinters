@@ -3,10 +3,14 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models.price_matrix import PriceMatrixCell, PriceMatrixCellOption
+from app.models.user import UserRole
 from app.schemas.price_matrix import PriceMatrixCellCreate, PriceMatrixCellUpdate, PriceMatrixCellOut, PriceMatrixCellBulkUpsert
 
 router = APIRouter(prefix="/price-matrix-cells", tags=["price-matrix"])
+# The actual rupee rates live here -- Admin-only writes, same reasoning as attributes.py.
+admin_write = [Depends(require_role(UserRole.admin))]
 
 
 def _find_duplicate(db: Session, product_id: int, quantity_slab_id: int, option_set, exclude_id: Optional[int] = None) -> Optional[PriceMatrixCell]:
@@ -40,7 +44,7 @@ def get_price_matrix_cell(cell_id: int, db: Session = Depends(get_db)):
     return cell
 
 
-@router.post("/", response_model=PriceMatrixCellOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=PriceMatrixCellOut, status_code=status.HTTP_201_CREATED, dependencies=admin_write)
 def create_price_matrix_cell(data: PriceMatrixCellCreate, db: Session = Depends(get_db)):
     option_set = {(opt.attribute_id, opt.attribute_option_id) for opt in data.options}
     if _find_duplicate(db, data.product_id, data.quantity_slab_id, option_set):
@@ -63,7 +67,7 @@ def create_price_matrix_cell(data: PriceMatrixCellCreate, db: Session = Depends(
     return cell
 
 
-@router.post("/bulk", response_model=List[PriceMatrixCellOut])
+@router.post("/bulk", response_model=List[PriceMatrixCellOut], dependencies=admin_write)
 def bulk_upsert_price_matrix_cells(data: PriceMatrixCellBulkUpsert, db: Session = Depends(get_db)):
     """Create-or-update many cells in one request, for the bulk price-entry grid.
 
@@ -98,7 +102,7 @@ def bulk_upsert_price_matrix_cells(data: PriceMatrixCellBulkUpsert, db: Session 
     return results
 
 
-@router.put("/{cell_id}", response_model=PriceMatrixCellOut)
+@router.put("/{cell_id}", response_model=PriceMatrixCellOut, dependencies=admin_write)
 def update_price_matrix_cell(cell_id: int, data: PriceMatrixCellUpdate, db: Session = Depends(get_db)):
     cell = db.query(PriceMatrixCell).filter(PriceMatrixCell.id == cell_id).first()
     if not cell:
@@ -130,7 +134,7 @@ def update_price_matrix_cell(cell_id: int, data: PriceMatrixCellUpdate, db: Sess
     return cell
 
 
-@router.delete("/{cell_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{cell_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_write)
 def delete_price_matrix_cell(cell_id: int, db: Session = Depends(get_db)):
     cell = db.query(PriceMatrixCell).filter(PriceMatrixCell.id == cell_id).first()
     if not cell:

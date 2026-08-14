@@ -3,10 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models.extra_charge import ExtraCharge
+from app.models.user import UserRole
 from app.schemas.extra_charge import ExtraChargeCreate, ExtraChargeUpdate, ExtraChargeOut
 
 router = APIRouter(prefix="/extra-charges", tags=["extra-charges"])
+admin_write = [Depends(require_role(UserRole.admin))]
 
 
 @router.get("/", response_model=List[ExtraChargeOut])
@@ -27,7 +30,7 @@ def get_extra_charge(charge_id: int, db: Session = Depends(get_db)):
     return charge
 
 
-@router.post("/", response_model=ExtraChargeOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ExtraChargeOut, status_code=status.HTTP_201_CREATED, dependencies=admin_write)
 def create_extra_charge(data: ExtraChargeCreate, db: Session = Depends(get_db)):
     charge = ExtraCharge(**data.model_dump())
     db.add(charge)
@@ -36,7 +39,7 @@ def create_extra_charge(data: ExtraChargeCreate, db: Session = Depends(get_db)):
     return charge
 
 
-@router.put("/{charge_id}", response_model=ExtraChargeOut)
+@router.put("/{charge_id}", response_model=ExtraChargeOut, dependencies=admin_write)
 def update_extra_charge(charge_id: int, data: ExtraChargeUpdate, db: Session = Depends(get_db)):
     charge = db.query(ExtraCharge).filter(ExtraCharge.id == charge_id).first()
     if not charge:
@@ -48,7 +51,7 @@ def update_extra_charge(charge_id: int, data: ExtraChargeUpdate, db: Session = D
     return charge
 
 
-@router.delete("/{charge_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{charge_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_write)
 def delete_extra_charge(charge_id: int, db: Session = Depends(get_db)):
     charge = db.query(ExtraCharge).filter(ExtraCharge.id == charge_id).first()
     if not charge:

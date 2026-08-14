@@ -21,6 +21,10 @@ export default function Layout() {
   const navigate = useNavigate();
   const [mastersOpen, setMastersOpen] = useState(location.pathname.startsWith('/masters') || location.pathname === '/taxes');
 
+  const canSee = (roles?: string[]) => !roles || roles.length === 0 || user?.role === 'admin' || roles.includes(user?.role ?? '');
+  const visibleMainNav = mainNavItems.filter((item) => canSee(item.roles));
+  const visibleMastersNav = mastersNavItems.filter((item) => canSee(item.roles));
+
   const isActive = (path: string) => location.pathname === path;
   const activeLabel =
     [...mainNavItems, ...mastersNavItems].find((item) => isActive(item.path))?.label || 'Dashboard';
@@ -51,7 +55,7 @@ export default function Layout() {
         </Box>
 
         <List sx={{ pt: 1, overflowY: 'auto' }}>
-          {mainNavItems.map((item) => (
+          {visibleMainNav.map((item) => (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
                 onClick={() => navigate(item.path)}
@@ -71,6 +75,7 @@ export default function Layout() {
             </ListItem>
           ))}
 
+          {visibleMastersNav.length > 0 && (
           <ListItem disablePadding>
             <ListItemButton
               onClick={() => setMastersOpen((prev) => !prev)}
@@ -83,9 +88,10 @@ export default function Layout() {
               {mastersOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </ListItemButton>
           </ListItem>
-          <Collapse in={mastersOpen} timeout="auto" unmountOnExit>
+          )}
+          <Collapse in={mastersOpen && visibleMastersNav.length > 0} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
-              {mastersNavItems.map((item) => (
+              {visibleMastersNav.map((item) => (
                 <ListItem key={item.path} disablePadding>
                   <ListItemButton
                     onClick={() => navigate(item.path)}

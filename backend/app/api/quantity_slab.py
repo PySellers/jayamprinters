@@ -3,10 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models.quantity_slab import QuantitySlab
+from app.models.user import UserRole
 from app.schemas.quantity_slab import QuantitySlabCreate, QuantitySlabUpdate, QuantitySlabOut
 
 router = APIRouter(prefix="/quantity-slabs", tags=["quantity-slabs"])
+admin_write = [Depends(require_role(UserRole.admin))]
 
 
 @router.get("/", response_model=List[QuantitySlabOut])
@@ -25,7 +28,7 @@ def get_quantity_slab(slab_id: int, db: Session = Depends(get_db)):
     return slab
 
 
-@router.post("/", response_model=QuantitySlabOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=QuantitySlabOut, status_code=status.HTTP_201_CREATED, dependencies=admin_write)
 def create_quantity_slab(data: QuantitySlabCreate, db: Session = Depends(get_db)):
     slab = QuantitySlab(**data.model_dump())
     db.add(slab)
@@ -34,7 +37,7 @@ def create_quantity_slab(data: QuantitySlabCreate, db: Session = Depends(get_db)
     return slab
 
 
-@router.put("/{slab_id}", response_model=QuantitySlabOut)
+@router.put("/{slab_id}", response_model=QuantitySlabOut, dependencies=admin_write)
 def update_quantity_slab(slab_id: int, data: QuantitySlabUpdate, db: Session = Depends(get_db)):
     slab = db.query(QuantitySlab).filter(QuantitySlab.id == slab_id).first()
     if not slab:
@@ -46,7 +49,7 @@ def update_quantity_slab(slab_id: int, data: QuantitySlabUpdate, db: Session = D
     return slab
 
 
-@router.delete("/{slab_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{slab_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_write)
 def delete_quantity_slab(slab_id: int, db: Session = Depends(get_db)):
     slab = db.query(QuantitySlab).filter(QuantitySlab.id == slab_id).first()
     if not slab:

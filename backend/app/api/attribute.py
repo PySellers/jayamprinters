@@ -3,13 +3,19 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from app.core.database import get_db
+from app.core.security import require_role
 from app.models.attribute import Attribute, AttributeOption
+from app.models.user import UserRole
 from app.schemas.attribute import (
     AttributeCreate, AttributeUpdate, AttributeOut,
     AttributeOptionCreate, AttributeOptionUpdate, AttributeOptionOut,
 )
 
 router = APIRouter(prefix="/attributes", tags=["attributes"])
+# Reads stay open to any logged-in staff (counter needs to see the options
+# when configuring a job); only Admin can change what's priceable at all --
+# this is the "admin page to enter price instead of making it public" ask.
+admin_write = [Depends(require_role(UserRole.admin))]
 
 
 @router.get("/", response_model=List[AttributeOut])
@@ -28,7 +34,7 @@ def get_attribute(attribute_id: int, db: Session = Depends(get_db)):
     return attribute
 
 
-@router.post("/", response_model=AttributeOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=AttributeOut, status_code=status.HTTP_201_CREATED, dependencies=admin_write)
 def create_attribute(data: AttributeCreate, db: Session = Depends(get_db)):
     attribute = Attribute(**data.model_dump())
     db.add(attribute)
@@ -37,7 +43,7 @@ def create_attribute(data: AttributeCreate, db: Session = Depends(get_db)):
     return attribute
 
 
-@router.put("/{attribute_id}", response_model=AttributeOut)
+@router.put("/{attribute_id}", response_model=AttributeOut, dependencies=admin_write)
 def update_attribute(attribute_id: int, data: AttributeUpdate, db: Session = Depends(get_db)):
     attribute = db.query(Attribute).filter(Attribute.id == attribute_id).first()
     if not attribute:
@@ -49,7 +55,7 @@ def update_attribute(attribute_id: int, data: AttributeUpdate, db: Session = Dep
     return attribute
 
 
-@router.delete("/{attribute_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{attribute_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_write)
 def delete_attribute(attribute_id: int, db: Session = Depends(get_db)):
     attribute = db.query(Attribute).filter(Attribute.id == attribute_id).first()
     if not attribute:
@@ -59,7 +65,7 @@ def delete_attribute(attribute_id: int, db: Session = Depends(get_db)):
     return None
 
 
-@router.post("/{attribute_id}/options", response_model=AttributeOptionOut, status_code=status.HTTP_201_CREATED)
+@router.post("/{attribute_id}/options", response_model=AttributeOptionOut, status_code=status.HTTP_201_CREATED, dependencies=admin_write)
 def create_attribute_option(attribute_id: int, data: AttributeOptionCreate, db: Session = Depends(get_db)):
     attribute = db.query(Attribute).filter(Attribute.id == attribute_id).first()
     if not attribute:
@@ -71,7 +77,7 @@ def create_attribute_option(attribute_id: int, data: AttributeOptionCreate, db: 
     return option
 
 
-@router.put("/options/{option_id}", response_model=AttributeOptionOut)
+@router.put("/options/{option_id}", response_model=AttributeOptionOut, dependencies=admin_write)
 def update_attribute_option(option_id: int, data: AttributeOptionUpdate, db: Session = Depends(get_db)):
     option = db.query(AttributeOption).filter(AttributeOption.id == option_id).first()
     if not option:
@@ -83,7 +89,7 @@ def update_attribute_option(option_id: int, data: AttributeOptionUpdate, db: Ses
     return option
 
 
-@router.delete("/options/{option_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/options/{option_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_write)
 def delete_attribute_option(option_id: int, db: Session = Depends(get_db)):
     option = db.query(AttributeOption).filter(AttributeOption.id == option_id).first()
     if not option:

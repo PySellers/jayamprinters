@@ -1,10 +1,12 @@
 import { createContext, useContext, useState } from 'react';
 import api from '../utils/api';
+import type { UserRole } from '../types/common';
 
 interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
 }
 
 interface AuthContextValue {
