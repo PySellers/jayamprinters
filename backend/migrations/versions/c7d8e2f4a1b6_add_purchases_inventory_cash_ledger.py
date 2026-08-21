@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
@@ -80,7 +81,7 @@ def upgrade() -> None:
     # Reuses the same 'paymentmethod' enum type invoices.payments already
     # created (checkfirst=True so this migration is also replayable standalone
     # against a DB that doesn't have it yet, e.g. a future squashed history).
-    payment_method_enum = sa.Enum('cash', 'upi', 'card', 'credit', 'bank_transfer', name='paymentmethod')
+    payment_method_enum = postgresql.ENUM('cash', 'upi', 'card', 'credit', 'bank_transfer', name='paymentmethod', create_type=False)
     payment_method_enum.create(op.get_bind(), checkfirst=True)
     op.create_table(
         'purchase_payments',

@@ -65,6 +65,12 @@ export default function QuotationCreate() {
   const onSubmit = (data: QuotationCreateInput) => {
     createMutation.mutate({
       ...data,
+      // An unfilled <input type="date">/<input type="time"> registers as "" in
+      // react-hook-form, not undefined — the backend rejects "" as an invalid
+      // date, so these fields (which are optional, no * in their labels) must
+      // be normalized to undefined before hitting the API.
+      delivery_date: data.delivery_date || undefined,
+      delivery_time: data.delivery_time || undefined,
       items: data.items.map((item) => ({ ...item, product_id: Number(item.product_id) })),
     });
   };

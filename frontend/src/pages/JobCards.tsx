@@ -164,7 +164,13 @@ export default function JobCards() {
       </Paper>
 
       <Dialog open={Boolean(assigning)} onClose={() => setAssigning(null)} maxWidth="sm" fullWidth>
-        <form onSubmit={handleSubmit((data) => assignMutation.mutate(data))}>
+        <form
+          onSubmit={handleSubmit((data) =>
+            // An unfilled <input type="date"> registers as "" in react-hook-form,
+            // not null/undefined — the backend rejects "" as an invalid date.
+            assignMutation.mutate({ ...data, delivery_date: data.delivery_date || undefined })
+          )}
+        >
           <DialogTitle>Assign — {assigning?.job_number}</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 1 }}>

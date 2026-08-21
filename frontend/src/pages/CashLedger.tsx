@@ -199,7 +199,19 @@ function ChequesTab() {
       </Paper>
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <form onSubmit={handleSubmit((data) => addMutation.mutate({ ...data, amount: Number(data.amount) }))}>
+        <form
+          onSubmit={handleSubmit((data) =>
+            // Unfilled <input type="date"> fields register as "" — the backend
+            // rejects "" as an invalid date, and these two are optional (a cheque
+            // may not have a deposit date yet).
+            addMutation.mutate({
+              ...data,
+              amount: Number(data.amount),
+              cheque_date: data.cheque_date || undefined,
+              deposit_date: data.deposit_date || undefined,
+            })
+          )}
+        >
           <DialogTitle>Add Cheque</DialogTitle>
           <DialogContent>
             {addMutation.isError && <Alert severity="error" sx={{ mb: 2 }}>{getErrorMessage(addMutation.error, 'Failed to save cheque')}</Alert>}
