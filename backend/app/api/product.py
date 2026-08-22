@@ -19,7 +19,7 @@ admin_write = [Depends(require_role(UserRole.admin))]
 
 
 @category_router.get("/", response_model=List[ProductCategoryOut])
-def get_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_categories(skip: int = 0, limit: int = 2000, db: Session = Depends(get_db)):
     return db.query(ProductCategory).offset(skip).limit(limit).all()
 
 
@@ -67,7 +67,13 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
 
 
 @product_router.get("/", response_model=List[ProductOut])
-def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_products(skip: int = 0, limit: int = 2000, db: Session = Depends(get_db)):
+    # Callers that don't pass `limit` (e.g. the quotation/billing-counter
+    # product picker) used to silently get only the first 100 rows in
+    # whatever order the DB returned them -- fine while the catalog was
+    # small, but once it grew past 100 products, some became invisible in
+    # the picker with no indication anything was missing. Raised well above
+    # any realistic catalog size instead of adding pagination UI nobody asked for.
     return db.query(Product).offset(skip).limit(limit).all()
 
 
