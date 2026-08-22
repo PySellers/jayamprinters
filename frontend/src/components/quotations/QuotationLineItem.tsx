@@ -16,9 +16,13 @@ interface QuotationLineItemProps {
   index: number;
   onRemove: () => void;
   canRemove: boolean;
+  /** Live-computed rate/amount for this line (from POST /quotations/preview).
+   * Omit to render the plain form with no price readout, as on the regular
+   * quotation-builder page -- only the billing-counter screen passes this. */
+  previewItem?: { unit_price: number; total_price: number; priceable: boolean };
 }
 
-export default function QuotationLineItem({ index, onRemove, canRemove }: QuotationLineItemProps) {
+export default function QuotationLineItem({ index, onRemove, canRemove, previewItem }: QuotationLineItemProps) {
   const { control, register, setValue, formState: { errors } } = useFormContext<QuotationCreateInput>();
 
   const productId = useWatch({ control, name: `items.${index}.product_id` });
@@ -96,6 +100,25 @@ export default function QuotationLineItem({ index, onRemove, canRemove }: Quotat
             <DeleteIcon />
           </IconButton>
         </Grid>
+
+        {previewItem && (
+          <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3, py: 0.5 }}>
+            {previewItem.priceable ? (
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  Rate: <strong>₹{previewItem.unit_price.toFixed(2)}</strong>
+                </Typography>
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                  Amount: ₹{previewItem.total_price.toFixed(2)}
+                </Typography>
+              </>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                {product ? 'Select all required options to see the price' : ''}
+              </Typography>
+            )}
+          </Grid>
+        )}
 
         {product && product.pricing_type === 'per_area' && (
           <>

@@ -60,3 +60,28 @@ class QuotationOut(BaseModel):
 
 class QuotationStatusUpdate(BaseModel):
     status: QuotationStatus
+
+class QuotationPreviewItemIn(BaseModel):
+    product_id: int
+    quantity: int = Field(gt=0)
+    area_sqft: Optional[float] = None
+    selected_options: List[SelectedOptionIn] = []
+    extra_charge_ids: List[int] = []
+
+class QuotationPreviewRequest(BaseModel):
+    tax_id: Optional[int] = None
+    items: List[QuotationPreviewItemIn]
+
+class QuotationPreviewItemOut(BaseModel):
+    unit_price: float
+    total_price: float
+    # False when the line can't be priced yet (e.g. a required attribute
+    # hasn't been picked) -- the counter screen shows this line as "--"
+    # instead of a misleading zero.
+    priceable: bool
+
+class QuotationPreviewOut(BaseModel):
+    items: List[QuotationPreviewItemOut]
+    subtotal: float
+    tax_amount: float
+    grand_total: float

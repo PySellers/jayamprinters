@@ -21,6 +21,7 @@ import Users from './pages/Users';
 import Purchases from './pages/Purchases';
 import Inventory from './pages/Inventory';
 import CashLedger from './pages/CashLedger';
+import BillingCounter from './pages/BillingCounter';
 
 export default function App() {
   return (
@@ -28,6 +29,14 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/billing-counter"
+            element={
+              <ProtectedRoute>
+                <BillingCounter />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/"
             element={

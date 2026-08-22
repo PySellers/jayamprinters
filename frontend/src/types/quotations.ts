@@ -47,3 +47,21 @@ export interface QuotationCreateInput {
   delivery_time?: string | null;
   items: QuotationItemInput[];
 }
+
+export interface QuotationPreviewRequest {
+  tax_id?: number | null;
+  items: QuotationItemInput[];
+}
+
+export interface QuotationPreviewItem {
+  unit_price: number;
+  total_price: number;
+  priceable: boolean;
+}
+
+export interface QuotationPreview {
+  items: QuotationPreviewItem[];
+  subtotal: number;
+  tax_amount: number;
+  grand_total: number;
+}

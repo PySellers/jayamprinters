@@ -1,4 +1,5 @@
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import PeopleIcon from '@mui/icons-material/People';
 import DescriptionIcon from '@mui/icons-material/Description';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -24,6 +25,7 @@ export interface NavItem {
 
 export const mainNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: DashboardIcon },
+  { label: 'Billing Counter', path: '/billing-counter', icon: PointOfSaleIcon },
   { label: 'Customers', path: '/customers', icon: PeopleIcon },
   { label: 'Quotations', path: '/quotations', icon: DescriptionIcon },
   { label: 'Job Cards', path: '/job-cards', icon: AssignmentIcon },
