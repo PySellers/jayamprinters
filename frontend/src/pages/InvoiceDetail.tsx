@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, IconButton, Chip, CircularProgress, Grid, Stack, Divider,
+  Button, IconButton, Chip, CircularProgress, Grid, Stack,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Alert,
   Menu, ListItemIcon, ListItemText,
 } from '@mui/material';
@@ -210,18 +210,33 @@ export default function InvoiceDetail() {
                 <Typography color="text.secondary">Tax</Typography>
                 <Typography>₹{invoice.tax_amount.toFixed(2)}</Typography>
               </Box>
-              <Divider sx={{ my: 1 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography sx={{ fontWeight: 'bold' }}>Grand Total</Typography>
-                <Typography sx={{ fontWeight: 'bold' }}>₹{invoice.grand_total.toFixed(2)}</Typography>
-              </Box>
+            </Stack>
+
+            <Box
+              sx={{
+                mt: 2, mb: 2, py: 2, px: 2.5, borderRadius: 2,
+                bgcolor: '#1a237e', color: 'white',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+              }}
+            >
+              <Typography sx={{ fontWeight: 700, fontSize: '1.1rem' }}>Grand Total</Typography>
+              <Typography sx={{ fontWeight: 800, fontSize: '2.25rem', lineHeight: 1 }}>
+                ₹{invoice.grand_total.toFixed(2)}
+              </Typography>
+            </Box>
+
+            <Stack spacing={0.5}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color="success.main">Paid</Typography>
                 <Typography color="success.main">₹{invoice.amount_paid.toFixed(2)}</Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography color={balance > 0 ? 'error.main' : 'text.secondary'}>Balance</Typography>
-                <Typography color={balance > 0 ? 'error.main' : 'text.secondary'}>₹{balance.toFixed(2)}</Typography>
+                <Typography color={balance > 0 ? 'error.main' : 'text.secondary'} sx={{ fontWeight: balance > 0 ? 700 : 400 }}>
+                  Balance Due
+                </Typography>
+                <Typography color={balance > 0 ? 'error.main' : 'text.secondary'} sx={{ fontWeight: balance > 0 ? 700 : 400 }}>
+                  ₹{balance.toFixed(2)}
+                </Typography>
               </Box>
             </Stack>
           </Paper>

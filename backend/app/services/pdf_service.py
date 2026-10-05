@@ -20,6 +20,58 @@ BRAND_COLOR = colors.HexColor("#1a237e")
 # hardware margin.
 THERMAL_WIDTHS_MM = {"thermal_58": 58.0, "thermal_80": 80.0}
 
+_ONES = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
+         "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"]
+_TENS = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"]
+
+
+def _two_digit_words(n: int) -> str:
+    if n < 20:
+        return _ONES[n]
+    tens, ones = divmod(n, 10)
+    return f"{_TENS[tens]} {_ONES[ones]}".strip()
+
+
+def _three_digit_words(n: int) -> str:
+    hundreds, rest = divmod(n, 100)
+    parts = []
+    if hundreds:
+        parts.append(f"{_ONES[hundreds]} Hundred")
+    if rest:
+        parts.append(_two_digit_words(rest))
+    return " ".join(parts)
+
+
+def amount_in_words(amount: float) -> str:
+    """Indian-numbering (lakh/crore) amount-in-words, e.g. 'Rupees Twelve Thousand Three
+    Hundred and Fifty Only' -- the standard footer line on Indian invoices."""
+    rupees = int(amount)
+    paise = round((amount - rupees) * 100)
+
+    if rupees == 0:
+        rupee_words = "Zero"
+    else:
+        crore, rupees = divmod(rupees, 10_000_000)
+        lakh, rupees = divmod(rupees, 100_000)
+        thousand, rupees = divmod(rupees, 1000)
+        hundred = rupees
+
+        segments = []
+        if crore:
+            segments.append(f"{_three_digit_words(crore)} Crore")
+        if lakh:
+            segments.append(f"{_three_digit_words(lakh)} Lakh")
+        if thousand:
+            segments.append(f"{_three_digit_words(thousand)} Thousand")
+        if hundred:
+            segments.append(_three_digit_words(hundred))
+        rupee_words = " ".join(segments)
+
+    words = f"Rupees {rupee_words}"
+    if paise:
+        words += f" and {_two_digit_words(paise)} Paise"
+    return words + " Only"
+
 
 def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: dict[int, Product]) -> bytes:
     buffer = BytesIO()
@@ -87,19 +139,36 @@ def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: d
     totals_data = [
         ["Subtotal", f"Rs. {invoice.subtotal:.2f}"],
         ["Tax", f"Rs. {invoice.tax_amount:.2f}"],
-        ["Grand Total", f"Rs. {invoice.grand_total:.2f}"],
         ["Paid", f"Rs. {invoice.amount_paid:.2f}"],
         ["Balance", f"Rs. {invoice.grand_total - invoice.amount_paid:.2f}"],
     ]
     totals_table = Table(totals_data, colWidths=[135 * mm, 30 * mm])
     totals_table.setStyle(TableStyle([
         ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-        ("FONTNAME", (0, 2), (-1, 2), "Helvetica-Bold"),
-        ("LINEABOVE", (0, 2), (-1, 2), 0.75, colors.grey),
         ("TOPPADDING", (0, 0), (-1, -1), 3),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
     ]))
     elements.append(totals_table)
+    elements.append(Spacer(1, 3 * mm))
+
+    grand_total_style = ParagraphStyle("GrandTotalLabel", parent=styles["Normal"], fontName="Helvetica-Bold",
+                                        fontSize=14, textColor=colors.white)
+    grand_total_value_style = ParagraphStyle("GrandTotalValue", parent=right_style, fontName="Helvetica-Bold",
+                                              fontSize=18, textColor=colors.white)
+    grand_total_table = Table(
+        [[Paragraph("GRAND TOTAL", grand_total_style), Paragraph(f"Rs. {invoice.grand_total:.2f}", grand_total_value_style)]],
+        colWidths=[135 * mm, 30 * mm],
+    )
+    grand_total_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), BRAND_COLOR),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (0, 0), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(grand_total_table)
+    elements.append(Spacer(1, 4 * mm))
+    elements.append(Paragraph(f"<i>{amount_in_words(invoice.grand_total)}</i>", styles["Normal"]))
 
     if invoice.payments:
         elements.append(Spacer(1, 8 * mm))
@@ -127,6 +196,21 @@ def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: d
     if invoice.notes:
         elements.append(Spacer(1, 8 * mm))
         elements.append(Paragraph(f"<b>Notes:</b> {invoice.notes}", styles["Normal"]))
+
+    elements.append(Spacer(1, 14 * mm))
+    footer_style = ParagraphStyle("Footer", parent=styles["Normal"], fontSize=9, textColor=colors.grey)
+    footer_table = Table(
+        [["Thank you for your business!", Paragraph("Authorised Signatory", right_style)]],
+        colWidths=[100 * mm, 60 * mm],
+    )
+    footer_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+        ("LINEABOVE", (1, 0), (1, 0), 0.5, colors.grey),
+        ("TOPPADDING", (1, 0), (1, 0), 10),
+    ]))
+    elements.append(footer_table)
+    elements.append(Spacer(1, 3 * mm))
+    elements.append(Paragraph("This is a computer-generated invoice.", footer_style))
 
     doc.build(elements)
     return buffer.getvalue()

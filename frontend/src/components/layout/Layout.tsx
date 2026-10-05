@@ -44,13 +44,13 @@ export default function Layout() {
           },
         }}
       >
-        <Box sx={{ p: 2, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-          <PrintIcon sx={{ fontSize: 40 }} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+        <Box sx={{ p: 2.5, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
+          <PrintIcon sx={{ fontSize: 52 }} />
+          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 0.5 }}>
             Sri Jayam Printers
           </Typography>
-          <Typography variant="caption" sx={{ opacity: 0.7 }}>
-            ERP System
+          <Typography variant="body2" sx={{ opacity: 0.75, letterSpacing: 1 }}>
+            ERP SYSTEM
           </Typography>
         </Box>
 

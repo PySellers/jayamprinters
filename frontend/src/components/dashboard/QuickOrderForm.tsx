@@ -68,8 +68,8 @@ export default function QuickOrderForm() {
   const canSubmit = Boolean(productId) && Boolean(deliveryDate);
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2 }}>
-      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+    <Paper sx={{ p: 3, borderRadius: 2, border: '2px solid #1a237e' }}>
+      <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, color: '#1a237e' }}>
         Start New Order
       </Typography>
 
@@ -151,7 +151,8 @@ export default function QuickOrderForm() {
           <Button
             variant="contained"
             fullWidth
-            sx={{ bgcolor: '#1a237e' }}
+            size="large"
+            sx={{ bgcolor: '#1a237e', py: 1.5, fontSize: '1.1rem', fontWeight: 700 }}
             disabled={!canSubmit || createOrderMutation.isPending}
             onClick={() => createOrderMutation.mutate()}
           >
