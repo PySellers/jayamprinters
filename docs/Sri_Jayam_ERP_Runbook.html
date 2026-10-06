@@ -1,0 +1,821 @@
+<title>Sri Jayam ERP Runbook</title>
+<style>
+  :root {
+    --ink: #16213e;
+    --ink-soft: #3a4470;
+    --press: #2a3b8f;
+    --press-soft: #eef0fa;
+    --paper: #f6f5f1;
+    --surface: #ffffff;
+    --surface-2: #fbfaf7;
+    --rule: #ddd9d0;
+    --rule-soft: #eae7de;
+    --brass: #a06a1f;
+    --brass-soft: #f7ecd9;
+    --ok: #276b43;
+    --ok-soft: #e4f2e8;
+    --warn: #a06a1f;
+    --warn-soft: #f7ecd9;
+    --danger: #9c3b3b;
+    --danger-soft: #f7e6e6;
+    --text: #1c2340;
+    --text-soft: #565f83;
+    --text-faint: #838aa8;
+    --code-bg: #eceaf9;
+    --shadow: 0 1px 2px rgba(22,33,62,0.06), 0 8px 24px -12px rgba(22,33,62,0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #e8eaf6;
+      --ink-soft: #b9c0e6;
+      --press: #8b9cf2;
+      --press-soft: #232a52;
+      --paper: #12162a;
+      --surface: #191f3a;
+      --surface-2: #161b34;
+      --rule: #2d3560;
+      --rule-soft: #262c50;
+      --brass: #e0ac5c;
+      --brass-soft: #362a17;
+      --ok: #6fbf8f;
+      --ok-soft: #1c3527;
+      --warn: #e0ac5c;
+      --warn-soft: #362a17;
+      --danger: #e58b8b;
+      --danger-soft: #3a2222;
+      --text: #e8eaf6;
+      --text-soft: #b0b7de;
+      --text-faint: #7a82ac;
+      --code-bg: #232a52;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #e8eaf6;
+    --ink-soft: #b9c0e6;
+    --press: #8b9cf2;
+    --press-soft: #232a52;
+    --paper: #12162a;
+    --surface: #191f3a;
+    --surface-2: #161b34;
+    --rule: #2d3560;
+    --rule-soft: #262c50;
+    --brass: #e0ac5c;
+    --brass-soft: #362a17;
+    --ok: #6fbf8f;
+    --ok-soft: #1c3527;
+    --warn: #e0ac5c;
+    --warn-soft: #362a17;
+    --danger: #e58b8b;
+    --danger-soft: #3a2222;
+    --text: #e8eaf6;
+    --text-soft: #b0b7de;
+    --text-faint: #7a82ac;
+    --code-bg: #232a52;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 880px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc { position: static !important; height: auto !important; border-right: none !important; border-bottom: 1px solid var(--rule); }
+  }
+
+  /* ---- TOC rail ---- */
+  .toc {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 18px 40px 28px;
+    border-right: 1px solid var(--rule);
+  }
+  .toc-brand {
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--press);
+    margin-bottom: 2px;
+  }
+  .toc-brand-sub {
+    font-size: 12px;
+    color: var(--text-faint);
+    margin-bottom: 22px;
+  }
+  .toc nav { display: flex; flex-direction: column; gap: 2px; }
+  .toc a {
+    color: var(--text-soft);
+    text-decoration: none;
+    font-size: 13.5px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border-left: 2px solid transparent;
+  }
+  .toc a:hover { background: var(--press-soft); color: var(--press); }
+  .toc .toc-group-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin: 16px 0 4px 10px;
+    font-weight: 700;
+  }
+  .toc .toc-group-label:first-of-type { margin-top: 4px; }
+
+  /* ---- Main column ---- */
+  main {
+    padding: 40px 48px 120px;
+    min-width: 0;
+  }
+  @media (max-width: 600px) {
+    main { padding: 28px 20px 80px; }
+  }
+
+  .doc-header {
+    margin-bottom: 40px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .doc-eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 10px;
+  }
+  h1.doc-title {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .doc-dek {
+    font-size: 16px;
+    color: var(--text-soft);
+    max-width: 62ch;
+    margin: 0 0 22px;
+  }
+
+  .access-card {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 28px;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 18px 22px;
+    box-shadow: var(--shadow);
+    width: fit-content;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 640px) {
+    .access-card { grid-template-columns: 1fr; gap: 14px; }
+  }
+  .access-item .access-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .access-item .access-value {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 13.5px;
+    color: var(--ink);
+    word-break: break-all;
+  }
+  .access-value a { color: var(--press); }
+
+  section.doc-section {
+    margin-bottom: 52px;
+    scroll-margin-top: 24px;
+  }
+  section.doc-section h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0 0 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  section.doc-section h2 .section-num {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--brass);
+  }
+  .section-lede {
+    color: var(--text-soft);
+    max-width: 68ch;
+    margin: 0 0 20px;
+  }
+  section.doc-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 26px 0 10px;
+  }
+  section.doc-section p { max-width: 68ch; margin: 0 0 14px; }
+  section.doc-section ul, section.doc-section ol { max-width: 68ch; padding-left: 22px; margin: 0 0 16px; }
+  section.doc-section li { margin-bottom: 6px; }
+  section.doc-section li::marker { color: var(--text-faint); }
+
+  .steps { list-style: none; padding: 0; margin: 0 0 20px; max-width: 68ch; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding: 4px 0 14px 38px;
+    border-left: 1px solid var(--rule);
+    margin-left: 13px;
+  }
+  .steps li:last-child { border-left: 1px solid transparent; padding-bottom: 0; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: -13px;
+    top: 2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--press);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .steps li strong { color: var(--ink); }
+
+  /* ---- status chips (mirror the app's own chip language) ---- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .chip-ok { background: var(--ok-soft); color: var(--ok); }
+  .chip-warn { background: var(--warn-soft); color: var(--warn); }
+  .chip-danger { background: var(--danger-soft); color: var(--danger); }
+  .chip-press { background: var(--press-soft); color: var(--press); }
+  .chip-neutral { background: var(--rule-soft); color: var(--text-soft); }
+
+  kbd {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 12px;
+    background: var(--code-bg);
+    color: var(--press);
+    border-radius: 5px;
+    padding: 2px 7px;
+    border-bottom: 2px solid var(--rule);
+  }
+
+  code {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 13.5px;
+    background: var(--code-bg);
+    color: var(--ink);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  .callout {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--press);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 4px 0 20px;
+    max-width: 68ch;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.danger { border-left-color: var(--danger); }
+  .callout-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--press);
+    margin-bottom: 6px;
+  }
+  .callout.warn .callout-label { color: var(--warn); }
+  .callout.danger .callout-label { color: var(--danger); }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout p { font-size: 14px; }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 4px 0 24px;
+  }
+  .role-card {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .role-card h4 {
+    margin: 0 0 8px;
+    font-size: 14.5px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .role-card p { font-size: 13px; color: var(--text-soft); margin: 0; max-width: none; }
+
+  .table-wrap { overflow-x: auto; margin: 4px 0 24px; border: 1px solid var(--rule); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+  thead th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    font-weight: 700;
+    background: var(--surface-2);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--text);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(odd) { background: var(--surface); }
+  tbody tr:nth-child(even) { background: var(--surface-2); }
+  td.mono, th.mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace; font-size: 12.5px; }
+
+  .field-list { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 24px; max-width: 68ch; }
+  .field-row { display: flex; gap: 14px; font-size: 14px; }
+  .field-name { flex: 0 0 160px; font-weight: 700; color: var(--ink); font-size: 13.5px; }
+  .field-desc { color: var(--text-soft); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 52px 0 0;
+  }
+
+  footer.doc-footer {
+    max-width: 68ch;
+    padding-top: 20px;
+    color: var(--text-faint);
+    font-size: 12.5px;
+  }
+
+  a { color: var(--press); }
+
+  ::selection { background: var(--press-soft); color: var(--press); }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">Sri Jayam Printers</div>
+    <div class="toc-brand-sub">ERP Runbook</div>
+    <nav>
+      <div class="toc-group-label">Start here</div>
+      <a href="#access">Live access</a>
+      <a href="#roles">Roles &amp; logins</a>
+
+      <div class="toc-group-label">Daily use</div>
+      <a href="#billing-counter">Billing Counter</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#customers">Customers</a>
+      <a href="#quotations">Quotations</a>
+      <a href="#job-cards">Job Cards</a>
+      <a href="#invoices">Invoices &amp; Payments</a>
+
+      <div class="toc-group-label">Setup &amp; back office</div>
+      <a href="#pricing">Products &amp; Pricing</a>
+      <a href="#purchases">Purchases &amp; Inventory</a>
+      <a href="#cash-ledger">Cash Ledger</a>
+      <a href="#reports">Reports</a>
+      <a href="#users">Users &amp; Roles</a>
+
+      <div class="toc-group-label">Reference</div>
+      <a href="#troubleshooting">Troubleshooting</a>
+      <a href="#permissions">Permission matrix</a>
+      <a href="#glossary">Glossary</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="doc-header">
+      <div class="doc-eyebrow">Runbook · v1</div>
+      <h1 class="doc-title">Running the shop on Sri Jayam ERP</h1>
+      <p class="doc-dek">
+        A working reference for everyone at the counter, in production, and in accounts —
+        what each screen is for, the order things happen in, and what to do when something
+        looks wrong.
+      </p>
+
+      <div class="access-card" id="access">
+        <div class="access-item">
+          <div class="access-label">Live app</div>
+          <div class="access-value"><a href="https://sri-jayam-erp-frontend-745036261829.asia-south1.run.app" target="_blank" rel="noopener">sri-jayam-erp-frontend&#8203;-745036261829&#8203;.asia-south1.run.app</a></div>
+        </div>
+        <div class="access-item">
+          <div class="access-label">Admin login</div>
+          <div class="access-value">admin@srijayam.com</div>
+        </div>
+        <div class="access-item">
+          <div class="access-label">Password</div>
+          <div class="access-value">Admin@123 <span class="chip chip-warn" style="margin-left:6px;">change this</span></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="doc-section" id="roles">
+      <h2><span class="section-num">01</span> Roles &amp; who does what</h2>
+      <p class="section-lede">
+        Every screen in this manual is written for whichever role actually uses it day to day.
+        There's no public sign-up — the Admin account above creates every other login from the
+        <a href="#users">Users page</a>.
+      </p>
+      <div class="card-grid">
+        <div class="role-card">
+          <h4>Admin <span class="chip chip-press">full access</span></h4>
+          <p>Everything below, plus pricing, user accounts, and the power to cancel or delete records.</p>
+        </div>
+        <div class="role-card">
+          <h4>Counter <span class="chip chip-neutral">front desk</span></h4>
+          <p>Takes orders at the Billing Counter, manages customers, creates quotations and invoices, records payments.</p>
+        </div>
+        <div class="role-card">
+          <h4>Production <span class="chip chip-neutral">workshop</span></h4>
+          <p>Updates job card status as work moves through the shop, assigns machines and operators, logs comments.</p>
+        </div>
+        <div class="role-card">
+          <h4>Accounts <span class="chip chip-neutral">back office</span></h4>
+          <p>Everything Counter can do, plus Purchases, Inventory, and the Cash Ledger.</p>
+        </div>
+      </div>
+      <p>Full breakdown of exactly what's gated and what isn't: see <a href="#permissions">the permission matrix</a>.</p>
+    </section>
+
+    <section class="doc-section" id="billing-counter">
+      <h2><span class="section-num">02</span> Billing Counter — the fast path</h2>
+      <p class="section-lede">
+        The screen to use for a walk-in customer standing at the counter. One customer, one bill,
+        printed and done. Everything on this screen updates live — no page reloads between steps.
+      </p>
+
+      <ol class="steps">
+        <li><strong>Open Billing Counter</strong> from the sidebar (or go straight to <code>/billing-counter</code>).</li>
+        <li><strong>Fill in the customer strip</strong> — Name, Mobile, GSTIN if they have one. Leaving Name blank saves the sale as "Walk-in Customer."</li>
+        <li><strong>Pick the product</strong> from the Product field. If it needs specs (paper size, colour, etc.) those fields appear automatically — fill in every one marked with <code>*</code>.</li>
+        <li><strong>Set the quantity.</strong> Rate and Amount appear under the line the moment pricing can be calculated — if you see "select all required options to see the price," something above is still blank.</li>
+        <li><strong>Add more lines</strong> with <kbd>F1</kbd> / "Add Item" if the customer is buying more than one thing in the same visit.</li>
+        <li><strong>Watch the Net Amount</strong> at the bottom — it's the true total including tax, live, before you save anything.</li>
+        <li><strong>Use the cash buttons</strong> (₹50/₹100/₹500/₹1000/₹2000) to build up what the customer handed over in Cash Tendered — Change Due calculates itself.</li>
+        <li><strong>Pick the print format</strong> — defaults to 80mm thermal. Switch to 58mm or A4 if that's what's loaded in the printer right now.</li>
+        <li><strong>Hit Save &amp; Print</strong> (or <kbd>F8</kbd>). This creates the customer record (if new), the quotation, the job card, and the invoice in one shot, then opens the invoice as a print-ready PDF in a new tab.</li>
+        <li><strong>Print it.</strong> The PDF opens in the browser's own viewer — use <kbd>Ctrl</kbd>+<kbd>P</kbd> or its print button and choose whichever printer is connected. The screen has already reset and is ready for the next customer.</li>
+      </ol>
+
+      <div class="callout">
+        <div class="callout-label">Note on the print step</div>
+        <p>
+          The app hands off a correctly-sized PDF and lets the browser's normal print dialog do
+          the rest — the same way printing any other PDF works. As long as the thermal printer's
+          Windows driver is installed on that counter PC, it'll show up as a normal choice in that
+          dialog. No special printer software needed.
+        </p>
+      </div>
+
+      <h3>To start over mid-bill</h3>
+      <p>Press <kbd>Esc</kbd> or hit "New" — clears everything on screen without saving anything.</p>
+    </section>
+
+    <section class="doc-section" id="dashboard">
+      <h2><span class="section-num">03</span> Dashboard</h2>
+      <p class="section-lede">
+        The landing page after login. Two things live here: a slower "Start New Order" form, and
+        the Live Job Status board.
+      </p>
+      <h3>Start New Order</h3>
+      <p>
+        An older, single-item version of the Billing Counter — useful for a quick phone order
+        where you just need to capture a name and a delivery date without the full counter
+        screen. Submitting takes you to the Quotation screen to fill in the item's specifics,
+        then straight through to an invoice, same as the Billing Counter does.
+      </p>
+      <h3>Live Job Status</h3>
+      <p>Every job card in the shop right now, grouped into three columns:</p>
+      <p>
+        <span class="chip chip-neutral">Pending</span> &nbsp;
+        <span class="chip chip-press">In Progress</span> &nbsp;
+        <span class="chip chip-ok">Delivered</span>
+      </p>
+      <p>
+        A job overdue against its delivery date gets flagged automatically — this is the board to
+        glance at to see what the shop still owes customers today.
+      </p>
+    </section>
+
+    <section class="doc-section" id="customers">
+      <h2><span class="section-num">04</span> Customers</h2>
+      <p class="section-lede">Full record of everyone who's ordered — name, phone, email, address, GSTIN, notes.</p>
+      <p>
+        You rarely need to visit this page directly — Billing Counter and Quotations both create
+        or search customers inline. Come here to fix a typo in a saved address or GSTIN, or to
+        search by name/phone when you need someone's history.
+      </p>
+    </section>
+
+    <section class="doc-section" id="quotations">
+      <h2><span class="section-num">05</span> Quotations</h2>
+      <p class="section-lede">
+        The formal version of a bill — used when a customer wants a written quote before
+        committing, or for multi-item corporate/bulk orders that don't fit the counter flow.
+      </p>
+      <h3>Status flow</h3>
+      <p>
+        <span class="chip chip-neutral">Draft</span> →
+        <span class="chip chip-press">Converted</span>
+        &nbsp;— once converted, its job cards exist and it can't be edited further.
+        A quotation can also be marked <span class="chip chip-danger">Rejected</span> if the
+        customer doesn't go ahead.
+      </p>
+      <h3>Creating one</h3>
+      <ol class="steps">
+        <li>Pick or search the <strong>Customer</strong>, and a <strong>Tax</strong> rate if it's not the default 18% GST.</li>
+        <li>Add one or more <strong>line items</strong> — same product/attribute picker as the Billing Counter, just without the live running total shown on screen (the total appears once you save).</li>
+        <li><strong>Create Quotation.</strong> It's saved as a Draft — nothing is billed yet.</li>
+        <li>When the customer confirms, open it and hit <strong>Convert to Job Cards</strong> — this is the point of no return: job cards get created and the quotation locks.</li>
+        <li>From there, <strong>Create Invoice</strong> turns it into a billable invoice.</li>
+      </ol>
+    </section>
+
+    <section class="doc-section" id="job-cards">
+      <h2><span class="section-num">06</span> Job Cards</h2>
+      <p class="section-lede">
+        One job card per line item, automatically created the moment a quotation is converted.
+        This is what Production updates as work physically moves through the shop.
+      </p>
+      <h3>Status stages</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="chip chip-neutral">Pending</span></td><td>Not started yet.</td></tr>
+            <tr><td><span class="chip chip-press">Design</span></td><td>Artwork/layout being prepared.</td></tr>
+            <tr><td><span class="chip chip-press">Approval</span></td><td>Waiting on customer sign-off before production.</td></tr>
+            <tr><td><span class="chip chip-press">Printing</span></td><td>On the press.</td></tr>
+            <tr><td><span class="chip chip-press">Binding</span></td><td>Finishing work — binding, lamination, cutting.</td></tr>
+            <tr><td><span class="chip chip-press">Packing</span></td><td>Ready, being packed for handover.</td></tr>
+            <tr><td><span class="chip chip-ok">Delivered</span></td><td>Handed to the customer. Done.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Click a status chip on the Job Cards list to change it directly. Use the edit icon to
+        assign a <strong>Machine</strong>, <strong>Designer</strong>, or <strong>Operator</strong>,
+        set a <strong>Priority</strong> (Low/Medium/High/Urgent), or add a dated comment to the
+        job's running log — separate from the single Notes field, useful for "waiting on customer
+        artwork" style updates over time.
+      </p>
+    </section>
+
+    <section class="doc-section" id="invoices">
+      <h2><span class="section-num">07</span> Invoices &amp; Payments</h2>
+      <p class="section-lede">
+        Generated from a converted quotation. Pricing is snapshotted at that moment, so a later
+        change to the price list never alters a bill that's already gone out.
+      </p>
+      <h3>Payment status</h3>
+      <p>
+        <span class="chip chip-danger">Unpaid</span>
+        <span class="chip chip-warn">Partially Paid</span>
+        <span class="chip chip-ok">Paid</span>
+        &nbsp;— set automatically from the payments recorded against it, never edited by hand.
+      </p>
+      <h3>Recording a payment</h3>
+      <p>
+        Open the invoice → <strong>Record Payment</strong> → amount, method
+        (<code>cash</code> / <code>upi</code> / <code>card</code> / <code>credit</code> /
+        <code>bank_transfer</code>), and an optional reference number. Partial payments are fine —
+        record as many as needed until the balance hits zero.
+      </p>
+      <h3>Printing / re-printing</h3>
+      <p>
+        <strong>Print</strong> or <strong>Download</strong> on any invoice, any time — pick A4,
+        58mm thermal, or 80mm thermal. Re-printing a delivered order's invoice works exactly the
+        same way as the first time.
+      </p>
+    </section>
+
+    <section class="doc-section" id="pricing">
+      <h2><span class="section-num">08</span> Products &amp; Pricing <span class="chip chip-press">Admin</span></h2>
+      <p class="section-lede">
+        This is the one section that determines whether the rest of the app quotes correct
+        prices — everything else just reads from what's set up here.
+      </p>
+      <h3>The three pricing types</h3>
+      <div class="field-list">
+        <div class="field-row"><div class="field-name">Fixed</div><div class="field-desc">One flat price per unit, no options to pick — e.g. a rubber stamp of a specific size.</div></div>
+        <div class="field-row"><div class="field-name">Matrix</div><div class="field-desc">Price depends on which attribute options are picked (paper size, colour, sides...) crossed with a quantity band — e.g. photocopying.</div></div>
+        <div class="field-row"><div class="field-name">Per Area</div><div class="field-desc">Rate × square footage — e.g. a banner sized on the spot.</div></div>
+      </div>
+      <h3>Setting up a Matrix product</h3>
+      <ol class="steps">
+        <li>Under <strong>Pricing Setup</strong>, add the <strong>Attributes</strong> that actually change the price for this category (e.g. Paper Size, Colour) — mark the ones that must always be picked as required.</li>
+        <li>Add the <strong>Quantity Slabs</strong> — the quantity bands the price is banded by (e.g. 1–50, 51–100...).</li>
+        <li>Add any <strong>Extra Charges</strong> — opt-in add-ons like binding or lamination that don't need their own attribute (flat, per-unit, per-sqft, or percentage).</li>
+        <li>Go to the product's <strong>Price Matrix</strong> page and fill in a rate for every combination that's actually sellable. Use the <strong>Bulk Grid</strong> view instead of the one-at-a-time dialog for anything with more than ~30 combinations.</li>
+      </ol>
+      <div class="callout warn">
+        <div class="callout-label">Only model what actually changes the price</div>
+        <p>
+          Every attribute you attach multiplies the number of price cells needed. Paper colour
+          name or card model with no cost impact belongs in the free-text Notes field on the line
+          item, not as an attribute — otherwise you're filling in hundreds of price cells for
+          nothing.
+        </p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="purchases">
+      <h2><span class="section-num">09</span> Purchases &amp; Inventory <span class="chip chip-press">Admin / Accounts</span></h2>
+      <p class="section-lede">The stock side of the ledger — what's coming in from vendors, and what's on the shelf.</p>
+      <h3>Recording a purchase</h3>
+      <p>
+        Purchases → New Purchase → pick the <strong>Vendor</strong>, add a line per
+        <strong>Inventory Item</strong> with quantity and unit price. Saving it automatically adds
+        that quantity to stock — no separate "receive stock" step.
+      </p>
+      <h3>Inventory</h3>
+      <p>
+        Every item shows its current quantity against its reorder threshold. Anything at or below
+        threshold is flagged <span class="chip chip-warn">Low Stock</span> with a banner at the top
+        of the page. Stock only ever goes up automatically (via a purchase) — use the page directly
+        to correct it by hand for wastage or a stock-take.
+      </p>
+    </section>
+
+    <section class="doc-section" id="cash-ledger">
+      <h2><span class="section-num">10</span> Cash Ledger <span class="chip chip-press">Admin / Accounts</span></h2>
+      <p class="section-lede">A hand-entered daybook of actual cash movement — deliberately separate from invoice payments.</p>
+      <div class="callout">
+        <div class="callout-label">Why this isn't automatic</div>
+        <p>
+          An invoice payment can be cash, UPI, card, or credit — only real cash-in-hand belongs in
+          this register. Record it here yourself whenever cash physically changes hands, the same
+          way you'd write it in a paper daybook.
+        </p>
+      </div>
+      <div class="field-list">
+        <div class="field-row"><div class="field-name">Cash in Hand</div><div class="field-desc">Receipts − Payments − Bank Deposits</div></div>
+        <div class="field-row"><div class="field-name">Cash in Bank</div><div class="field-desc">Sum of everything deposited</div></div>
+      </div>
+      <p>
+        The <strong>Cheques</strong> tab tracks issued/deposited cheques separately, with a status
+        you update by hand as each one clears — <span class="chip chip-warn">Pending</span>
+        <span class="chip chip-ok">Cleared</span> <span class="chip chip-danger">Bounced</span>.
+      </p>
+    </section>
+
+    <section class="doc-section" id="reports">
+      <h2><span class="section-num">11</span> Reports</h2>
+      <p class="section-lede">Sales totals over a date range, with one-click Excel export.</p>
+      <p>
+        Pick Today / This Week / This Month, or a custom range, to see total sales and invoice
+        count for that window, broken down by day. <strong>Excel</strong> downloads the same data
+        as a spreadsheet for anything that needs to leave the app — a monthly summary for the
+        owner, numbers for an accountant, etc.
+      </p>
+    </section>
+
+    <section class="doc-section" id="users">
+      <h2><span class="section-num">12</span> Users &amp; Roles <span class="chip chip-press">Admin</span></h2>
+      <p class="section-lede">Where every staff login gets created — there's no self-service sign-up by design.</p>
+      <ol class="steps">
+        <li><strong>Add User</strong> — name, email, a temporary password, and their role.</li>
+        <li>Give it to them and have them change it the first time they log in.</li>
+        <li>Toggle <strong>Active/Inactive</strong> to suspend a login without deleting their history — everything they've created stays attached to their name.</li>
+      </ol>
+      <p>You can't deactivate or delete your own account from this screen — it's the one guardrail that stops an accidental self-lockout.</p>
+    </section>
+
+    <section class="doc-section" id="troubleshooting">
+      <h2><span class="section-num">13</span> Troubleshooting</h2>
+
+      <h3>"Select all required options to see the price"</h3>
+      <p>
+        One of the fields marked <code>*</code> above it (paper size, colour, etc.) is still
+        blank. Fill in every required field on that line — the price appears the moment it can be
+        calculated.
+      </p>
+
+      <h3>Save &amp; Print is greyed out</h3>
+      <p>
+        At least one line still can't be priced — usually the same cause as above. If a product
+        genuinely has no rate set up yet for that combination, it needs an entry in
+        <a href="#pricing">Price Matrix</a> before it can be sold.
+      </p>
+
+      <h3>The invoice PDF opened but nothing printed</h3>
+      <p>
+        The tab opened is the finished document, not a live print job — it still needs
+        <kbd>Ctrl</kbd>+<kbd>P</kbd> (or the browser's own print icon) to actually send it to a
+        printer. Make sure the thermal printer's Windows driver is installed and selected in that
+        dialog.
+      </p>
+
+      <h3>A staff member forgot their password</h3>
+      <p>
+        There's no self-service reset. An Admin resets it from the <a href="#users">Users page</a>.
+      </p>
+
+      <h3>A quotation/job card/invoice needs to be cancelled</h3>
+      <p>
+        Deleting a quotation, job card, or invoice, and deleting a payment, are all
+        Admin-only — ask an Admin to remove it rather than trying to work around it.
+      </p>
+    </section>
+
+    <section class="doc-section" id="permissions">
+      <h2><span class="section-num">14</span> Permission matrix</h2>
+      <p class="section-lede">What each role can actually do, beyond the summary in section 1.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Area</th><th>Admin</th><th>Counter</th><th>Production</th><th>Accounts</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Customers, Quotations, Job Cards, Invoices — create &amp; update</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td></tr>
+            <tr><td>Record an invoice payment</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td></tr>
+            <tr><td>Delete a quotation / job card / invoice / payment</td><td class="mono">✓</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td></tr>
+            <tr><td>Edit prices (Pricing Setup, Price Matrix)</td><td class="mono">✓</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td></tr>
+            <tr><td>Purchases &amp; Vendors — view</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td></tr>
+            <tr><td>Purchases &amp; Vendors — create/edit</td><td class="mono">✓</td><td class="mono">—</td><td class="mono">—</td><td class="mono">✓</td></tr>
+            <tr><td>Inventory — view</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td></tr>
+            <tr><td>Inventory — adjust stock</td><td class="mono">✓</td><td class="mono">—</td><td class="mono">—</td><td class="mono">✓</td></tr>
+            <tr><td>Cash Ledger (whole module)</td><td class="mono">✓</td><td class="mono">—</td><td class="mono">—</td><td class="mono">✓</td></tr>
+            <tr><td>Users — create/edit staff logins</td><td class="mono">✓</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td></tr>
+            <tr><td>Masters (machines, tax rates)</td><td class="mono">✓</td><td class="mono">—</td><td class="mono">—</td><td class="mono">—</td></tr>
+            <tr><td>Reports</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td><td class="mono">✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="doc-section" id="glossary">
+      <h2><span class="section-num">15</span> Glossary</h2>
+      <div class="field-list">
+        <div class="field-row"><div class="field-name">Quotation</div><div class="field-desc">A priced-but-not-yet-committed order. Becomes job cards once converted.</div></div>
+        <div class="field-row"><div class="field-name">Job Card</div><div class="field-desc">One per line item — the production-tracking record for that specific piece of work.</div></div>
+        <div class="field-row"><div class="field-name">Invoice</div><div class="field-desc">The billable, printable document generated from a converted quotation.</div></div>
+        <div class="field-row"><div class="field-name">Attribute</div><div class="field-desc">A choice that changes price — paper size, colour, print side, etc.</div></div>
+        <div class="field-row"><div class="field-name">Extra Charge</div><div class="field-desc">An optional add-on price (binding, lamination) independent of attributes.</div></div>
+        <div class="field-row"><div class="field-name">Quantity Slab</div><div class="field-desc">A quantity band a price is set for — e.g. 1–50 pages priced differently than 501–1000.</div></div>
+        <div class="field-row"><div class="field-name">Price Matrix Cell</div><div class="field-desc">One specific rate for one exact combination of attributes + quantity slab.</div></div>
+      </div>
+    </section>
+
+    <hr class="divider" />
+    <footer class="doc-footer">
+      Sri Jayam Printers ERP — internal runbook. Keep this link private; it documents live admin
+      credentials for a system holding real customer and financial data.
+    </footer>
+  </main>
+</div>

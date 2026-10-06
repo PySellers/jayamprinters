@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.git
+tmp_*.py
+check_tables.py
