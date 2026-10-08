@@ -1,5 +1,8 @@
 import api from '../utils/api';
-import type { JobCard, JobCardCreateInput, JobCardUpdateInput, JobCardComment, JobCardCommentInput } from '../types/jobCards';
+import type {
+  JobCard, JobCardCreateInput, JobCardUpdateInput, JobCardComment, JobCardCommentInput,
+  JobCardSheet, JobCardSheetData,
+} from '../types/jobCards';
 import type { JobCardStatus } from '../types/common';
 
 export const jobCardsApi = {
@@ -9,6 +12,9 @@ export const jobCardsApi = {
     (await api.post('/job-cards/', data)).data,
   update: async (id: number, data: JobCardUpdateInput): Promise<JobCard> =>
     (await api.put(`/job-cards/${id}`, data)).data,
+  getSheet: async (id: number): Promise<JobCardSheet> => (await api.get(`/job-cards/${id}/sheet`)).data,
+  saveSheet: async (id: number, sheet: JobCardSheetData): Promise<JobCardSheet> =>
+    (await api.put(`/job-cards/${id}/sheet`, { sheet })).data,
   updateStatus: async (id: number, status: JobCardStatus): Promise<JobCard> =>
     (await api.patch(`/job-cards/${id}/status`, { status })).data,
   remove: async (id: number): Promise<void> => {

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
@@ -7,11 +7,13 @@ from app.schemas.quotation import (
     QuotationPreviewRequest, QuotationPreviewOut, QuotationPreviewItemOut,
 )
 from app.schemas.job_card import JobCardOut
+from app.models.customer import Customer
 from app.models.product import Product
 from app.models.quotation import Quotation
 from app.services import pricing_service
 from app.services.quotation_service import create_quotation
 from app.services.job_card_service import convert_quotation_to_job_cards
+from app.services.quotation_pdf_service import generate_quotation_pdf
 
 router = APIRouter(prefix="/quotations")
 
@@ -51,8 +53,13 @@ def preview(payload: QuotationPreviewRequest, db: Session = Depends(get_db)):
     )
 
 @router.get("/", response_model=List[QuotationOut])
-def list_quotations(db: Session = Depends(get_db)):
-    return db.query(Quotation).order_by(Quotation.id.desc()).all()
+def list_quotations(include_orders: bool = False, db: Session = Depends(get_db)):
+    """Real quotations only. Orders made through Start New Order skip the quotation
+    stage and live under Invoices, so they are left out unless asked for."""
+    query = db.query(Quotation)
+    if not include_orders:
+        query = query.filter(Quotation.is_order.is_(False))
+    return query.order_by(Quotation.id.desc()).all()
 
 @router.get("/{quotation_id}", response_model=QuotationOut)
 def get_quotation(quotation_id: int, db: Session = Depends(get_db)):
@@ -60,6 +67,24 @@ def get_quotation(quotation_id: int, db: Session = Depends(get_db)):
     if not q:
         raise HTTPException(status_code=404, detail="Quotation not found")
     return q
+
+@router.get("/{quotation_id}/pdf")
+def quotation_pdf(quotation_id: int, db: Session = Depends(get_db)):
+    """The quotation as a printable letter (Ref / Date / Particulars, Qty, Rate, Amount / Terms)."""
+    q = db.query(Quotation).filter(Quotation.id == quotation_id).first()
+    if not q:
+        raise HTTPException(status_code=404, detail="Quotation not found")
+    customer = db.query(Customer).filter(Customer.id == q.customer_id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    product_ids = {item.product_id for item in q.items}
+    products_by_id = {p.id: p for p in db.query(Product).filter(Product.id.in_(product_ids)).all()}
+    return Response(
+        content=generate_quotation_pdf(q, customer, products_by_id),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{q.quotation_number}.pdf"'},
+    )
+
 
 @router.patch("/{quotation_id}/status", response_model=QuotationOut)
 def update_status(quotation_id: int, payload: QuotationStatusUpdate, db: Session = Depends(get_db)):

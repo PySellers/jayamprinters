@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Box, Typography, Paper, TextField, Button, Grid, Alert } from '@mui/material';
+import { Box, Typography, Paper, TextField, Button, Grid, Alert, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { customersApi } from '../../api/customersApi';
 import { getErrorMessage } from '../../utils/api';
 import { productsApi, productCategoriesApi } from '../../api/productsApi';
@@ -34,6 +34,8 @@ export default function QuickOrderForm() {
   const [email, setEmail] = useState('');
   const [gstin, setGstin] = useState('');
   const [address, setAddress] = useState('');
+  // Chosen per order: a GST invoice or a plain cash bill (no tax).
+  const [withGst, setWithGst] = useState(false);
   const [proof1Date, setProof1Date] = useState(todayDateString());
   const [proof1Time, setProof1Time] = useState('');
   const [proof2Date, setProof2Date] = useState('');
@@ -42,12 +44,7 @@ export default function QuickOrderForm() {
   const [deliveryTime, setDeliveryTime] = useState('');
   const [productId, setProductId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!billingName && customersQuery.data) {
-      setBillingName(`Person ${customersQuery.data.length + 1}`);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customersQuery.data]);
+  // REMOVED: The useEffect that auto-filled "Person X" for billingName
 
   // Keep the "Time" box ticking so it always shows the current order time.
   useEffect(() => {
@@ -68,9 +65,6 @@ export default function QuickOrderForm() {
       const billing = billingName.trim() || `Person ${(customersQuery.data?.length ?? 0) + 1}`;
       const phoneValue = phone.trim();
 
-      // The backend rejects a second customer with the same phone number, so a
-      // returning customer is reused (and refreshed with whatever was typed now)
-      // instead of failing the order.
       if (phoneValue) {
         const matches = await customersApi.search(phoneValue);
         const existing = matches.find((c) => (c.phone ?? '').trim() === phoneValue);
@@ -87,8 +81,6 @@ export default function QuickOrderForm() {
       }
 
       return customersApi.create({
-        // The customer (party) name is what appears on the invoice; fall back
-        // to the billing person if it is left empty.
         name: customerName.trim() || billing,
         billing_person_name: billing,
         phone: phoneValue || null,
@@ -104,6 +96,7 @@ export default function QuickOrderForm() {
         customerId: String(customer.id),
         customerName: customer.name,
         productId: String(productId),
+        withGst: withGst ? '1' : '0',
         proof1Date,
         proof1Time,
         proof2Date,
@@ -115,12 +108,11 @@ export default function QuickOrderForm() {
     },
   });
 
-  // Proof 1 (date + time) is mandatory; Proof 2 is optional.
   const canSubmit =
     Boolean(productId) && Boolean(deliveryDate) && Boolean(proof1Date) && Boolean(proof1Time);
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2, border: '2px solid #1a237e' }}>
+    <Paper sx={{ p: 3, borderRadius: 3, border: '2px solid #1a237e', height: '100%' }}>
       <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, color: '#1a237e' }}>
         Start New Order
       </Typography>
@@ -142,11 +134,12 @@ export default function QuickOrderForm() {
         <Grid size={{ xs: 12 }}>
           <TextField
             label="Billing Person Name"
+            placeholder="Enter billing person name"
             fullWidth
             size="small"
             value={billingName}
             onChange={(e) => setBillingName(e.target.value)}
-            helperText="Defaults to Person N — change any time"
+            // REMOVED: helperText="Defaults to Person N — change any time"
           />
         </Grid>
         <Grid size={{ xs: 12 }}>
@@ -182,8 +175,33 @@ export default function QuickOrderForm() {
         <Grid size={{ xs: 6 }}>
           <TextField label="GSTIN" fullWidth size="small" value={gstin} onChange={(e) => setGstin(e.target.value)} />
         </Grid>
+        
+        {/* UPDATED: Address field now supports multiple lines and auto-expands */}
         <Grid size={{ xs: 12 }}>
-          <TextField label="Address" fullWidth size="small" value={address} onChange={(e) => setAddress(e.target.value)} />
+          <TextField 
+            label="Address" 
+            placeholder="Enter full address"
+            fullWidth 
+            multiline
+            rows={3}
+            maxRows={5}
+            value={address} 
+            onChange={(e) => setAddress(e.target.value)} 
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12 }}>
+          <ToggleButtonGroup
+            exclusive
+            fullWidth
+            size="small"
+            color="primary"
+            value={withGst ? 'gst' : 'cash'}
+            onChange={(_, value: 'gst' | 'cash' | null) => value && setWithGst(value === 'gst')}
+          >
+            <ToggleButton value="gst" sx={{ fontWeight: 700 }}>With GST</ToggleButton>
+            <ToggleButton value="cash" sx={{ fontWeight: 700 }}>Without GST</ToggleButton>
+          </ToggleButtonGroup>
         </Grid>
 
         <Grid size={{ xs: 6 }}>
@@ -275,7 +293,7 @@ export default function QuickOrderForm() {
             variant="contained"
             fullWidth
             size="large"
-            sx={{ bgcolor: '#1a237e', py: 1.5, fontSize: '1.1rem', fontWeight: 700 }}
+            sx={{ bgcolor: '#1a237e', py: 1.5, fontSize: '1.1rem', fontWeight: 700, '&:hover': { bgcolor: '#0d145e' } }}
             disabled={!canSubmit || createOrderMutation.isPending}
             onClick={() => createOrderMutation.mutate()}
           >
@@ -284,7 +302,7 @@ export default function QuickOrderForm() {
         </Grid>
       </Grid>
 
-      <Box sx={{ mt: 1 }}>
+      <Box sx={{ mt: 2 }}>
         <Typography variant="caption" color="text.secondary">
           Next: fill in size/paper/quantity for the chosen service, then the price and invoice are generated automatically.
         </Typography>

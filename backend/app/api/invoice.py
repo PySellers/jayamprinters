@@ -80,7 +80,7 @@ def download_invoice_pdf(
 @invoice_router.get("/{invoice_id}/bill-pdf")
 def download_invoice_bill_pdf(
     invoice_id: int,
-    bill_type: Optional[str] = Query(None, description="gst | cash -- defaults to gst when the customer has a GSTIN, else cash"),
+    bill_type: Optional[str] = Query(None, description="gst | cash -- defaults to the order's own setting: gst if the order was with GST, else cash"),
     db: Session = Depends(get_db),
 ):
     """The invoice drawn on Sri Jayam's own pre-printed bill layouts:
@@ -94,7 +94,7 @@ def download_invoice_bill_pdf(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
 
     if bill_type is None:
-        bill_type = "gst" if (customer.gstin or "").strip() else "cash"
+        bill_type = "gst" if invoice.with_gst else "cash"
     if bill_type not in {"gst", "cash"}:
         raise HTTPException(status_code=400, detail="bill_type must be 'gst' or 'cash'")
 

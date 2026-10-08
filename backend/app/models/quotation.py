@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Date, Enum
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Date, Enum, Boolean, text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -23,6 +23,9 @@ class Quotation(Base):
     tax_amount = Column(Float, default=0.0)
     grand_total = Column(Float, default=0.0)
     notes = Column(String, nullable=True)
+    with_gst = Column(Boolean, nullable=False, default=True, server_default=text("true"))
+    # True = created by Start New Order (goes straight to an invoice). Hidden from the Quotations page.
+    is_order = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     proof1_date = Column(Date, nullable=True)
     proof1_time = Column(String, nullable=True)
     proof2_date = Column(Date, nullable=True)

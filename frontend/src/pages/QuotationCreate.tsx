@@ -1,8 +1,9 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm, useFieldArray, Controller, FormProvider } from 'react-hook-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Box, Typography, Paper, Button, TextField, Stack, Grid, Alert,
+  Autocomplete, Box, Typography, Paper, Button, TextField, Stack, Grid, Alert, ToggleButton, ToggleButtonGroup,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { quotationsApi } from '../api/quotationsApi';
@@ -11,6 +12,7 @@ import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
 import type { QuotationCreateInput, QuotationItemInput } from '../types/quotations';
+import type { Customer, CustomerInput } from '../types/customers';
 import EntitySelect from '../components/pickers/EntitySelect';
 import QuotationLineItem from '../components/quotations/QuotationLineItem';
 
@@ -21,19 +23,28 @@ const emptyItem: QuotationItemInput = {
   extra_charge_ids: [],
 };
 
+const emptyContact = { phone: '', email: '', address: '' };
+
+// Errors thrown by our own code carry a message; server errors carry response.data.detail.
+const errorText = (err: unknown, fallback: string) =>
+  err instanceof Error && !(err as { response?: unknown }).response ? err.message : getErrorMessage(err, fallback);
+
 export default function QuotationCreate() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
 
+  // "Start New Order" lands here with quick=1: it skips the quotation stage and
+  // goes straight to an invoice. A normal New Quotation stays on the Quotations page.
   const isQuick = searchParams.get('quick') === '1';
   const initialCustomerId = searchParams.get('customerId');
-  const initialCustomerName = searchParams.get('customerName');
   const initialProductId = searchParams.get('productId');
   const initialProof1Date = searchParams.get('proof1Date');
   const initialProof1Time = searchParams.get('proof1Time');
   const initialProof2Date = searchParams.get('proof2Date');
   const initialProof2Time = searchParams.get('proof2Time');
+  const withGstParam = searchParams.get('withGst');
+  const initialWithGst = withGstParam === null ? true : withGstParam === '1';
   const initialDeliveryDate = searchParams.get('deliveryDate');
   const initialDeliveryTime = searchParams.get('deliveryTime');
 
@@ -42,6 +53,7 @@ export default function QuotationCreate() {
       customer_id: initialCustomerId ? Number(initialCustomerId) : undefined,
       tax_id: null,
       notes: '',
+      with_gst: initialWithGst,
       proof1_date: initialProof1Date || undefined,
       proof1_time: initialProof1Time || undefined,
       proof2_date: initialProof2Date || undefined,
@@ -53,9 +65,83 @@ export default function QuotationCreate() {
   });
   const { control, register, handleSubmit } = methods;
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+  const withGst = methods.watch('with_gst');
+
+  // ---- customer: pick an existing one OR type a brand-new name ----------------
+  const [nameInput, setNameInput] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [contact, setContact] = useState(emptyContact);
+
+  // Start New Order already created / chose the customer: load it and show it.
+  const quickCustomerQuery = useQuery({
+    queryKey: ['customers', 'detail', initialCustomerId],
+    queryFn: () => customersApi.get(Number(initialCustomerId)),
+    enabled: isQuick && Boolean(initialCustomerId),
+  });
+  useEffect(() => {
+    if (quickCustomerQuery.data) {
+      setSelectedCustomer(quickCustomerQuery.data);
+      setNameInput(quickCustomerQuery.data.name);
+    }
+  }, [quickCustomerQuery.data]);
+
+  // Choosing an existing customer fills in their saved phone / email / address.
+  useEffect(() => {
+    if (selectedCustomer) {
+      setContact({
+        phone: selectedCustomer.phone ?? '',
+        email: selectedCustomer.email ?? '',
+        address: selectedCustomer.address ?? '',
+      });
+    }
+  }, [selectedCustomer]);
+
+  const term = nameInput.trim();
+  const searchQuery = useQuery({
+    queryKey: ['customer-name-search', term],
+    queryFn: () => customersApi.search(term),
+    enabled: !isQuick && term.length >= 1,
+    staleTime: 30_000,
+  });
 
   const createMutation = useMutation({
-    mutationFn: (data: QuotationCreateInput) => quotationsApi.create(data),
+    mutationFn: async (data: QuotationCreateInput) => {
+      let customerId: number;
+      const phone = contact.phone.trim();
+      const email = contact.email.trim();
+      const address = contact.address.trim();
+
+      if (selectedCustomer) {
+        // Existing customer: save any phone / email / address change first.
+        customerId = selectedCustomer.id;
+        const changes: Partial<CustomerInput> = {};
+        if ((selectedCustomer.phone ?? '') !== phone) changes.phone = phone || null;
+        if ((selectedCustomer.email ?? '') !== email) changes.email = email || null;
+        if ((selectedCustomer.address ?? '') !== address) changes.address = address || null;
+        if (Object.keys(changes).length > 0) await customersApi.update(selectedCustomer.id, changes);
+      } else {
+        // New customer: create them from the typed name and contact details.
+        const name = nameInput.trim();
+        if (!name) throw new Error('Enter the customer name');
+        if (phone) {
+          const sameNumber = (await customersApi.search(phone)).find((c) => (c.phone ?? '').trim() === phone);
+          if (sameNumber) {
+            throw new Error(
+              `This phone number already belongs to "${sameNumber.name}". Pick that customer from the name list instead.`,
+            );
+          }
+        }
+        const created = await customersApi.create({
+          name,
+          phone: phone || null,
+          email: email || null,
+          address: address || null,
+        });
+        customerId = created.id;
+      }
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      return quotationsApi.create({ ...data, customer_id: customerId, is_order: isQuick });
+    },
     onSuccess: async (quotation) => {
       queryClient.invalidateQueries({ queryKey: ['quotations'] });
       if (isQuick) {
@@ -65,7 +151,8 @@ export default function QuotationCreate() {
         queryClient.invalidateQueries({ queryKey: ['invoices'] });
         navigate(`/invoices/${invoice.id}`);
       } else {
-        navigate(`/quotations/${quotation.id}`);
+        // A quotation waits on the Quotations page until it is approved and invoiced from there.
+        navigate('/quotations');
       }
     },
   });
@@ -75,8 +162,7 @@ export default function QuotationCreate() {
       ...data,
       // An unfilled <input type="date">/<input type="time"> registers as "" in
       // react-hook-form, not undefined — the backend rejects "" as an invalid
-      // date, so these fields (which are optional, no * in their labels) must
-      // be normalized to undefined before hitting the API.
+      // date, so these optional fields are normalized to undefined.
       proof1_date: data.proof1_date || undefined,
       proof1_time: data.proof1_time || undefined,
       proof2_date: data.proof2_date || undefined,
@@ -100,7 +186,7 @@ export default function QuotationCreate() {
 
       {createMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {getErrorMessage(createMutation.error, 'Failed to create quotation')}
+          {errorText(createMutation.error, 'Failed to create quotation')}
         </Alert>
       )}
 
@@ -109,45 +195,122 @@ export default function QuotationCreate() {
           <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                {isQuick && initialCustomerName ? (
-                  <TextField label="Customer" value={initialCustomerName} fullWidth size="small" disabled />
+                {isQuick ? (
+                  <TextField label="Customer" value={nameInput} fullWidth disabled />
                 ) : (
-                  <Controller
-                    name="customer_id"
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field }) => (
-                      <EntitySelect
-                        label="Customer"
+                  <Autocomplete<Customer, false, false, true>
+                    freeSolo
+                    options={searchQuery.data ?? []}
+                    filterOptions={(options) => options}
+                    getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
+                    value={selectedCustomer}
+                    inputValue={nameInput}
+                    onInputChange={(_, value, reason) => {
+                      setNameInput(value);
+                      // Typing over an existing pick turns it into a new-customer entry.
+                      if (reason === 'input' && selectedCustomer && value !== selectedCustomer.name) {
+                        setSelectedCustomer(null);
+                        setContact(emptyContact);
+                      }
+                    }}
+                    onChange={(_, value) => {
+                      if (value && typeof value !== 'string') setSelectedCustomer(value);
+                      else if (!value) {
+                        setSelectedCustomer(null);
+                        setContact(emptyContact);
+                      }
+                    }}
+                    renderOption={(props, option) => {
+                      const { key, ...rest } = props as typeof props & { key: string };
+                      return (
+                        <li key={key} {...rest}>
+                          {option.name}
+                          {option.phone ? ` (${option.phone})` : ''}
+                        </li>
+                      );
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Customer Name"
                         required
-                        mode="search"
-                        queryKey="customer-picker"
-                        searchOptions={customersApi.search}
-                        getOptionLabel={(c) => `${c.name}${c.phone ? ` (${c.phone})` : ''}`}
-                        value={field.value}
-                        onChange={field.onChange}
+                        helperText={
+                          selectedCustomer
+                            ? 'Existing customer'
+                            : term
+                              ? 'New customer — will be added when you create the quotation'
+                              : 'Type a new name, or pick an existing customer'
+                        }
                       />
                     )}
                   />
                 )}
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  label="Phone Number"
+                  fullWidth
+                  value={contact.phone}
+                  onChange={(e) => setContact({ ...contact, phone: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  label="Email ID"
+                  type="email"
+                  fullWidth
+                  value={contact.email}
+                  onChange={(e) => setContact({ ...contact, email: e.target.value })}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
-                  name="tax_id"
+                  name="with_gst"
                   control={control}
                   render={({ field }) => (
-                    <EntitySelect
-                      label="Tax (defaults to GST 18%)"
-                      mode="list"
-                      queryKey="tax-picker"
-                      fetchOptions={taxesApi.list}
-                      getOptionLabel={(t) => `${t.name} (${t.rate_percent}%)`}
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                    <ToggleButtonGroup
+                      exclusive
+                      fullWidth
+                      color="primary"
+                      sx={{ height: 56 }}
+                      value={field.value ? 'gst' : 'cash'}
+                      onChange={(_, value: 'gst' | 'cash' | null) => value && field.onChange(value === 'gst')}
+                    >
+                      <ToggleButton value="gst" sx={{ fontWeight: 700 }}>With GST</ToggleButton>
+                      <ToggleButton value="cash" sx={{ fontWeight: 700 }}>Without GST</ToggleButton>
+                    </ToggleButtonGroup>
                   )}
                 />
               </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  label="Address"
+                  fullWidth
+                  multiline
+                  rows={2}
+                  value={contact.address}
+                  onChange={(e) => setContact({ ...contact, address: e.target.value })}
+                />
+              </Grid>
+              {withGst && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="tax_id"
+                    control={control}
+                    render={({ field }) => (
+                      <EntitySelect
+                        label="Tax (defaults to GST 18%)"
+                        mode="list"
+                        queryKey="tax-picker"
+                        fetchOptions={taxesApi.list}
+                        getOptionLabel={(t) => `${t.name} (${t.rate_percent}%)`}
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   label="Proof 1 Date"
@@ -234,7 +397,7 @@ export default function QuotationCreate() {
             >
               {isQuick ? 'Generate Invoice' : 'Create Quotation'}
             </Button>
-            <Button onClick={() => navigate('/quotations')} disabled={createMutation.isPending}>
+            <Button onClick={() => navigate(isQuick ? '/dashboard' : '/quotations')} disabled={createMutation.isPending}>
               Cancel
             </Button>
           </Stack>

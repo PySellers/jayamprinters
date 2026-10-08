@@ -1,10 +1,10 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.customer import Customer
 from app.models.quotation import Quotation, QuotationStatus
 from app.models.invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment, PaymentMethod, InvoiceStatus
 from app.schemas.invoice import PaymentCreate
+from app.services.job_card_service import convert_quotation_to_job_cards
 
 
 def generate_invoice_number(db: Session) -> str:
@@ -16,19 +16,23 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
     quotation = db.query(Quotation).filter(Quotation.id == quotation_id).first()
     if not quotation:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Quotation not found")
-    if quotation.status != QuotationStatus.converted:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Quotation must be converted to job cards before invoicing",
-        )
     existing = db.query(Invoice).filter(Invoice.quotation_id == quotation_id).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quotation already invoiced")
 
-    # Customers with a GSTIN get a GST invoice (tax charged). Customers without
-    # one get a plain cash bill, so no GST is added to their invoice total.
-    customer = db.query(Customer).filter(Customer.id == quotation.customer_id).first()
-    with_gst = bool(customer and customer.gstin and customer.gstin.strip())
+    if quotation.status == QuotationStatus.approved:
+        # Quotation is OK: creating the invoice also creates its job cards.
+        convert_quotation_to_job_cards(db, quotation.id)
+        db.refresh(quotation)
+    elif quotation.status != QuotationStatus.converted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Approve the quotation (mark it OK) before creating an invoice",
+        )
+
+    # GST vs cash bill is chosen per order (Start New Order) and stored on the
+    # quotation, so one customer can have both kinds and old bills never move.
+    with_gst = bool(quotation.with_gst)
 
     invoice = Invoice(
         invoice_number=generate_invoice_number(db),
@@ -38,6 +42,7 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
         subtotal=quotation.total_amount,
         tax_amount=quotation.tax_amount if with_gst else 0.0,
         grand_total=quotation.grand_total if with_gst else quotation.total_amount,
+        with_gst=with_gst,
         status=InvoiceStatus.unpaid,
     )
     db.add(invoice)

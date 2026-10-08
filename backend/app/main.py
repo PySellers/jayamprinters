@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, customer, quotation, masters, tax, product, job_card, invoice, user
 from app.api import attribute, quantity_slab, price_matrix, extra_charge, reports
-from app.api import vendor, purchase, inventory, cash_ledger
+from app.api import vendor, purchase, inventory, cash_ledger, delivery_challan
 from app.core.security import get_current_user, require_role
 from app.models.user import UserRole
 
@@ -44,6 +44,7 @@ app.include_router(masters.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(tax.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(product.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(job_card.router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(delivery_challan.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(invoice.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(user.router, prefix="/api/v1", dependencies=admin_only)
 app.include_router(attribute.router, prefix="/api/v1", dependencies=authenticated)

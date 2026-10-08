@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -37,6 +37,8 @@ class JobCard(Base):
     priority = Column(Enum(JobCardPriority), default=JobCardPriority.medium)
     status = Column(Enum(JobCardStatus), default=JobCardStatus.pending)
     notes = Column(String, nullable=True)
+    # Free-form content of the paper job card (paper details, colours, payment boxes, ticks...)
+    sheet_data = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

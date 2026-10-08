@@ -36,6 +36,8 @@ class QuotationCreate(BaseModel):
     customer_id: int
     tax_id: Optional[int] = None
     notes: Optional[str] = None
+    with_gst: bool = True
+    is_order: bool = False
     proof1_date: Optional[date] = None
     proof1_time: Optional[str] = None
     proof2_date: Optional[date] = None
@@ -54,6 +56,8 @@ class QuotationOut(BaseModel):
     tax_amount: float
     grand_total: float
     notes: Optional[str]
+    with_gst: bool = True
+    is_order: bool = False
     proof1_date: Optional[date] = None
     proof1_time: Optional[str] = None
     proof2_date: Optional[date] = None

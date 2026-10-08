@@ -87,10 +87,14 @@ export default function Invoices() {
   const customerOf = (id: number) => customersQuery.data?.find((c) => c.id === id);
   const customerName = (id: number) => customerOf(id)?.name ?? `#${id}`;
   const productName = (id: number) => productsQuery.data?.find((p) => p.id === id)?.name ?? `#${id}`;
-  const convertedQuotations = (quotationsQuery.data ?? []).filter((q) => q.status === 'converted');
+  // "New from Quotation": approved quotations that don't have an invoice yet.
+  const invoicedQuotationIds = new Set((invoicesQuery.data ?? []).map((inv) => inv.quotation_id));
+  const convertedQuotations = (quotationsQuery.data ?? []).filter(
+    (q) => (q.status === 'approved' || q.status === 'converted') && !invoicedQuotationIds.has(q.id),
+  );
 
-  // A customer with a GSTIN gets the GST invoice, everyone else the cash bill.
-  const isGstInvoice = (inv: Invoice) => Boolean(customerOf(inv.customer_id)?.gstin?.trim());
+  // With / Without GST is chosen per order (Start New Order) and stored on the invoice.
+  const isGstInvoice = (inv: Invoice) => inv.with_gst;
   const allInvoices = invoicesQuery.data ?? [];
   const gstInvoices = allInvoices.filter(isGstInvoice);
   const cashInvoices = allInvoices.filter((inv) => !isGstInvoice(inv));
@@ -101,6 +105,8 @@ export default function Invoices() {
     mutationFn: (quotationId: number) => invoicesApi.createFromQuotation(quotationId),
     onSuccess: (invoice) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['quotations'] });
+      queryClient.invalidateQueries({ queryKey: ['job-cards'] });
       setPickerOpen(false);
       setSelectedQuotationId(null);
       navigate(`/invoices/${invoice.id}`);
@@ -306,9 +312,9 @@ export default function Invoices() {
           )}
           <Box sx={{ mt: 1 }}>
             <EntitySelect
-              label="Converted Quotation"
+              label="Approved Quotation"
               mode="list"
-              queryKey="convertible-quotation-picker"
+              queryKey={`convertible-quotation-picker-${convertedQuotations.map((q) => q.id).join('-')}`}
               fetchOptions={async () => convertedQuotations}
               getOptionLabel={(q) => q.quotation_number}
               value={selectedQuotationId}

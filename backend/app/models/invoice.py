@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Enum, Boolean, text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -32,6 +32,8 @@ class Invoice(Base):
     grand_total = Column(Float, default=0.0)
     amount_paid = Column(Float, default=0.0)
     status = Column(Enum(InvoiceStatus), default=InvoiceStatus.unpaid)
+    # True = GST invoice, False = cash bill. Decided per order and frozen here.
+    with_gst = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     invoice_date = Column(Date, default=lambda: datetime.utcnow().date())
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

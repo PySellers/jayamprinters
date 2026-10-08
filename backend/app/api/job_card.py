@@ -9,9 +9,9 @@ from app.models.job_card_comment import JobCardComment
 from app.models.user import UserRole
 from app.schemas.job_card import (
     JobCardCreate, JobCardUpdate, JobCardOut, JobCardStatusUpdate,
-    JobCardCommentCreate, JobCardCommentOut,
+    JobCardCommentCreate, JobCardCommentOut, JobCardSheetUpdate, JobCardSheetOut,
 )
-from app.services.job_card_service import generate_job_number
+from app.services.job_card_service import generate_job_number, get_job_card_sheet, save_job_card_sheet
 
 router = APIRouter(prefix="/job-cards", tags=["job-cards"])
 # Everyday job-card work (create, update status/assignment, add comments) stays
@@ -53,6 +53,23 @@ def update_job_card(job_card_id: int, data: JobCardUpdate, db: Session = Depends
     db.commit()
     db.refresh(job_card)
     return job_card
+
+
+@router.get("/{job_card_id}/sheet", response_model=JobCardSheetOut)
+def read_job_card_sheet(job_card_id: int, db: Session = Depends(get_db)):
+    """The paper job card: saved content over defaults from the order."""
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    return get_job_card_sheet(db, job_card)
+
+
+@router.put("/{job_card_id}/sheet", response_model=JobCardSheetOut)
+def write_job_card_sheet(job_card_id: int, data: JobCardSheetUpdate, db: Session = Depends(get_db)):
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    return save_job_card_sheet(db, job_card, data.sheet)
 
 
 @router.patch("/{job_card_id}/status", response_model=JobCardOut)

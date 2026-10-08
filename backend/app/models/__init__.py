@@ -14,6 +14,7 @@ from .quotation import (
 )
 from .job_card import JobCard
 from .job_card_comment import JobCardComment
+from .delivery_challan import DeliveryChallan
 from .invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment
 from .purchase import Vendor, InventoryItem, Purchase, PurchaseItem, PurchasePayment
 from .cash_ledger import CashTransaction, ChequeTransaction
@@ -39,6 +40,7 @@ __all__ = [
     "QuotationItemExtraCharge",
     "JobCard",
     "JobCardComment",
+    "DeliveryChallan",
     "Invoice",
     "InvoiceItem",
     "InvoiceItemAttributeOption",

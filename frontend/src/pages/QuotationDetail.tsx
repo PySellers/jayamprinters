@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, Stack, CircularProgress, Grid, Divider,
+  Button, Stack, CircularProgress, Grid, Divider, Alert,
 } from '@mui/material';
 import { quotationsApi } from '../api/quotationsApi';
 import { customersApi } from '../api/customersApi';
@@ -10,10 +10,14 @@ import { productsApi } from '../api/productsApi';
 import { invoicesApi } from '../api/invoicesApi';
 import StatusMenu from '../components/StatusMenu';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { getErrorMessage } from '../utils/api';
 import { useState } from 'react';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DownloadIcon from '@mui/icons-material/Download';
 import type { QuotationStatus } from '../types/common';
 
-const STATUS_OPTIONS: QuotationStatus[] = ['draft', 'sent', 'approved', 'rejected', 'converted'];
+// "Converted" is set automatically when the invoice is created, so it is not a manual choice.
+const STATUS_OPTIONS: QuotationStatus[] = ['draft', 'sent', 'approved', 'rejected'];
 
 export default function QuotationDetail() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +25,7 @@ export default function QuotationDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const quotationQuery = useQuery({
     queryKey: ['quotations', quotationId],
@@ -28,6 +33,7 @@ export default function QuotationDetail() {
   });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
+  const invoicesQuery = useQuery({ queryKey: ['invoices'], queryFn: invoicesApi.list });
 
   const productName = (pid: number) => productsQuery.data?.find((p) => p.id === pid)?.name ?? `#${pid}`;
 
@@ -36,19 +42,12 @@ export default function QuotationDetail() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quotations', quotationId] }),
   });
 
-  const convertMutation = useMutation({
-    mutationFn: () => quotationsApi.convert(quotationId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['quotations', quotationId] });
-      queryClient.invalidateQueries({ queryKey: ['job-cards'] });
-      navigate('/job-cards');
-    },
-  });
-
   const invoiceMutation = useMutation({
     mutationFn: () => invoicesApi.createFromQuotation(quotationId),
     onSuccess: (invoice) => {
+      queryClient.invalidateQueries({ queryKey: ['quotations'] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['job-cards'] });
       navigate(`/invoices/${invoice.id}`);
     },
   });
@@ -78,6 +77,10 @@ export default function QuotationDetail() {
     );
   }
 
+  const customer = customersQuery.data?.find((c) => c.id === quotation.customer_id);
+  const invoiced = (invoicesQuery.data ?? []).some((inv) => inv.quotation_id === quotation.id);
+  const canCreateInvoice = (quotation.status === 'approved' || quotation.status === 'converted') && !invoiced;
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -86,11 +89,18 @@ export default function QuotationDetail() {
             {quotation.quotation_number}
           </Typography>
           <Typography color="text.secondary">
-            {customersQuery.data?.find((c) => c.id === quotation.customer_id)?.name ?? `Customer #${quotation.customer_id}`}
+            {customer?.name ?? `Customer #${quotation.customer_id}`}
+            {quotation.with_gst === false ? ' · Without GST' : ' · With GST'}
           </Typography>
+          {(customer?.phone || customer?.email || customer?.address) && (
+            <Typography variant="body2" color="text.secondary">
+              {[customer?.phone, customer?.email, customer?.address].filter(Boolean).join('  |  ')}
+            </Typography>
+          )}
         </Box>
         <StatusMenu
           status={quotation.status}
+          disabled={invoiced}
           allowedStatuses={STATUS_OPTIONS}
           onChange={(status) => statusMutation.mutate(status as QuotationStatus)}
         />
@@ -130,10 +140,12 @@ export default function QuotationDetail() {
                 <Typography color="text.secondary">Subtotal</Typography>
                 <Typography>₹{quotation.total_amount.toFixed(2)}</Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography color="text.secondary">Tax</Typography>
-                <Typography>₹{quotation.tax_amount.toFixed(2)}</Typography>
-              </Box>
+              {quotation.with_gst !== false && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography color="text.secondary">GST</Typography>
+                  <Typography>₹{quotation.tax_amount.toFixed(2)}</Typography>
+                </Box>
+              )}
               <Divider sx={{ my: 1 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography sx={{ fontWeight: 'bold' }}>Grand Total</Typography>
@@ -152,14 +164,47 @@ export default function QuotationDetail() {
             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2 }}>
               Actions
             </Typography>
-            <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
-              {quotation.status !== 'converted' && (
-                <Button variant="outlined" disabled={convertMutation.isPending} onClick={() => convertMutation.mutate()}>
-                  Convert to Job Cards
-                </Button>
-              )}
-              {quotation.status === 'converted' && (
-                <Button variant="outlined" disabled={invoiceMutation.isPending} onClick={() => invoiceMutation.mutate()}>
+            {invoiceMutation.isError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {getErrorMessage(invoiceMutation.error, 'Could not create the invoice')}
+              </Alert>
+            )}
+            {!canCreateInvoice && !invoiced && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Mark the quotation as Approved (OK) to create its invoice.
+              </Typography>
+            )}
+            {pdfError && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setPdfError(null)}>
+                {pdfError}
+              </Alert>
+            )}
+            <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<VisibilityIcon />}
+                onClick={() => quotationsApi.viewPdf(quotation.id).catch((e) => setPdfError(getErrorMessage(e, 'Could not open the quotation')))}
+              >
+                View
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={() =>
+                  quotationsApi
+                    .downloadPdf(quotation.id, quotation.quotation_number)
+                    .catch((e) => setPdfError(getErrorMessage(e, 'Could not download the quotation')))
+                }
+              >
+                Download
+              </Button>
+              {canCreateInvoice && (
+                <Button
+                  variant="contained"
+                  sx={{ bgcolor: '#1a237e' }}
+                  disabled={invoiceMutation.isPending}
+                  onClick={() => invoiceMutation.mutate()}
+                >
                   Create Invoice
                 </Button>
               )}

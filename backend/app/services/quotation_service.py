@@ -5,15 +5,21 @@ from app.models.quotation import Quotation, QuotationItem, QuotationStatus, Quot
 from app.schemas.quotation import QuotationCreate
 from app.services import pricing_service
 
-def generate_quotation_number(db: Session) -> str:
-    count = db.query(Quotation).count() + 1
-    return f"QT-{count:05d}"
+def generate_quotation_number(db: Session, is_order: bool = False) -> str:
+    """QT-00001... for real quotations, OD-00001... for Start New Order orders,
+    so the two series never mix on screen."""
+    prefix = "OD" if is_order else "QT"
+    existing = db.query(Quotation.quotation_number).filter(Quotation.quotation_number.like(f"{prefix}-%")).all()
+    numbers = [int(n[0].split("-")[1]) for n in existing if n[0].split("-")[1].isdigit()]
+    return f"{prefix}-{(max(numbers) if numbers else 0) + 1:05d}"
 
 def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     quotation = Quotation(
-        quotation_number=generate_quotation_number(db),
+        quotation_number=generate_quotation_number(db, payload.is_order),
         customer_id=payload.customer_id,
         notes=payload.notes,
+        with_gst=payload.with_gst,
+        is_order=payload.is_order,
         proof1_date=payload.proof1_date,
         proof1_time=payload.proof1_time,
         proof2_date=payload.proof2_date,
@@ -64,7 +70,8 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
         subtotal += db_item.total_price
 
     tax = pricing_service.resolve_tax(db, payload.tax_id)
-    tax_amount = round(subtotal * tax.rate_percent / 100, 2)
+    # Without-GST (cash bill) orders carry no tax at all.
+    tax_amount = round(subtotal * tax.rate_percent / 100, 2) if payload.with_gst else 0.0
     quotation.tax_id = tax.id
     quotation.total_amount = subtotal
     quotation.tax_amount = tax_amount

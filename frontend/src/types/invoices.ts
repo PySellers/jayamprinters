@@ -29,6 +29,7 @@ export interface Invoice {
   grand_total: number;
   amount_paid: number;
   status: InvoiceStatus;
+  with_gst: boolean;
   invoice_date: string;
   notes?: string | null;
   created_at: string;

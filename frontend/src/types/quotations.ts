@@ -25,6 +25,8 @@ export interface Quotation {
   tax_amount: number;
   grand_total: number;
   notes?: string | null;
+  with_gst?: boolean;
+  is_order?: boolean;
   proof1_date?: string | null;
   proof1_time?: string | null;
   proof2_date?: string | null;
@@ -47,6 +49,8 @@ export interface QuotationCreateInput {
   customer_id: number;
   tax_id?: number | null;
   notes?: string | null;
+  with_gst?: boolean;
+  is_order?: boolean;
   proof1_date?: string | null;
   proof1_time?: string | null;
   proof2_date?: string | null;

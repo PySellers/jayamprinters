@@ -1,14 +1,18 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, IconButton, Chip, CircularProgress, Dialog, DialogTitle, DialogContent,
+  Button, IconButton, Tooltip, Chip, CircularProgress, Dialog, DialogTitle, DialogContent,
   DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SendIcon from '@mui/icons-material/Send';
 import { jobCardsApi } from '../api/jobCardsApi';
+import { deliveryChallansApi } from '../api/deliveryChallansApi';
 import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
 import { usersApi } from '../api/usersApi';
@@ -17,6 +21,7 @@ import type { JobCard, JobCardUpdateInput } from '../types/jobCards';
 import type { JobCardStatus, JobCardPriority } from '../types/common';
 import StatusMenu from '../components/StatusMenu';
 import EntitySelect from '../components/pickers/EntitySelect';
+import DeliveryChallanDialog from '../components/jobcards/DeliveryChallanDialog';
 
 const machinesApi = createMasterApi('/machines');
 
@@ -40,7 +45,9 @@ const PRIORITY_COLORS: Record<string, 'default' | 'info' | 'warning' | 'error'> 
 
 export default function JobCards() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [assigning, setAssigning] = useState<JobCard | null>(null);
+  const [challanFor, setChallanFor] = useState<JobCard | null>(null);
   const [commentText, setCommentText] = useState('');
 
   const jobCardsQuery = useQuery({ queryKey: ['job-cards'], queryFn: jobCardsApi.list });
@@ -48,6 +55,10 @@ export default function JobCards() {
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
   const usersQuery = useQuery({ queryKey: ['users'], queryFn: usersApi.list });
   const machinesQuery = useQuery({ queryKey: ['masters', 'machines', 'list'], queryFn: machinesApi.list });
+
+  const challansQuery = useQuery({ queryKey: ['delivery-challans'], queryFn: deliveryChallansApi.list });
+  const dcNumberOf = (jobCardId: number) =>
+    (challansQuery.data ?? []).find((c) => c.job_card_id === jobCardId)?.dc_number;
 
   const customerName = (id: number) => customersQuery.data?.find((c) => c.id === id)?.name ?? `#${id}`;
   const productName = (id: number) => productsQuery.data?.find((p) => p.id === id)?.name ?? `#${id}`;
@@ -144,10 +155,28 @@ export default function JobCards() {
                       onChange={(status) => statusMutation.mutate({ id: jc.id, status: status as JobCardStatus })}
                     />
                   </TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small" onClick={() => openAssign(jc)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                    <Tooltip title="Delivery challan (DC)">
+                      <Button
+                        size="small"
+                        variant={dcNumberOf(jc.id) ? 'contained' : 'outlined'}
+                        startIcon={<LocalShippingIcon />}
+                        sx={dcNumberOf(jc.id) ? { bgcolor: '#1a237e', mr: 0.5 } : { mr: 0.5 }}
+                        onClick={() => setChallanFor(jc)}
+                      >
+                        DC{dcNumberOf(jc.id) ? ` ${dcNumberOf(jc.id)}` : ''}
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title="Assign machine / designer / operator & update log">
+                      <IconButton size="small" onClick={() => openAssign(jc)}>
+                        <AssignmentIndIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Open job card">
+                      <IconButton size="small" onClick={() => navigate(`/job-cards/${jc.id}`)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}
@@ -289,6 +318,8 @@ export default function JobCards() {
           </DialogActions>
         </form>
       </Dialog>
+
+      <DeliveryChallanDialog jobCard={challanFor} onClose={() => setChallanFor(null)} />
     </Box>
   );
 }

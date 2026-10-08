@@ -9,6 +9,7 @@ import Quotations from './pages/Quotations';
 import QuotationCreate from './pages/QuotationCreate';
 import QuotationDetail from './pages/QuotationDetail';
 import JobCards from './pages/JobCards';
+import JobCardSheet from './pages/JobCardSheet';
 import Invoices from './pages/Invoices';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Products from './pages/Products';
@@ -52,6 +53,7 @@ export default function App() {
             <Route path="quotations/new" element={<QuotationCreate />} />
             <Route path="quotations/:id" element={<QuotationDetail />} />
             <Route path="job-cards" element={<JobCards />} />
+            <Route path="job-cards/:id" element={<JobCardSheet />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="invoices/:id" element={<InvoiceDetail />} />
             <Route path="products" element={<Products />} />

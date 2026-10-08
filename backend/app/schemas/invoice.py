@@ -50,6 +50,7 @@ class InvoiceOut(BaseModel):
     grand_total: float
     amount_paid: float
     status: InvoiceStatus
+    with_gst: bool = False
     invoice_date: date
     notes: Optional[str]
     created_at: datetime

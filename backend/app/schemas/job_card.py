@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Any, Dict, Optional
 from datetime import date, datetime
 from app.models.job_card import JobCardStatus, JobCardPriority
 
@@ -33,6 +33,20 @@ class JobCardOut(JobCardCreate):
 
     class Config:
         from_attributes = True
+
+
+class JobCardSheetUpdate(BaseModel):
+    sheet: Dict[str, Any]
+
+
+class JobCardSheetOut(BaseModel):
+    job_card_id: int
+    job_number: str
+    invoice_number: Optional[str] = None
+    invoice_date: Optional[date] = None
+    invoice_time: Optional[str] = None
+    dc_number: Optional[int] = None
+    sheet: Dict[str, Any]
 
 
 class JobCardStatusUpdate(BaseModel):
