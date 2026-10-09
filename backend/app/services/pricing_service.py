@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple
 
 from app.models.masters import Tax
 from app.models.product import Product, ProductPricingType
-from app.models.attribute import AttributeOption
+from app.models.attribute import Attribute, AttributeOption
 from app.models.price_matrix import PriceMatrixCell, PriceMatrixCellOption
 from app.models.quantity_slab import QuantitySlab
 from app.models.extra_charge import ExtraCharge, ChargeType
@@ -36,6 +36,27 @@ def find_price_matrix_cell(
     return None
 
 
+
+def _validate_extra_charges(charges: List[ExtraCharge], selected_option_ids: set) -> None:
+    """Keeps grouped charges single-choice and dependent charges consistent, so a
+    wrong combination can never silently produce a wrong price."""
+    seen_groups = {}
+    for charge in charges:
+        if charge.group_name:
+            if charge.group_name in seen_groups:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Only one '{charge.group_name}' can be chosen "
+                           f"('{seen_groups[charge.group_name]}' and '{charge.name}' were both selected)",
+                )
+            seen_groups[charge.group_name] = charge.name
+        if charge.requires_option_id and charge.requires_option_id not in selected_option_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"'{charge.name}' does not apply to the selected options",
+            )
+
+
 def calculate_unit_price(
     db: Session,
     product: Product,
@@ -51,7 +72,16 @@ def calculate_unit_price(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product has no fixed price configured")
         base_unit = product.fixed_price
     else:
-        cell = find_price_matrix_cell(db, product.id, quantity, selected_options)
+        # Only attributes flagged in_price_matrix form the price-cell key; the rest
+        # (document type, paper brand, copies...) are descriptive or surcharge-only.
+        matrix_attr_ids = {
+            a.id for a in db.query(Attribute.id).filter(
+                Attribute.id.in_([attr_id for attr_id, _ in selected_options]),
+                Attribute.in_price_matrix.is_(True),
+            )
+        } if selected_options else set()
+        matrix_options = [(a, o) for a, o in selected_options if a in matrix_attr_ids]
+        cell = find_price_matrix_cell(db, product.id, quantity, matrix_options)
         if not cell:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -70,6 +100,7 @@ def calculate_unit_price(
     computed_charges: List[Tuple[int, float]] = []
     if extra_charge_ids:
         charges = db.query(ExtraCharge).filter(ExtraCharge.id.in_(extra_charge_ids)).all()
+        _validate_extra_charges(charges, {opt_id for _, opt_id in selected_options})
         for charge in charges:
             if charge.charge_type == ChargeType.per_unit:
                 total_amount = charge.amount * quantity

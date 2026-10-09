@@ -21,6 +21,8 @@ export interface Attribute {
   is_required: boolean;
   display_order: number;
   is_active: boolean;
+  /** false = descriptive / surcharge-only choice, not part of the price-matrix key. */
+  in_price_matrix?: boolean;
   options: AttributeOption[];
 }
 

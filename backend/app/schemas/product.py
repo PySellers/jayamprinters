@@ -7,11 +7,13 @@ from app.models.product import ProductPricingType
 class ProductCategoryCreate(BaseModel):
     name: str
     is_active: bool = True
+    guided_flow: Optional[str] = None
 
 
 class ProductCategoryUpdate(BaseModel):
     name: Optional[str] = None
     is_active: Optional[bool] = None
+    guided_flow: Optional[str] = None
 
 
 class ProductCategoryOut(ProductCategoryCreate):

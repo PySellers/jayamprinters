@@ -10,6 +10,8 @@ class ProductCategory(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     is_active = Column(Boolean, default=True)
+    # Set for services that use a dedicated step-by-step order screen (e.g. 'bill_book').
+    guided_flow = Column(String, nullable=True)
 
 
 class ProductPricingType(str, enum.Enum):

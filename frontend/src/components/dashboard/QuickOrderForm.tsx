@@ -4,9 +4,8 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Box, Typography, Paper, TextField, Button, Grid, Alert, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { customersApi } from '../../api/customersApi';
 import { getErrorMessage } from '../../utils/api';
-import { productsApi, productCategoriesApi } from '../../api/productsApi';
+import { productCategoriesApi } from '../../api/productsApi';
 import EntitySelect from '../pickers/EntitySelect';
-import type { Product } from '../../types/products';
 
 // Local (not UTC) date, so the form shows the right day in India early morning too.
 function todayDateString(): string {
@@ -24,7 +23,6 @@ export default function QuickOrderForm() {
   const navigate = useNavigate();
 
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
-  const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
 
   const [billingName, setBillingName] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -42,7 +40,8 @@ export default function QuickOrderForm() {
   const [proof2Time, setProof2Time] = useState('');
   const [deliveryDate, setDeliveryDate] = useState(todayDateString());
   const [deliveryTime, setDeliveryTime] = useState('');
-  const [productId, setProductId] = useState<number | null>(null);
+  // One entry per service (not per product); the next screen lets staff pick the exact item.
+  const [categoryId, setCategoryId] = useState<number | null>(null);
 
   // REMOVED: The useEffect that auto-filled "Person X" for billingName
 
@@ -51,14 +50,6 @@ export default function QuickOrderForm() {
     const timer = setInterval(() => setOrderTime(nowTimeString()), 30_000);
     return () => clearInterval(timer);
   }, []);
-
-  const categoryName = (categoryId?: number | null) =>
-    categoriesQuery.data?.find((c) => c.id === categoryId)?.name ?? '';
-
-  const productLabel = (p: Product) => {
-    const cat = categoryName(p.category_id);
-    return cat ? `${cat} — ${p.name}` : p.name;
-  };
 
   const createOrderMutation = useMutation({
     mutationFn: async () => {
@@ -95,7 +86,7 @@ export default function QuickOrderForm() {
         quick: '1',
         customerId: String(customer.id),
         customerName: customer.name,
-        productId: String(productId),
+        categoryId: String(categoryId),
         withGst: withGst ? '1' : '0',
         proof1Date,
         proof1Time,
@@ -109,7 +100,7 @@ export default function QuickOrderForm() {
   });
 
   const canSubmit =
-    Boolean(productId) && Boolean(deliveryDate) && Boolean(proof1Date) && Boolean(proof1Time);
+    Boolean(categoryId) && Boolean(deliveryDate) && Boolean(proof1Date) && Boolean(proof1Time);
 
   return (
     <Paper sx={{ p: 3, borderRadius: 3, border: '2px solid #1a237e', height: '100%' }}>
@@ -280,11 +271,11 @@ export default function QuickOrderForm() {
             label="Service"
             required
             mode="list"
-            queryKey="quick-order-product-picker"
-            fetchOptions={productsApi.list}
-            getOptionLabel={productLabel}
-            value={productId}
-            onChange={setProductId}
+            queryKey="quick-order-service-picker"
+            fetchOptions={async () => (await productCategoriesApi.list()).filter((c) => c.is_active)}
+            getOptionLabel={(c) => c.name}
+            value={categoryId}
+            onChange={setCategoryId}
           />
         </Grid>
 
@@ -304,7 +295,7 @@ export default function QuickOrderForm() {
 
       <Box sx={{ mt: 2 }}>
         <Typography variant="caption" color="text.secondary">
-          Next: fill in size/paper/quantity for the chosen service, then the price and invoice are generated automatically.
+          Next: choose the exact item and options for the service, then the price and invoice are generated automatically.
         </Typography>
       </Box>
     </Paper>

@@ -43,6 +43,7 @@ export interface QuotationItemInput {
   area_sqft?: number | null;
   selected_options?: SelectedOption[];
   extra_charge_ids?: number[];
+  spec_notes?: string | null;
 }
 
 export interface QuotationCreateInput {

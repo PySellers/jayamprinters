@@ -9,6 +9,8 @@ class ExtraChargeCreate(BaseModel):
     charge_type: ChargeType
     amount: float
     is_active: bool = True
+    group_name: Optional[str] = None
+    requires_option_id: Optional[int] = None
 
 
 class ExtraChargeUpdate(BaseModel):
@@ -17,6 +19,8 @@ class ExtraChargeUpdate(BaseModel):
     charge_type: Optional[ChargeType] = None
     amount: Optional[float] = None
     is_active: Optional[bool] = None
+    group_name: Optional[str] = None
+    requires_option_id: Optional[int] = None
 
 
 class ExtraChargeOut(ExtraChargeCreate):

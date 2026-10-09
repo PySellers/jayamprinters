@@ -1,16 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext, useWatch, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Paper, Grid, TextField, IconButton, FormGroup, FormControlLabel, Checkbox,
-  Typography, FormHelperText,
-} from '@mui/material';
+import { Paper, Grid, TextField, IconButton, Typography, FormHelperText } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { productsApi } from '../../api/productsApi';
+import { productsApi, productCategoriesApi } from '../../api/productsApi';
 import { attributesApi } from '../../api/attributesApi';
 import { extraChargesApi } from '../../api/extraChargesApi';
 import type { QuotationCreateInput, SelectedOption } from '../../types/quotations';
 import EntitySelect from '../pickers/EntitySelect';
+import ChargeGroupPicker, { pruneCharges } from './ChargeGroupPicker';
 
 interface QuotationLineItemProps {
   index: number;
@@ -31,6 +29,13 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
   const product = productsQuery.data?.find((p) => p.id === productId);
   const categoryId = product?.category_id ?? null;
 
+  // Two-level pick: Service (category) first, then the exact item within it, so the
+  // list never repeats a service once per size/variant.
+  const [serviceId, setServiceId] = useState<number | null>(null);
+  useEffect(() => {
+    if (serviceId == null && categoryId != null) setServiceId(categoryId);
+  }, [categoryId, serviceId]);
+
   const attributesQuery = useQuery({
     queryKey: ['attributes', categoryId],
     queryFn: () => attributesApi.list(categoryId),
@@ -41,6 +46,18 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
     queryFn: () => extraChargesApi.list(categoryId),
     enabled: Boolean(categoryId),
   });
+
+  const selectedOptions = useWatch({ control, name: `items.${index}.selected_options` });
+  const chargeIds = useWatch({ control, name: `items.${index}.extra_charge_ids` });
+  const selectedOptionIds = (selectedOptions ?? []).map((o) => o.attribute_option_id);
+
+  // Drop dependent charges (e.g. a binding-set price) once the option they need is deselected.
+  useEffect(() => {
+    const current = chargeIds ?? [];
+    const pruned = pruneCharges(current, extraChargesQuery.data ?? [], selectedOptionIds);
+    if (pruned.length !== current.length) setValue(`items.${index}.extra_charge_ids`, pruned);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedOptionIds.join(','), extraChargesQuery.data]);
 
   const prevProductId = useRef(productId);
   useEffect(() => {
@@ -66,26 +83,44 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
   return (
     <Paper sx={{ p: 3, borderRadius: 2, mb: 2 }}>
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 7 }}>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <EntitySelect
+            label="Service"
+            required
+            mode="list"
+            queryKey="service-picker"
+            fetchOptions={async () => (await productCategoriesApi.list()).filter((c) => c.is_active)}
+            getOptionLabel={(c) => c.name}
+            value={serviceId}
+            onChange={(id) => {
+              setServiceId(id);
+              if (id !== categoryId) setValue(`items.${index}.product_id`, 0);
+            }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <Controller
             name={`items.${index}.product_id`}
             control={control}
-            rules={{ required: true }}
+            rules={{ validate: (v) => Number(v) > 0 || 'Choose an item' }}
             render={({ field }) => (
               <EntitySelect
-                label="Product"
+                label="Item / Size"
                 required
                 mode="list"
-                queryKey="product-picker"
-                fetchOptions={productsApi.list}
+                queryKey={`product-picker-${serviceId ?? 'none'}`}
+                fetchOptions={async () =>
+                  (await productsApi.list()).filter((p) => p.is_active && p.category_id === serviceId)
+                }
                 getOptionLabel={(p) => p.name}
-                value={field.value}
-                onChange={field.onChange}
+                value={field.value || null}
+                onChange={(id) => field.onChange(id ?? 0)}
+                disabled={serviceId == null}
               />
             )}
           />
         </Grid>
-        <Grid size={{ xs: 8, sm: 4 }}>
+        <Grid size={{ xs: 8, sm: 3 }}>
           <TextField
             label="Qty"
             type="number"
@@ -182,32 +217,16 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
 
         {product && (extraChargesQuery.data ?? []).length > 0 && (
           <Grid size={{ xs: 12 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Extra Charges
-            </Typography>
             <Controller
               name={`items.${index}.extra_charge_ids`}
               control={control}
               render={({ field }) => (
-                <FormGroup row>
-                  {(extraChargesQuery.data ?? []).map((charge) => (
-                    <FormControlLabel
-                      key={charge.id}
-                      control={
-                        <Checkbox
-                          checked={(field.value ?? []).includes(charge.id)}
-                          onChange={(e) => {
-                            const current = field.value ?? [];
-                            field.onChange(
-                              e.target.checked ? [...current, charge.id] : current.filter((id: number) => id !== charge.id)
-                            );
-                          }}
-                        />
-                      }
-                      label={`${charge.name} (+₹${charge.amount.toFixed(2)} ${charge.charge_type.replace('_', ' ')})`}
-                    />
-                  ))}
-                </FormGroup>
+                <ChargeGroupPicker
+                  charges={extraChargesQuery.data ?? []}
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  selectedOptionIds={selectedOptionIds}
+                />
               )}
             />
           </Grid>

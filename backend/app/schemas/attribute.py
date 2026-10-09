@@ -30,6 +30,7 @@ class AttributeCreate(BaseModel):
     is_required: bool = False
     display_order: int = 0
     is_active: bool = True
+    in_price_matrix: bool = True
 
 
 class AttributeUpdate(BaseModel):
@@ -38,6 +39,7 @@ class AttributeUpdate(BaseModel):
     is_required: Optional[bool] = None
     display_order: Optional[int] = None
     is_active: Optional[bool] = None
+    in_price_matrix: Optional[bool] = None
 
 
 class AttributeOut(AttributeCreate):

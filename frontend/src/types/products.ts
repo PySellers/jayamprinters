@@ -4,6 +4,8 @@ export interface ProductCategory {
   id: number;
   name: string;
   is_active: boolean;
+  /** Set when the service has a dedicated step-by-step order screen (e.g. 'bill_book'). */
+  guided_flow?: string | null;
 }
 
 export interface Product {

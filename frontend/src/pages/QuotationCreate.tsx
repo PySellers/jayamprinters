@@ -15,6 +15,9 @@ import type { QuotationCreateInput, QuotationItemInput } from '../types/quotatio
 import type { Customer, CustomerInput } from '../types/customers';
 import EntitySelect from '../components/pickers/EntitySelect';
 import QuotationLineItem from '../components/quotations/QuotationLineItem';
+import BillBookWizard from '../components/quotations/BillBookWizard';
+import ServiceItemPicker from '../components/quotations/ServiceItemPicker';
+import { productsApi, productCategoriesApi } from '../api/productsApi';
 
 const emptyItem: QuotationItemInput = {
   product_id: 0,
@@ -39,6 +42,8 @@ export default function QuotationCreate() {
   const isQuick = searchParams.get('quick') === '1';
   const initialCustomerId = searchParams.get('customerId');
   const initialProductId = searchParams.get('productId');
+  // Start New Order picks a service (category); the item/options are chosen on this screen.
+  const serviceCategoryId = searchParams.get('categoryId') ? Number(searchParams.get('categoryId')) : null;
   const initialProof1Date = searchParams.get('proof1Date');
   const initialProof1Time = searchParams.get('proof1Time');
   const initialProof2Date = searchParams.get('proof2Date');
@@ -66,6 +71,21 @@ export default function QuotationCreate() {
   const { control, register, handleSubmit } = methods;
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
   const withGst = methods.watch('with_gst');
+
+  // ---- service -> item (step 2 of Start New Order) ----------------------------
+  const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
+  const productsListQuery = useQuery({ queryKey: ['product-picker', 'list'], queryFn: productsApi.list });
+  const serviceCategory = categoriesQuery.data?.find((c) => c.id === serviceCategoryId);
+  const serviceProducts = (productsListQuery.data ?? []).filter((p) => p.category_id === serviceCategoryId && p.is_active);
+  const firstProductId = methods.watch('items.0.product_id');
+  const isBillBookFlow = serviceCategory?.guided_flow === 'bill_book';
+  // A service with a single item has nothing to choose between: skip that screen.
+  useEffect(() => {
+    if (!isBillBookFlow && serviceProducts.length === 1 && !firstProductId) {
+      methods.setValue('items.0.product_id', serviceProducts[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBillBookFlow, serviceProducts.length, firstProductId]);
 
   // ---- customer: pick an existing one OR type a brand-new name ----------------
   const [nameInput, setNameInput] = useState('');
@@ -375,14 +395,32 @@ export default function QuotationCreate() {
             Line Items
           </Typography>
 
-          {fields.map((field, index) => (
-            <QuotationLineItem
-              key={field.id}
-              index={index}
-              onRemove={() => remove(index)}
-              canRemove={fields.length > 1}
-            />
-          ))}
+          {fields.map((field, index) => {
+            if (index === 0 && serviceCategoryId != null) {
+              if (!serviceCategory || productsListQuery.isLoading) return null;
+              if (isBillBookFlow) {
+                return <BillBookWizard key={field.id} index={0} categoryId={serviceCategory.id} />;
+              }
+              if (!firstProductId && serviceProducts.length > 1) {
+                return (
+                  <ServiceItemPicker
+                    key={field.id}
+                    serviceName={serviceCategory.name}
+                    products={serviceProducts}
+                    onPick={(id) => methods.setValue('items.0.product_id', id, { shouldDirty: true })}
+                  />
+                );
+              }
+            }
+            return (
+              <QuotationLineItem
+                key={field.id}
+                index={index}
+                onRemove={() => remove(index)}
+                canRemove={fields.length > 1}
+              />
+            );
+          })}
 
           <Button startIcon={<AddIcon />} onClick={() => append(emptyItem)} sx={{ mb: 3 }}>
             Add Line Item

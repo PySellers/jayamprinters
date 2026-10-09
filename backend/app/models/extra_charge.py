@@ -20,5 +20,10 @@ class ExtraCharge(Base):
     charge_type = Column(Enum(ChargeType))
     amount = Column(Float)
     is_active = Column(Boolean, default=True)
+    # Charges sharing a group_name are mutually exclusive (pick at most one), e.g. 'Bill Type'.
+    group_name = Column(String, nullable=True)
+    # If set, this charge only applies when that attribute option is selected
+    # (e.g. binding-set price that depends on the copies-per-set choice).
+    requires_option_id = Column(Integer, ForeignKey("attribute_options.id"), nullable=True)
 
     category = relationship("ProductCategory")

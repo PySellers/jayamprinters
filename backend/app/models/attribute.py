@@ -12,6 +12,9 @@ class Attribute(Base):
     is_required = Column(Boolean, default=False)
     display_order = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
+    # False = a descriptive/surcharge choice (document type, paper brand, copies...)
+    # that is NOT part of the price-matrix key. Its option extra_price still applies.
+    in_price_matrix = Column(Boolean, default=True, nullable=False)
 
     category = relationship("ProductCategory")
     options = relationship("AttributeOption", back_populates="attribute", cascade="all, delete-orphan")
