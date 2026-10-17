@@ -1,5 +1,5 @@
 import api from '../utils/api';
-import type { Customer, CustomerInput } from '../types/customers';
+import type { BillingDefaults, Customer, CustomerInput } from '../types/customers';
 
 export const customersApi = {
   list: async (): Promise<Customer[]> => (await api.get('/customers/')).data,
@@ -10,6 +10,7 @@ export const customersApi = {
   remove: async (id: number): Promise<void> => {
     await api.delete(`/customers/${id}`);
   },
+  billingDefaults: async (): Promise<BillingDefaults> => (await api.get('/customers/billing-defaults')).data,
   search: async (query: string): Promise<Customer[]> =>
     (await api.get(`/customers/search/${encodeURIComponent(query)}`)).data,
 };

@@ -43,3 +43,8 @@ class CustomerResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class BillingDefaults(BaseModel):
+    next_person_name: str
+    recent_customers: list[CustomerResponse] = []

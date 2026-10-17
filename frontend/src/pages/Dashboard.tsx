@@ -135,7 +135,7 @@ export default function Dashboard() {
         {/* =========================
             LEFT - START NEW ORDER
            ========================= */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Box
             sx={{
               width: '100%',
@@ -150,7 +150,7 @@ export default function Dashboard() {
         {/* =========================
             RIGHT - DASHBOARD
            ========================= */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <Box
             sx={{
               width: '100%',

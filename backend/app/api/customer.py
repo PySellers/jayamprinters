@@ -1,12 +1,40 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
 from app.models.customer import Customer
-from app.schemas.customer import CustomerCreate, CustomerResponse, CustomerUpdate
+from app.schemas.customer import BillingDefaults, CustomerCreate, CustomerResponse, CustomerUpdate
 
 router = APIRouter(prefix="/customers", tags=["customers"])
+
+_PERSON_NAME = re.compile(r"^\s*Person\s+(\d+)\s*$", re.IGNORECASE)
+
+
+def next_person_name(db: Session) -> str:
+    """'Person N' for the next walk-in, one above the highest existing number.
+    Looks at both billing_person_name and name since an unnamed order stores the
+    placeholder in either; counting rows instead would drift as soon as a real
+    name replaces a placeholder."""
+    highest = 0
+    rows = db.query(Customer.billing_person_name, Customer.name).filter(
+        Customer.billing_person_name.ilike("Person %") | Customer.name.ilike("Person %")
+    ).all()
+    for billing_name, name in rows:
+        for value in (billing_name, name):
+            match = _PERSON_NAME.match(value or "")
+            if match:
+                highest = max(highest, int(match.group(1)))
+    return f"Person {highest + 1}"
+
+
+# Declared before "/{customer_id}" so the literal path is not parsed as an id.
+@router.get("/billing-defaults", response_model=BillingDefaults)
+def get_billing_defaults(db: Session = Depends(get_db)):
+    recent = db.query(Customer).order_by(Customer.created_at.desc(), Customer.id.desc()).limit(8).all()
+    return BillingDefaults(next_person_name=next_person_name(db), recent_customers=recent)
 
 
 @router.get("/", response_model=List[CustomerResponse])
@@ -59,7 +87,14 @@ def delete_customer(customer_id: int, db: Session = Depends(get_db)):
 
 @router.get("/search/{query}", response_model=List[CustomerResponse])
 def search_customers(query: str, db: Session = Depends(get_db)):
-    return db.query(Customer).filter(
-        Customer.name.ilike(f"%{query}%") |
-        Customer.phone.ilike(f"%{query}%")
-    ).all()
+    return (
+        db.query(Customer)
+        .filter(
+            Customer.name.ilike(f"%{query}%")
+            | Customer.billing_person_name.ilike(f"%{query}%")
+            | Customer.phone.ilike(f"%{query}%")
+        )
+        .order_by(Customer.created_at.desc(), Customer.id.desc())
+        .limit(25)
+        .all()
+    )

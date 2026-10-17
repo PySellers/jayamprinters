@@ -113,7 +113,7 @@ export default function Layout() {
         </List>
       </Drawer>
 
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         <AppBar position="static" sx={{ bgcolor: '#283593' }}>
           <Toolbar>
             <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -126,7 +126,7 @@ export default function Layout() {
           </Toolbar>
         </AppBar>
 
-        <Box sx={{ flexGrow: 1, bgcolor: '#f5f5f5' }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0, bgcolor: '#f5f5f5' }}>
           <Outlet />
         </Box>
       </Box>
