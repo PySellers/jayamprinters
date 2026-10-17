@@ -1,6 +1,6 @@
 import { Checkbox, FormControlLabel, FormGroup, Typography, Box } from '@mui/material';
 import type { ExtraCharge } from '../../types/extraCharges';
-import ChoiceChips from './ChoiceChips';
+import SearchSelect from './SearchSelect';
 
 /** "Binding Set - 50 Set (1+3)" -> "50 Set"; "Bill Type - Two Bill (NCR)" -> "Two Bill (NCR)". */
 export function chargeLabel(charge: ExtraCharge): string {
@@ -53,21 +53,24 @@ export default function ChargeGroupPicker({ charges, value, onChange, selectedOp
 
   return (
     <>
-      {groupNames.map((group) => {
-        const options = visible.filter((c) => c.group_name === group);
-        const current = options.find((c) => value.includes(c.id))?.id ?? null;
-        return (
-          <Box key={group} sx={{ mb: 1.5 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{group}</Typography>
-            <ChoiceChips
-              allowClear
-              options={options.map((c) => ({ id: c.id, label: chargeLabel(c) }))}
-              value={current}
-              onChange={(id) => onChange(setChargeInGroup(value, charges, group, id))}
-            />
-          </Box>
-        );
-      })}
+      {groupNames.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 1.5 }}>
+          {groupNames.map((group) => {
+            const options = visible.filter((c) => c.group_name === group);
+            const current = options.find((c) => value.includes(c.id))?.id ?? null;
+            return (
+              <Box key={group} sx={{ minWidth: 220, flex: '1 1 220px', maxWidth: 360 }}>
+                <SearchSelect
+                  label={group}
+                  options={options.map((c) => ({ id: c.id, label: chargeLabel(c) }))}
+                  value={current}
+                  onChange={(id) => onChange(setChargeInGroup(value, charges, group, id))}
+                />
+              </Box>
+            );
+          })}
+        </Box>
+      )}
       {ungrouped.length > 0 && (
         <>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Extra Charges</Typography>

@@ -4,6 +4,7 @@ import { useForm, useFieldArray, Controller, FormProvider } from 'react-hook-for
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Autocomplete, Box, Typography, Paper, Button, TextField, Stack, Grid, Alert, ToggleButton, ToggleButtonGroup,
+  Chip, Collapse,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { quotationsApi } from '../api/quotationsApi';
@@ -27,6 +28,9 @@ const emptyItem: QuotationItemInput = {
 };
 
 const emptyContact = { phone: '', email: '', address: '' };
+
+const formatDay = (d?: string | null) =>
+  d ? new Date(`${d}T00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 
 // Errors thrown by our own code carry a message; server errors carry response.data.detail.
 const errorText = (err: unknown, fallback: string) =>
@@ -89,6 +93,8 @@ export default function QuotationCreate() {
 
   // ---- customer: pick an existing one OR type a brand-new name ----------------
   const [nameInput, setNameInput] = useState('');
+  // Start New Order already captured the customer and dates, so the full details form stays folded away.
+  const [showDetails, setShowDetails] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [contact, setContact] = useState(emptyContact);
 
@@ -199,9 +205,22 @@ export default function QuotationCreate() {
         {isQuick ? 'Complete Order' : 'New Quotation'}
       </Typography>
       {isQuick && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Fill in the details for this service — submitting will generate the job card and invoice automatically.
-        </Alert>
+        <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Typography sx={{ fontWeight: 800, color: '#1a237e', fontSize: '1.1rem' }}>{nameInput || 'Customer'}</Typography>
+            <Chip size="small" color={withGst ? 'primary' : 'default'} label={withGst ? 'With GST' : 'Without GST'} sx={{ fontWeight: 700 }} />
+            <Typography variant="body2" color="text.secondary">
+              Proof 1: {formatDay(methods.watch('proof1_date'))}{methods.watch('proof1_time') ? `, ${methods.watch('proof1_time')}` : ''}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Delivery: {formatDay(methods.watch('delivery_date'))}{methods.watch('delivery_time') ? `, ${methods.watch('delivery_time')}` : ''}
+            </Typography>
+            <Button size="small" sx={{ ml: 'auto' }} onClick={() => setShowDetails((v) => !v)}>
+              {showDetails ? 'Hide details' : 'Edit details'}
+            </Button>
+          </Box>
+          <TextField label="Notes (optional)" fullWidth size="small" multiline minRows={1} maxRows={4} sx={{ mt: 1.5 }} {...register('notes')} />
+        </Paper>
       )}
 
       {createMutation.isError && (
@@ -212,6 +231,7 @@ export default function QuotationCreate() {
 
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
+          <Collapse in={!isQuick || showDetails}>
           <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -385,11 +405,14 @@ export default function QuotationCreate() {
                   {...register('delivery_time')}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
-              </Grid>
+              {!isQuick && (
+                <Grid size={{ xs: 12 }}>
+                  <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
+                </Grid>
+              )}
             </Grid>
           </Paper>
+          </Collapse>
 
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
             Line Items

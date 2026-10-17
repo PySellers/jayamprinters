@@ -22,6 +22,27 @@ function todayDateString(): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+const SHOP_OPEN_HOUR = 9;
+const SHOP_CLOSE_HOUR = 20;
+
+/**
+ * Suggested time for the first proof: an hour from now, rounded up to the next
+ * quarter hour, kept inside shop hours (before opening -> opening time;
+ * after closing -> 10:00 the next morning). Staff can still change it.
+ */
+export function defaultProofSlot(now: Date = new Date()): { date: string; time: string } {
+  const d = new Date(now.getTime() + 60 * 60 * 1000);
+  d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
+  if (d.getHours() >= SHOP_CLOSE_HOUR) {
+    d.setDate(d.getDate() + 1);
+    d.setHours(10, 0, 0, 0);
+  } else if (d.getHours() < SHOP_OPEN_HOUR) {
+    d.setHours(SHOP_OPEN_HOUR, 0, 0, 0);
+  }
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return { date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}` };
+}
+
 function nowTimeString(): string {
   return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
@@ -102,11 +123,12 @@ export default function QuickOrderForm() {
   const [gstin, setGstin] = useState('');
   const [address, setAddress] = useState('');
   const [withGst, setWithGst] = useState(false);
-  const [proof1Date, setProof1Date] = useState(todayDateString());
-  const [proof1Time, setProof1Time] = useState('');
+  const [proofSlot] = useState(() => defaultProofSlot());
+  const [proof1Date, setProof1Date] = useState(proofSlot.date);
+  const [proof1Time, setProof1Time] = useState(proofSlot.time);
   const [proof2Date, setProof2Date] = useState('');
   const [proof2Time, setProof2Time] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState(todayDateString());
+  const [deliveryDate, setDeliveryDate] = useState(proofSlot.date);
   const [deliveryTime, setDeliveryTime] = useState('');
   const [service, setService] = useState<ProductCategory | null>(null);
 
@@ -199,7 +221,7 @@ export default function QuickOrderForm() {
       e.gstin = '15 characters, e.g. 33AAAAA0000A1Z5';
     }
     if (!proof1Date) e.proof1Date = 'Required';
-    if (!proof1Time) e.proof1Time = 'Required — when the first proof is due';
+    if (!proof1Time) e.proof1Time = 'Required — when the first design proof is due';
     if (!deliveryDate) e.deliveryDate = 'Required';
     else if (proof1Date && deliveryDate < proof1Date) e.deliveryDate = 'Cannot be before Proof 1';
     if (!service) e.service = 'Choose a service';
@@ -507,7 +529,7 @@ export default function QuickOrderForm() {
               onChange={(e) => setProof1Time(e.target.value)}
               onBlur={touch('proof1Time')}
               error={showError('proof1Time')}
-              helperText={helper('proof1Time')}
+              helperText={helper('proof1Time', 'First design proof for the customer — suggested slot, change if needed')}
               {...dateProps}
             />
           </Grid>
