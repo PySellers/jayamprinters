@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Stack, FormControlLabel, Checkbox, Typography, Box } from '@mui/material';
 import type { QuantitySlab, QuantitySlabInput } from '../../types/quantitySlabs';
 
 interface QuantitySlabFormDialogProps {
@@ -16,6 +16,7 @@ export default function QuantitySlabFormDialog({ open, title, initialValues, onS
   const [maxQuantity, setMaxQuantity] = useState('');
   const [label, setLabel] = useState('');
   const [displayOrder, setDisplayOrder] = useState('0');
+  const [isIncremental, setIsIncremental] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -23,6 +24,7 @@ export default function QuantitySlabFormDialog({ open, title, initialValues, onS
       setMaxQuantity(initialValues?.max_quantity != null ? String(initialValues.max_quantity) : '');
       setLabel(initialValues?.label ?? '');
       setDisplayOrder(String(initialValues?.display_order ?? 0));
+      setIsIncremental(Boolean(initialValues?.is_incremental));
     }
   }, [open, initialValues]);
 
@@ -32,6 +34,7 @@ export default function QuantitySlabFormDialog({ open, title, initialValues, onS
       max_quantity: maxQuantity.trim() === '' ? null : parseInt(maxQuantity, 10),
       label: label.trim() === '' ? null : label,
       display_order: parseInt(displayOrder, 10) || 0,
+      is_incremental: isIncremental,
     });
   };
 
@@ -51,6 +54,16 @@ export default function QuantitySlabFormDialog({ open, title, initialValues, onS
           />
           <TextField label="Label" value={label} onChange={(e) => setLabel(e.target.value)} fullWidth placeholder='e.g. "1st 1000 nos"' />
           <TextField label="Display Order" type="number" value={displayOrder} onChange={(e) => setDisplayOrder(e.target.value)} fullWidth />
+          <Box>
+            <FormControlLabel
+              control={<Checkbox checked={isIncremental} onChange={(e) => setIsIncremental(e.target.checked)} />}
+              label="Incremental pricing"
+            />
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4 }}>
+              Ticked: each band is charged only for the units inside it (e.g. 2,500 = 1,000 at the first rate + 1,500 at the
+              additional rate). Unticked: this band's rate applies to the whole quantity.
+            </Typography>
+          </Box>
         </Stack>
       </DialogContent>
       <DialogActions>

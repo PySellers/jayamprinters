@@ -8,6 +8,7 @@ class QuantitySlabCreate(BaseModel):
     max_quantity: Optional[int] = None
     label: Optional[str] = None
     display_order: int = 0
+    is_incremental: bool = False
 
     @model_validator(mode="after")
     def check_range(self):
@@ -22,6 +23,7 @@ class QuantitySlabUpdate(BaseModel):
     max_quantity: Optional[int] = None
     label: Optional[str] = None
     display_order: Optional[int] = None
+    is_incremental: Optional[bool] = None
 
 
 class QuantitySlabOut(QuantitySlabCreate):

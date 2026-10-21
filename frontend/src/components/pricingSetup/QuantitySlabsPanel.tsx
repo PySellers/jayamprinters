@@ -71,6 +71,7 @@ export default function QuantitySlabsPanel({ categoryId }: QuantitySlabsPanelPro
                 <TableCell>Range</TableCell>
                 <TableCell>Label</TableCell>
                 <TableCell>Order</TableCell>
+                <TableCell>Pricing</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -80,6 +81,7 @@ export default function QuantitySlabsPanel({ categoryId }: QuantitySlabsPanelPro
                   <TableCell>{rangeLabel(slab)}</TableCell>
                   <TableCell>{slab.label || '-'}</TableCell>
                   <TableCell>{slab.display_order}</TableCell>
+                  <TableCell>{slab.is_incremental ? 'Incremental' : 'Whole quantity'}</TableCell>
                   <TableCell align="right">
                     <IconButton size="small" onClick={() => { setEditing(slab); setDialogOpen(true); }}>
                       <EditIcon fontSize="small" />
@@ -92,7 +94,7 @@ export default function QuantitySlabsPanel({ categoryId }: QuantitySlabsPanelPro
               ))}
               {(slabsQuery.data ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                  <TableCell colSpan={5} align="center" sx={{ color: 'text.secondary', py: 4 }}>
                     No quantity slabs yet for this category.
                   </TableCell>
                 </TableRow>

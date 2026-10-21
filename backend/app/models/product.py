@@ -12,6 +12,8 @@ class ProductCategory(Base):
     is_active = Column(Boolean, default=True)
     # Set for services that use a dedicated step-by-step order screen (e.g. 'bill_book').
     guided_flow = Column(String, nullable=True)
+    # Smallest amount billed for one line of this service (small runs cost more per unit).
+    min_charge = Column(Float, nullable=True)
 
 
 class ProductPricingType(str, enum.Enum):

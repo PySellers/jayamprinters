@@ -121,6 +121,21 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
     setLayerCustom((prev) => Array.from({ length: layerCount }, (_, i) => prev[i] ?? ''));
   }, [layerCount]);
 
+  // Coloured paper costs more: pick the matching "Coloured Layers" charge automatically
+  // from the colours chosen per copy (white / rough paper carry no surcharge).
+  const colouredCount = layerColours.filter((c, i) => i < layerCount && c && c !== 'White' && c !== 'Rough').length;
+  const colouredCharge = charges.find(
+    (c) => c.is_active && c.group_name === 'Coloured Layers' && new RegExp(`- ${colouredCount} Layers?$`).test(c.name),
+  );
+  const currentColouredId = chargeIds.find((id) => charges.find((c) => c.id === id)?.group_name === 'Coloured Layers') ?? null;
+  useEffect(() => {
+    const targetId = colouredCount > 0 ? colouredCharge?.id ?? null : null;
+    if (charges.length && currentColouredId !== targetId) {
+      setValue(`items.${index}.extra_charge_ids`, setChargeInGroup(chargeIds, charges, 'Coloured Layers', targetId), { shouldDirty: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colouredCount, colouredCharge?.id, currentColouredId, charges.length]);
+
   const paperNameValue = optionValue(paperNameAttr);
   const bindingType = chargeIn('Binding Type');
   const bindingIsCustom = Boolean(bindingType && /custom/i.test(bindingType.name));

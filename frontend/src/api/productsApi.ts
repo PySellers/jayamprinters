@@ -14,4 +14,6 @@ export const productsApi = {
 
 export const productCategoriesApi = {
   list: async (): Promise<ProductCategory[]> => (await api.get('/product-categories/')).data,
+  update: async (id: number, data: Partial<Pick<ProductCategory, 'name' | 'is_active' | 'min_charge'>>): Promise<ProductCategory> =>
+    (await api.put(`/product-categories/${id}`, data)).data,
 };

@@ -5,9 +5,11 @@ import SearchSelect from './SearchSelect';
 /** "Binding Set - 50 Set (1+3)" -> "50 Set"; "Bill Type - Two Bill (NCR)" -> "Two Bill (NCR)". */
 export function chargeLabel(charge: ExtraCharge): string {
   const stripped = charge.name
-    .replace(/^(Bill Type|Binding Type|Binding Model|Binding Set|Binding) - /, '')
+    .replace(/^(Bill Type|Binding Type|Binding Model|Binding Set|Binding|Coloured Layers) - /, '')
     .replace(/ \(1\+\d\)$/, '');
-  return charge.amount > 0 ? `${stripped} (+₹${charge.amount.toFixed(2)})` : stripped;
+  if (charge.amount <= 0) return stripped;
+  const price = charge.charge_type === 'percentage' ? `+${charge.amount}%` : `+₹${charge.amount.toFixed(2)}${charge.charge_type === 'per_unit' ? '/nos' : ''}`;
+  return `${stripped} (${price})`;
 }
 
 /** Charges that apply right now: active, and (if dependent) their required option is selected. */

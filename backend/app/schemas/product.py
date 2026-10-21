@@ -8,12 +8,14 @@ class ProductCategoryCreate(BaseModel):
     name: str
     is_active: bool = True
     guided_flow: Optional[str] = None
+    min_charge: Optional[float] = None
 
 
 class ProductCategoryUpdate(BaseModel):
     name: Optional[str] = None
     is_active: Optional[bool] = None
     guided_flow: Optional[str] = None
+    min_charge: Optional[float] = None
 
 
 class ProductCategoryOut(ProductCategoryCreate):

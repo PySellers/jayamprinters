@@ -6,6 +6,8 @@ export interface ProductCategory {
   is_active: boolean;
   /** Set when the service has a dedicated step-by-step order screen (e.g. 'bill_book'). */
   guided_flow?: string | null;
+  /** Smallest amount billed for one line of this service. */
+  min_charge?: number | null;
 }
 
 export interface Product {

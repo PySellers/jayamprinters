@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Tuple
 
 from app.models.masters import Tax
-from app.models.product import Product, ProductPricingType
+from app.models.product import Product, ProductCategory, ProductPricingType
 from app.models.attribute import Attribute, AttributeOption
 from app.models.price_matrix import PriceMatrixCell, PriceMatrixCellOption
 from app.models.quantity_slab import QuantitySlab
@@ -35,6 +35,49 @@ def find_price_matrix_cell(
             return cell
     return None
 
+
+
+def _incremental_base_unit(
+    db: Session,
+    product: Product,
+    quantity: int,
+    matrix_options: List[Tuple[int, int]],
+    matched_cell: PriceMatrixCell,
+) -> float:
+    """Average unit price when the matched band is 'incremental'.
+
+    "1st 1000 Nos" / "Add. 1000 Nos" style rate sheets price each band only for
+    the units that fall inside it: 2,500 units = 1,000 at the first rate +
+    1,500 at the additional rate. Non-incremental bands keep the old behaviour
+    (the matched band's rate applies to the whole quantity)."""
+    matched_slab = db.query(QuantitySlab).filter(QuantitySlab.id == matched_cell.quantity_slab_id).first()
+    if not matched_slab or not matched_slab.is_incremental:
+        return matched_cell.unit_price
+
+    slabs = (
+        db.query(QuantitySlab)
+        .filter(
+            QuantitySlab.category_id == matched_slab.category_id,
+            QuantitySlab.is_incremental.is_(True),
+            QuantitySlab.min_quantity <= quantity,
+        )
+        .order_by(QuantitySlab.min_quantity)
+        .all()
+    )
+    total = 0.0
+    for slab in slabs:
+        upper = quantity if slab.max_quantity is None else min(quantity, slab.max_quantity)
+        units = upper - slab.min_quantity + 1
+        if units <= 0:
+            continue
+        cell = matched_cell if slab.id == matched_slab.id else find_price_matrix_cell(db, product.id, slab.min_quantity, matrix_options)
+        if not cell:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No price matrix entry for the '{slab.label or slab.min_quantity}' band of this combination",
+            )
+        total += units * cell.unit_price
+    return total / quantity
 
 
 def _validate_extra_charges(charges: List[ExtraCharge], selected_option_ids: set) -> None:
@@ -90,7 +133,7 @@ def calculate_unit_price(
         if product.pricing_type == ProductPricingType.per_area:
             base_unit = cell.unit_price * (area_sqft or 0)
         else:
-            base_unit = cell.unit_price
+            base_unit = _incremental_base_unit(db, product, quantity, matrix_options, cell)
             if selected_options:
                 option_ids = [opt_id for _, opt_id in selected_options]
                 options = db.query(AttributeOption).filter(AttributeOption.id.in_(option_ids)).all()
@@ -115,7 +158,14 @@ def calculate_unit_price(
             extra_per_unit += total_amount / quantity
             computed_charges.append((charge.id, total_amount))
 
-    return base_unit + extra_per_unit, computed_charges
+    unit_price = base_unit + extra_per_unit
+
+    # Minimum charge per line for this service: tiny runs cost more per unit.
+    category = db.query(ProductCategory).filter(ProductCategory.id == product.category_id).first() if product.category_id else None
+    if category and category.min_charge and quantity > 0 and unit_price * quantity < category.min_charge:
+        unit_price = category.min_charge / quantity
+
+    return unit_price, computed_charges
 
 
 def resolve_tax(db: Session, tax_id: Optional[int]) -> Tax:
