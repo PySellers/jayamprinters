@@ -122,6 +122,7 @@ def main(dry_run: bool):
                     db.add(product)
                     db.flush()
                     stats.bump("products created")
+                set_if_changed(product, "pricing_type", ProductPricingType(p["pricing_type"]) if p["pricing_type"] else None, stats, "product pricing types")
                 set_if_changed(product, "fixed_price", p["fixed_price"], stats, "product prices")
                 set_if_changed(product, "is_active", p["is_active"], stats, "product fields")
 
