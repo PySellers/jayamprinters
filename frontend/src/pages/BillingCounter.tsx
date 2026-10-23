@@ -243,7 +243,7 @@ export default function BillingCounter() {
               ))}
             </Box>
           </Grid>
-          <Grid size={{ xs: 6, sm: 2 }}>
+          <Grid size={{ xs: 6, sm: 3, lg: 2 }}>
             <TextField
               label="Cash Tendered"
               type="number"
@@ -254,7 +254,7 @@ export default function BillingCounter() {
               sx={{ bgcolor: 'white', borderRadius: 1 }}
             />
           </Grid>
-          <Grid size={{ xs: 6, sm: 2 }}>
+          <Grid size={{ xs: 6, sm: 3, lg: 2 }}>
             <Typography variant="caption" sx={{ opacity: 0.8 }}>
               Change Due
             </Typography>
@@ -270,14 +270,14 @@ export default function BillingCounter() {
               ₹{grandTotal.toFixed(2)}
             </Typography>
           </Grid>
-          <Grid size={{ xs: 12, sm: 3 }}>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
               <TextField
                 select
                 size="small"
                 value={printFormat}
                 onChange={(e) => setPrintFormat(e.target.value as InvoicePrintFormat)}
-                sx={{ bgcolor: 'white', borderRadius: 1, minWidth: 120 }}
+                sx={{ bgcolor: 'white', borderRadius: 1, minWidth: 170 }}
               >
                 <MenuItem value="thermal_80">Thermal 80mm</MenuItem>
                 <MenuItem value="thermal_58">Thermal 58mm</MenuItem>

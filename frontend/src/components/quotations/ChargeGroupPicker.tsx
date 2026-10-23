@@ -5,10 +5,10 @@ import SearchSelect from './SearchSelect';
 /** "Binding Set - 50 Set (1+3)" -> "50 Set"; "Bill Type - Two Bill (NCR)" -> "Two Bill (NCR)". */
 export function chargeLabel(charge: ExtraCharge): string {
   const stripped = charge.name
-    .replace(/^(Bill Type|Binding Type|Binding Model|Binding Set|Binding|Coloured Layers) - /, '')
+    .replace(/^(Bill Type|Binding Type|Binding Model|Binding Set|Binding|Coloured Layers|Paper GSM) - /, '')
     .replace(/ \(1\+\d\)$/, '');
   if (charge.amount <= 0) return stripped;
-  const price = charge.charge_type === 'percentage' ? `+${charge.amount}%` : `+₹${charge.amount.toFixed(2)}${charge.charge_type === 'per_unit' ? '/nos' : ''}`;
+  const price = charge.charge_type === 'percentage' ? `+${charge.amount}%` : `+₹${charge.amount.toFixed(2)}${charge.charge_type === 'per_unit' ? '/nos' : charge.charge_type === 'per_set' ? '/set' : ''}`;
   return `${stripped} (${price})`;
 }
 
@@ -61,7 +61,7 @@ export default function ChargeGroupPicker({ charges, value, onChange, selectedOp
             const options = visible.filter((c) => c.group_name === group);
             const current = options.find((c) => value.includes(c.id))?.id ?? null;
             return (
-              <Box key={group} sx={{ minWidth: 220, flex: '1 1 220px', maxWidth: 360 }}>
+              <Box key={group} sx={{ minWidth: 240, flex: '1 1 280px', maxWidth: 440 }}>
                 <SearchSelect
                   label={group}
                   options={options.map((c) => ({ id: c.id, label: chargeLabel(c) }))}

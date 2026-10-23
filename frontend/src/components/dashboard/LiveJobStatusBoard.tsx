@@ -16,6 +16,9 @@ function isOverdue(jobCard: JobCard): boolean {
   return jobCard.delivery_date < todayStr;
 }
 
+// Long job labels wrap onto a second line instead of being cut off with "...".
+const WRAP_CHIP = { height: 'auto', maxWidth: '100%', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.4 } } as const;
+
 function JobChip({ jobCard, label }: { jobCard: JobCard; label: string }) {
   const overdue = isOverdue(jobCard);
   return (
@@ -23,8 +26,9 @@ function JobChip({ jobCard, label }: { jobCard: JobCard; label: string }) {
       label={label}
       size="small"
       color={overdue ? 'error' : 'default'}
-      sx={
-        overdue
+      sx={{
+        ...WRAP_CHIP,
+        ...(overdue
           ? {
               animation: 'pulse 1.2s ease-in-out infinite',
               '@keyframes pulse': {
@@ -33,8 +37,8 @@ function JobChip({ jobCard, label }: { jobCard: JobCard; label: string }) {
                 '100%': { opacity: 1 },
               },
             }
-          : undefined
-      }
+          : {}),
+      }}
     />
   );
 }
@@ -103,7 +107,7 @@ export default function LiveJobStatusBoard() {
             </Typography>
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
               {delivered.slice(0, 10).map((jc) => (
-                <Chip key={jc.id} label={jobLabel(jc)} size="small" color="success" variant="outlined" />
+                <Chip key={jc.id} label={jobLabel(jc)} size="small" color="success" variant="outlined" sx={WRAP_CHIP} />
               ))}
               {delivered.length === 0 && <Typography variant="body2" color="text.secondary">None</Typography>}
             </Stack>

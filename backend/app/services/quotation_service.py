@@ -39,7 +39,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
 
         selected_options = [(so.attribute_id, so.attribute_option_id) for so in item.selected_options]
         unit_price, computed_charges = pricing_service.calculate_unit_price(
-            db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids
+            db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets
         )
 
         db_item = QuotationItem(
@@ -50,6 +50,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
             unit_price=unit_price,
             total_price=unit_price * item.quantity,
             spec_notes=item.spec_notes,
+            sets=item.sets,
         )
         db.add(db_item)
         db.flush()
@@ -73,6 +74,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     # Without-GST (cash bill) orders carry no tax at all.
     tax_amount = round(subtotal * tax.rate_percent / 100, 2) if payload.with_gst else 0.0
     quotation.tax_id = tax.id
+    subtotal = round(subtotal, 2)
     quotation.total_amount = subtotal
     quotation.tax_amount = tax_amount
     quotation.grand_total = round(subtotal + tax_amount, 2)

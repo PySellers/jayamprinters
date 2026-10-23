@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Box, AppBar, Toolbar, Typography, Button,
+  Box, AppBar, Toolbar, Typography, Button, IconButton,
   Drawer, List, ListItem, ListItemIcon,
-  ListItemText, ListItemButton, Collapse,
+  ListItemText, ListItemButton, Collapse, useMediaQuery, useTheme,
 } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 import PrintIcon from '@mui/icons-material/Print';
 import LogoutIcon from '@mui/icons-material/Logout';
 import TuneIcon from '@mui/icons-material/Tune';
@@ -19,6 +20,11 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  // Below 1200px (laptops at 125-150% display scaling, tablets) the sidebar becomes a slide-out menu
+  // so the page gets the full width instead of losing 260px to a permanent sidebar.
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
+  const [menuOpen, setMenuOpen] = useState(false);
   const [mastersOpen, setMastersOpen] = useState(location.pathname.startsWith('/masters') || location.pathname === '/taxes');
 
   const canSee = (roles?: string[]) => !roles || roles.length === 0 || user?.role === 'admin' || roles.includes(user?.role ?? '');
@@ -26,15 +32,26 @@ export default function Layout() {
   const visibleMastersNav = mastersNavItems.filter((item) => canSee(item.roles));
 
   const isActive = (path: string) => location.pathname === path;
+  const go = (path: string) => {
+    navigate(path);
+    setMenuOpen(false);
+  };
+  // Exact match first, then the longest section prefix (so /quotations/new still says "Quotations").
+  const navAll = [...mainNavItems, ...mastersNavItems];
   const activeLabel =
-    [...mainNavItems, ...mastersNavItems].find((item) => isActive(item.path))?.label || 'Dashboard';
+    navAll.find((item) => isActive(item.path))?.label ||
+    [...navAll].filter((item) => item.path !== '/' && location.pathname.startsWith(`${item.path}/`)).sort((a, b) => b.path.length - a.path.length)[0]?.label ||
+    'Dashboard';
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Drawer
-        variant="permanent"
+        variant={isDesktop ? 'permanent' : 'temporary'}
+        open={isDesktop || menuOpen}
+        onClose={() => setMenuOpen(false)}
+        ModalProps={{ keepMounted: true }}
         sx={{
-          width: SIDEBAR_WIDTH,
+          width: isDesktop ? SIDEBAR_WIDTH : 0,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
             width: SIDEBAR_WIDTH,
@@ -58,7 +75,7 @@ export default function Layout() {
           {visibleMainNav.map((item) => (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
-                onClick={() => navigate(item.path)}
+                onClick={() => go(item.path)}
                 sx={{
                   mx: 1,
                   borderRadius: 1,
@@ -94,7 +111,7 @@ export default function Layout() {
               {visibleMastersNav.map((item) => (
                 <ListItem key={item.path} disablePadding>
                   <ListItemButton
-                    onClick={() => navigate(item.path)}
+                    onClick={() => go(item.path)}
                     sx={{
                       mx: 1,
                       pl: 4,
@@ -116,17 +133,22 @@ export default function Layout() {
       <Box sx={{ flexGrow: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         <AppBar position="static" sx={{ bgcolor: '#283593' }}>
           <Toolbar>
-            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            {!isDesktop && (
+              <IconButton color="inherit" edge="start" aria-label="Open menu" onClick={() => setMenuOpen(true)} sx={{ mr: 1.5 }}>
+                <MenuIcon />
+              </IconButton>
+            )}
+            <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
               {activeLabel}
             </Typography>
-            <Typography sx={{ mr: 2 }}>Welcome, {user?.name}</Typography>
+            <Typography noWrap sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}>Welcome, {user?.name}</Typography>
             <Button color="inherit" onClick={logout} startIcon={<LogoutIcon />}>
               Logout
             </Button>
           </Toolbar>
         </AppBar>
 
-        <Box sx={{ flexGrow: 1, minWidth: 0, bgcolor: '#f5f5f5' }}>
+        <Box sx={{ flexGrow: 1, minWidth: 0, bgcolor: '#f5f5f5', overflowX: 'auto' }}>
           <Outlet />
         </Box>
       </Box>

@@ -44,6 +44,8 @@ export interface QuotationItemInput {
   selected_options?: SelectedOption[];
   extra_charge_ids?: number[];
   spec_notes?: string | null;
+  /** Number of copies (sets) of the document; per-set charges such as binding multiply by it. */
+  sets?: number;
 }
 
 export interface QuotationCreateInput {

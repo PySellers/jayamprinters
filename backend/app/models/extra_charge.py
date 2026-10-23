@@ -9,6 +9,7 @@ class ChargeType(str, enum.Enum):
     per_unit = "per_unit"
     per_sqft = "per_sqft"
     percentage = "percentage"
+    per_set = "per_set"  # charged once for every copy (set) of the document, e.g. binding
 
 
 class ExtraCharge(Base):

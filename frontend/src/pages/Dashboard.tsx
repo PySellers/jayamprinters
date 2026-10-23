@@ -135,7 +135,7 @@ export default function Dashboard() {
         {/* =========================
             LEFT - START NEW ORDER
            ========================= */}
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid size={{ xs: 12, lg: 7 }}>
           <Box
             sx={{
               width: '100%',
@@ -150,7 +150,7 @@ export default function Dashboard() {
         {/* =========================
             RIGHT - DASHBOARD
            ========================= */}
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid size={{ xs: 12, lg: 5 }}>
           <Box
             sx={{
               width: '100%',
@@ -207,7 +207,7 @@ export default function Dashboard() {
                       }}
                       onClick={() => navigate(card.path)}
                     >
-                      <Box>
+                      <Box sx={{ minWidth: 0, pr: 1 }}>
                         <Typography
                           color="text.secondary"
                           variant="body2"
@@ -234,8 +234,8 @@ export default function Dashboard() {
 
                       <Box
                         sx={{
-                          width: 52,
-                          height: 52,
+                          width: { xs: 44, xl: 52 },
+                          height: { xs: 44, xl: 52 },
                           flexShrink: 0,
                           backgroundColor: `${card.color}15`,
                           color: card.color,
@@ -245,7 +245,7 @@ export default function Dashboard() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Icon sx={{ fontSize: 28 }} />
+                        <Icon sx={{ fontSize: { xs: 24, xl: 28 } }} />
                       </Box>
                     </Paper>
                   </Grid>

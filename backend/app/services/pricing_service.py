@@ -107,6 +107,7 @@ def calculate_unit_price(
     selected_options: List[Tuple[int, int]],
     area_sqft: Optional[float],
     extra_charge_ids: List[int],
+    sets: int = 1,
 ) -> Tuple[float, List[Tuple[int, float]]]:
     """Returns (unit_price, [(extra_charge_id, total_amount_charged), ...])."""
 
@@ -149,6 +150,8 @@ def calculate_unit_price(
                 total_amount = charge.amount * quantity
             elif charge.charge_type == ChargeType.per_sqft:
                 total_amount = charge.amount * (area_sqft or 0) * quantity
+            elif charge.charge_type == ChargeType.per_set:
+                total_amount = charge.amount * max(sets, 1)
             elif charge.charge_type == ChargeType.flat:
                 total_amount = charge.amount
             elif charge.charge_type == ChargeType.percentage:
