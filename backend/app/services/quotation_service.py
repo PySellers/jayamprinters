@@ -39,7 +39,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
 
         selected_options = [(so.attribute_id, so.attribute_option_id) for so in item.selected_options]
         unit_price, computed_charges = pricing_service.calculate_unit_price(
-            db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids
+            db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets
         )
 
         db_item = QuotationItem(
@@ -50,6 +50,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
             unit_price=unit_price,
             total_price=unit_price * item.quantity,
             spec_notes=item.spec_notes,
+            sets=item.sets,
         )
         db.add(db_item)
         db.flush()

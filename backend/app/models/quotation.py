@@ -51,6 +51,8 @@ class QuotationItem(Base):
     unit_price = Column(Float)
     total_price = Column(Float)
     spec_notes = Column(String, nullable=True)
+    # How many copies (sets) of the document -- per-set charges such as binding multiply by this.
+    sets = Column(Integer, nullable=False, default=1)
 
     quotation = relationship("Quotation", back_populates="items")
     product = relationship("Product")

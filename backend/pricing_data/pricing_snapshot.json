@@ -15,27 +15,63 @@
      "in_price_matrix": true,
      "options": [
       {
-       "value": "A4",
+       "value": "A5",
        "extra_price": 0.0,
        "display_order": 0,
        "is_active": true
       },
       {
-       "value": "A3",
+       "value": "B5",
        "extra_price": 0.0,
        "display_order": 1,
        "is_active": true
       },
       {
-       "value": "A5",
+       "value": "A4",
        "extra_price": 0.0,
        "display_order": 2,
        "is_active": true
       },
       {
-       "value": "Legal / FS",
+       "value": "Letter",
        "extra_price": 0.0,
        "display_order": 3,
+       "is_active": true
+      },
+      {
+       "value": "Legal / FS",
+       "extra_price": 0.0,
+       "display_order": 4,
+       "is_active": true
+      },
+      {
+       "value": "B4",
+       "extra_price": 0.0,
+       "display_order": 5,
+       "is_active": true
+      },
+      {
+       "value": "A3",
+       "extra_price": 0.0,
+       "display_order": 6,
+       "is_active": true
+      },
+      {
+       "value": "A2",
+       "extra_price": 0.0,
+       "display_order": 7,
+       "is_active": true
+      },
+      {
+       "value": "A1",
+       "extra_price": 0.0,
+       "display_order": 8,
+       "is_active": true
+      },
+      {
+       "value": "A0",
+       "extra_price": 0.0,
+       "display_order": 9,
        "is_active": true
       }
      ]
@@ -86,26 +122,26 @@
      "name": "Paper Quality",
      "is_required": false,
      "display_order": 4,
-     "is_active": true,
-     "in_price_matrix": true,
+     "is_active": false,
+     "in_price_matrix": false,
      "options": [
       {
        "value": "Normal (70 GSM)",
        "extra_price": 0.0,
        "display_order": 0,
-       "is_active": true
+       "is_active": false
       },
       {
        "value": "Bond Paper",
        "extra_price": 0.0,
        "display_order": 1,
-       "is_active": true
+       "is_active": false
       },
       {
        "value": "Photo Glossy",
        "extra_price": 0.0,
        "display_order": 2,
-       "is_active": true
+       "is_active": false
       }
      ]
     }
@@ -150,34 +186,34 @@
    "charges": [
     {
      "name": "Spiral Binding",
-     "charge_type": "flat",
+     "charge_type": "per_set",
      "amount": 30.0,
      "is_active": true,
-     "group_name": null,
+     "group_name": "Binding",
      "requires": null
     },
     {
      "name": "Soft Binding",
-     "charge_type": "flat",
+     "charge_type": "per_set",
      "amount": 50.0,
      "is_active": true,
-     "group_name": null,
+     "group_name": "Binding",
      "requires": null
     },
     {
      "name": "Hard Binding",
-     "charge_type": "flat",
+     "charge_type": "per_set",
      "amount": 150.0,
      "is_active": true,
-     "group_name": null,
+     "group_name": "Binding",
      "requires": null
     },
     {
      "name": "Stapling",
-     "charge_type": "flat",
+     "charge_type": "per_set",
      "amount": 2.0,
      "is_active": true,
-     "group_name": null,
+     "group_name": "Binding",
      "requires": null
     },
     {
@@ -185,7 +221,159 @@
      "charge_type": "per_unit",
      "amount": 5.0,
      "is_active": true,
-     "group_name": null,
+     "group_name": "Lamination",
+     "requires": null
+    },
+    {
+     "name": "Comb Binding",
+     "charge_type": "per_set",
+     "amount": 25.0,
+     "is_active": true,
+     "group_name": "Binding",
+     "requires": null
+    },
+    {
+     "name": "Wiro Binding",
+     "charge_type": "per_set",
+     "amount": 60.0,
+     "is_active": true,
+     "group_name": "Binding",
+     "requires": null
+    },
+    {
+     "name": "Perfect (Glue) Binding",
+     "charge_type": "per_set",
+     "amount": 70.0,
+     "is_active": true,
+     "group_name": "Binding",
+     "requires": null
+    },
+    {
+     "name": "Transparent Front Sheet",
+     "charge_type": "per_set",
+     "amount": 10.0,
+     "is_active": true,
+     "group_name": "Front Sheet",
+     "requires": null
+    },
+    {
+     "name": "Colour Card Front Sheet",
+     "charge_type": "per_set",
+     "amount": 15.0,
+     "is_active": true,
+     "group_name": "Front Sheet",
+     "requires": null
+    },
+    {
+     "name": "Transparent Front + Card Back Sheet",
+     "charge_type": "per_set",
+     "amount": 20.0,
+     "is_active": true,
+     "group_name": "Front Sheet",
+     "requires": null
+    },
+    {
+     "name": "Printed Cover Page (Colour)",
+     "charge_type": "per_set",
+     "amount": 25.0,
+     "is_active": true,
+     "group_name": "Front Sheet",
+     "requires": null
+    },
+    {
+     "name": "Hole Punching (2 holes)",
+     "charge_type": "per_set",
+     "amount": 2.0,
+     "is_active": true,
+     "group_name": "Punching",
+     "requires": null
+    },
+    {
+     "name": "Hole Punching (4 holes)",
+     "charge_type": "per_set",
+     "amount": 3.0,
+     "is_active": true,
+     "group_name": "Punching",
+     "requires": null
+    },
+    {
+     "name": "Lamination - A3 (per page)",
+     "charge_type": "per_unit",
+     "amount": 10.0,
+     "is_active": true,
+     "group_name": "Lamination",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - 70 GSM (Normal)",
+     "charge_type": "percentage",
+     "amount": 0.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - 80 GSM",
+     "charge_type": "percentage",
+     "amount": 10.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - Bond Paper",
+     "charge_type": "percentage",
+     "amount": 20.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - 100 GSM",
+     "charge_type": "percentage",
+     "amount": 25.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - 130 GSM",
+     "charge_type": "percentage",
+     "amount": 60.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - 170 GSM",
+     "charge_type": "percentage",
+     "amount": 100.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - 250 GSM",
+     "charge_type": "percentage",
+     "amount": 150.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - 300 GSM",
+     "charge_type": "percentage",
+     "amount": 180.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
+     "requires": null
+    },
+    {
+     "name": "Paper GSM - Photo Glossy",
+     "charge_type": "percentage",
+     "amount": 120.0,
+     "is_active": true,
+     "group_name": "Paper GSM",
      "requires": null
     }
    ],
@@ -965,6 +1153,2976 @@
         ]
        ],
        "unit_price": 2.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.25,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 7.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 13.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.88,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 6.75,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 12.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 6.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 10.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 0.75,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.35,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 5.25,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 9.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 0.6,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.12,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 4.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 7.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.7,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.55,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 8.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 15.3,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.27,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.12,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 7.65,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 13.6,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.02,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.7,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 6.8,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 11.9,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 0.85,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.53,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 5.95,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 10.2,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 0.68,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.27,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 5.1,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B5"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 8.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 2.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 3.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 10.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 18.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 9.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 16.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.2,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 8.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 14.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.8,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 7.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 12.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 0.8,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 6.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Letter"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 10.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 12.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 22.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 11.25,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 20.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 10.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 17.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.25,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.25,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 8.75,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 15.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 1.88,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 7.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "Legal / FS"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 12.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 3.2,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 4.8,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 16.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 28.8,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 2.4,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 4.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 14.4,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 25.6,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.92,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 3.2,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 12.8,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 22.4,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.6,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.88,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 11.2,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 19.2,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.28,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 2.4,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 9.6,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "B4"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 16.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 6.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 36.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 5.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 32.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 4.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 28.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 2.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 3.6,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 14.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 24.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 1.6,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 3.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 12.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A3"
+        ],
+        [
+         "Print Side",
+         "Double Side"
+        ]
+       ],
+       "unit_price": 20.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 20.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 80.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 18.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 72.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 16.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 64.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 14.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 56.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 12.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A2"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 50.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 35.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 140.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 32.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 126.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 29.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 112.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 26.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 100.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 23.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A1"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 90.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 60.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 240.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 55.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        51,
+        100
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 216.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 50.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        101,
+        500
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 192.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 45.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 170.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Black & White"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 40.0,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1001,
+        null
+       ],
+       "options": [
+        [
+         "Colour",
+         "Colour"
+        ],
+        [
+         "Paper Size",
+         "A0"
+        ],
+        [
+         "Print Side",
+         "Single Side"
+        ]
+       ],
+       "unit_price": 150.0,
        "is_active": true
       }
      ]

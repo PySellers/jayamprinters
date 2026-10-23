@@ -1,4 +1,4 @@
-export type ChargeType = 'flat' | 'per_unit' | 'per_sqft' | 'percentage';
+export type ChargeType = 'flat' | 'per_unit' | 'per_sqft' | 'percentage' | 'per_set';
 
 export interface ExtraCharge {
   id: number;

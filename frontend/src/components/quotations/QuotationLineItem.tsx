@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext, useWatch, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
-import { Paper, Grid, TextField, IconButton, Typography, FormHelperText } from '@mui/material';
+import { Box, Paper, Grid, TextField, IconButton, Typography, FormHelperText } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { productsApi, productCategoriesApi } from '../../api/productsApi';
 import { attributesApi } from '../../api/attributesApi';
@@ -41,6 +41,7 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
     queryFn: () => attributesApi.list(categoryId),
     enabled: Boolean(categoryId),
   });
+  const activeAttributes = (attributesQuery.data ?? []).filter((a) => a.is_active);
   const extraChargesQuery = useQuery({
     queryKey: ['extra-charges', categoryId],
     queryFn: () => extraChargesApi.list(categoryId),
@@ -77,6 +78,23 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
       setValue(`items.${index}.area_sqft`, area || undefined);
     }
   }, [area, product?.pricing_type, index, setValue]);
+
+  // Services priced per copy (binding, front sheet...) ask for pages per set x number of sets
+  // instead of one quantity; the total pages drive the quantity band, sets drive per-set charges.
+  const usesSets = (extraChargesQuery.data ?? []).some((c) => c.is_active && c.charge_type === 'per_set');
+  const [pagesPerSet, setPagesPerSet] = useState('1');
+  const [setCount, setSetCount] = useState('1');
+  const pagesN = Math.max(1, parseInt(pagesPerSet, 10) || 1);
+  const setsN = Math.max(1, parseInt(setCount, 10) || 1);
+  useEffect(() => {
+    if (usesSets) {
+      setValue(`items.${index}.quantity`, pagesN * setsN);
+      setValue(`items.${index}.sets`, setsN);
+      setValue(`items.${index}.spec_notes`, `${pagesN} pages x ${setsN} set${setsN > 1 ? 's' : ''}`);
+    } else {
+      setValue(`items.${index}.sets`, 1);
+    }
+  }, [usesSets, pagesN, setsN, index, setValue]);
 
   const itemErrors = errors.items?.[index];
 
@@ -121,14 +139,26 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
           />
         </Grid>
         <Grid size={{ xs: 8, sm: 3 }}>
-          <TextField
-            label="Qty"
-            type="number"
-            fullWidth
-            size="small"
-            error={Boolean(itemErrors?.quantity)}
-            {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
-          />
+          {usesSets ? (
+            <>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField label="Pages / set" type="number" size="small" value={pagesPerSet} onChange={(e) => setPagesPerSet(e.target.value)} slotProps={{ htmlInput: { min: 1 } }} />
+                <TextField label="Sets" type="number" size="small" value={setCount} onChange={(e) => setSetCount(e.target.value)} slotProps={{ htmlInput: { min: 1 } }} />
+              </Box>
+              <Typography variant="caption" color="text.secondary">
+                Total: {(pagesN * setsN).toLocaleString('en-IN')} pages
+              </Typography>
+            </>
+          ) : (
+            <TextField
+              label="Qty"
+              type="number"
+              fullWidth
+              size="small"
+              error={Boolean(itemErrors?.quantity)}
+              {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 4, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           <IconButton onClick={onRemove} disabled={!canRemove}>
@@ -169,14 +199,14 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
           </>
         )}
 
-        {product && product.pricing_type !== 'fixed' && (attributesQuery.data ?? []).length > 0 && (
+        {product && product.pricing_type !== 'fixed' && activeAttributes.length > 0 && (
           <Grid size={{ xs: 12 }}>
             <Controller
               name={`items.${index}.selected_options`}
               control={control}
               rules={{
                 validate: (value) => {
-                  const missing = (attributesQuery.data ?? [])
+                  const missing = activeAttributes
                     .filter((attr) => attr.is_required)
                     .filter((attr) => !value?.some((v) => v.attribute_id === attr.id));
                   return missing.length === 0 || `Missing required: ${missing.map((a) => a.name).join(', ')}`;
@@ -185,7 +215,7 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
               render={({ field, fieldState }) => (
                 <>
                   <Grid container spacing={2}>
-                    {(attributesQuery.data ?? []).map((attr) => {
+                    {activeAttributes.map((attr) => {
                       const current = (field.value ?? []).find((v: SelectedOption) => v.attribute_id === attr.id);
                       return (
                         <Grid size={{ xs: 6, sm: 3 }} key={attr.id}>
@@ -193,7 +223,7 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
                             label={attr.is_required ? `${attr.name} *` : attr.name}
                             mode="list"
                             queryKey={`attribute-option-picker-${attr.id}`}
-                            fetchOptions={async () => attr.options}
+                            fetchOptions={async () => attr.options.filter((o) => o.is_active)}
                             getOptionLabel={(o) => (o.extra_price ? `${o.value} (+₹${o.extra_price.toFixed(2)})` : o.value)}
                             value={current?.attribute_option_id ?? null}
                             onChange={(optionId) => {

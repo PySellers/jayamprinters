@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, FormControlLabel, Switch, Checkbox, Stack } from '@mui/material';
 import type { ChargeType, ExtraCharge, ExtraChargeInput } from '../../types/extraCharges';
 
-const CHARGE_TYPES: ChargeType[] = ['flat', 'per_unit', 'per_sqft', 'percentage'];
+const CHARGE_TYPES: ChargeType[] = ['flat', 'per_unit', 'per_set', 'per_sqft', 'percentage'];
 
 interface ExtraChargeFormDialogProps {
   open: boolean;

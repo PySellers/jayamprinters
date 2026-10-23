@@ -35,7 +35,7 @@ def preview(payload: QuotationPreviewRequest, db: Session = Depends(get_db)):
         selected_options = [(so.attribute_id, so.attribute_option_id) for so in item.selected_options]
         try:
             unit_price, _ = pricing_service.calculate_unit_price(
-                db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids
+                db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets
             )
         except HTTPException:
             # Required attribute not picked yet, or no matrix cell for this

@@ -18,6 +18,7 @@ class QuotationItemCreate(BaseModel):
     selected_options: List[SelectedOptionIn] = []
     extra_charge_ids: List[int] = []
     spec_notes: Optional[str] = None
+    sets: int = Field(default=1, ge=1)
 
 class QuotationItemOut(BaseModel):
     id: int
@@ -27,6 +28,7 @@ class QuotationItemOut(BaseModel):
     unit_price: float
     total_price: float
     spec_notes: Optional[str] = None
+    sets: int = 1
     selected_options: List[SelectedOptionOut] = []
 
     class Config:
@@ -79,6 +81,7 @@ class QuotationPreviewItemIn(BaseModel):
     area_sqft: Optional[float] = None
     selected_options: List[SelectedOptionIn] = []
     extra_charge_ids: List[int] = []
+    sets: int = Field(default=1, ge=1)
 
 class QuotationPreviewRequest(BaseModel):
     tax_id: Optional[int] = None
