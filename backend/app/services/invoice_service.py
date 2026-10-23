@@ -73,11 +73,11 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
 
 
 def _recompute_invoice_status(db: Session, invoice: Invoice) -> None:
-    total_paid = sum(p.amount for p in invoice.payments)
+    total_paid = round(sum(p.amount for p in invoice.payments), 2)
     invoice.amount_paid = total_paid
     if total_paid <= 0:
         invoice.status = InvoiceStatus.unpaid
-    elif total_paid >= invoice.grand_total:
+    elif total_paid >= round(invoice.grand_total, 2):
         invoice.status = InvoiceStatus.paid
     else:
         invoice.status = InvoiceStatus.partially_paid

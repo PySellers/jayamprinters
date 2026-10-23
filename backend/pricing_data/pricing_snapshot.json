@@ -4242,64 +4242,64 @@
    "charges": [
     {
      "name": "Lamination - Glass",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 1.5,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Matt",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 1.8,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - 3D",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.5,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Thermal Glass",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 2.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Thermal Matt",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 2.2,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Special Work - UV",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 1.5,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Special Work - Nurling",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 2.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Special Work - UV with Nurling",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4307,7 +4307,7 @@
     {
      "name": "Special Work - Gold Foiling",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 900.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4315,7 +4315,7 @@
     {
      "name": "Special Work - Silver Foiling",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 900.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4323,7 +4323,7 @@
     {
      "name": "Special Work - Emposing",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 700.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4331,7 +4331,7 @@
     {
      "name": "Pasting Charge",
      "charge_type": "per_unit",
-     "amount": 0.0,
+     "amount": 1.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4339,7 +4339,7 @@
     {
      "name": "Thread Stitching",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 150.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4347,15 +4347,15 @@
     {
      "name": "Bottom Folding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 100.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Image/Sticker Pasting",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 1.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4363,7 +4363,7 @@
     {
      "name": "Designing Charge",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 500.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4371,7 +4371,7 @@
     {
      "name": "Custom Work",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 250.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -4400,7 +4400,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.2,
        "is_active": true
       },
       {
@@ -4418,7 +4418,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.6,
        "is_active": true
       },
       {
@@ -4436,7 +4436,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.4,
        "is_active": true
       },
       {
@@ -4454,7 +4454,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.08,
        "is_active": true
       },
       {
@@ -4472,7 +4472,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.84,
        "is_active": true
       },
       {
@@ -4490,7 +4490,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.16,
        "is_active": true
       },
       {
@@ -4508,7 +4508,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.1,
        "is_active": true
       },
       {
@@ -4526,7 +4526,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.3,
        "is_active": true
       },
       {
@@ -4544,7 +4544,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.95,
        "is_active": true
       },
       {
@@ -4562,7 +4562,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.34,
        "is_active": true
       },
       {
@@ -4580,7 +4580,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.82,
        "is_active": true
       },
       {
@@ -4598,7 +4598,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.93,
        "is_active": true
       },
       {
@@ -4616,7 +4616,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.0,
        "is_active": true
       },
       {
@@ -4634,7 +4634,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.0,
        "is_active": true
       },
       {
@@ -4652,7 +4652,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.5,
        "is_active": true
       },
       {
@@ -4670,7 +4670,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.6,
        "is_active": true
       },
       {
@@ -4688,7 +4688,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.8,
        "is_active": true
       },
       {
@@ -4706,7 +4706,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.7,
        "is_active": true
       },
       {
@@ -4724,7 +4724,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.65,
        "is_active": true
       },
       {
@@ -4742,7 +4742,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.95,
        "is_active": true
       },
       {
@@ -4760,7 +4760,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.675,
        "is_active": true
       },
       {
@@ -4778,7 +4778,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.71,
        "is_active": true
       },
       {
@@ -4796,7 +4796,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.33,
        "is_active": true
       },
       {
@@ -4814,7 +4814,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.545,
        "is_active": true
       },
       {
@@ -4832,7 +4832,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.55,
        "is_active": true
       },
       {
@@ -4850,7 +4850,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.65,
        "is_active": true
       },
       {
@@ -4868,7 +4868,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.225,
        "is_active": true
       },
       {
@@ -4886,7 +4886,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.97,
        "is_active": true
       },
       {
@@ -4904,7 +4904,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.31,
        "is_active": true
       },
       {
@@ -4922,7 +4922,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.315,
        "is_active": true
       },
       {
@@ -4940,7 +4940,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.6,
        "is_active": true
       },
       {
@@ -4958,7 +4958,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.8,
        "is_active": true
       },
       {
@@ -4976,7 +4976,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.7,
        "is_active": true
       },
       {
@@ -4994,7 +4994,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.64,
        "is_active": true
       },
       {
@@ -5012,7 +5012,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.72,
        "is_active": true
       },
       {
@@ -5030,7 +5030,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.78,
        "is_active": true
       },
       {
@@ -5048,7 +5048,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.25,
        "is_active": true
       },
       {
@@ -5066,7 +5066,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.75,
        "is_active": true
       },
       {
@@ -5084,7 +5084,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.875,
        "is_active": true
       },
       {
@@ -5102,7 +5102,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.75,
        "is_active": true
       },
       {
@@ -5120,7 +5120,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.25,
        "is_active": true
       },
       {
@@ -5138,7 +5138,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.625,
        "is_active": true
       }
      ]
@@ -5165,7 +5165,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.2,
        "is_active": true
       },
       {
@@ -5183,7 +5183,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.6,
        "is_active": true
       },
       {
@@ -5201,7 +5201,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.0,
        "is_active": true
       },
       {
@@ -5219,7 +5219,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.68,
        "is_active": true
       },
       {
@@ -5237,7 +5237,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.44,
        "is_active": true
       },
       {
@@ -5255,7 +5255,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.2,
        "is_active": true
       },
       {
@@ -5273,7 +5273,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.6,
        "is_active": true
       },
       {
@@ -5291,7 +5291,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.8,
        "is_active": true
       },
       {
@@ -5309,7 +5309,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.0,
        "is_active": true
       },
       {
@@ -5327,7 +5327,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.64,
        "is_active": true
       },
       {
@@ -5345,7 +5345,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.12,
        "is_active": true
       },
       {
@@ -5363,7 +5363,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.6,
        "is_active": true
       },
       {
@@ -5381,7 +5381,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.0,
        "is_active": true
       },
       {
@@ -5399,7 +5399,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.0,
        "is_active": true
       },
       {
@@ -5417,7 +5417,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.0,
        "is_active": true
       },
       {
@@ -5435,7 +5435,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 19.6,
        "is_active": true
       },
       {
@@ -5453,7 +5453,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.8,
        "is_active": true
       },
       {
@@ -5471,7 +5471,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.0,
        "is_active": true
       },
       {
@@ -5489,7 +5489,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.9,
        "is_active": true
       },
       {
@@ -5507,7 +5507,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.2,
        "is_active": true
       },
       {
@@ -5525,7 +5525,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.5,
        "is_active": true
       },
       {
@@ -5543,7 +5543,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.66,
        "is_active": true
       },
       {
@@ -5561,7 +5561,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.28,
        "is_active": true
       },
       {
@@ -5579,7 +5579,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.9,
        "is_active": true
       },
       {
@@ -5597,7 +5597,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.3,
        "is_active": true
       },
       {
@@ -5615,7 +5615,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.4,
        "is_active": true
       },
       {
@@ -5633,7 +5633,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.5,
        "is_active": true
       },
       {
@@ -5651,7 +5651,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.62,
        "is_active": true
       },
       {
@@ -5669,7 +5669,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.96,
        "is_active": true
       },
       {
@@ -5687,7 +5687,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.3,
        "is_active": true
       },
       {
@@ -5705,7 +5705,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 19.6,
        "is_active": true
       },
       {
@@ -5723,7 +5723,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.8,
        "is_active": true
       },
       {
@@ -5741,7 +5741,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.0,
        "is_active": true
       },
       {
@@ -5759,7 +5759,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 27.44,
        "is_active": true
       },
       {
@@ -5777,7 +5777,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 23.52,
        "is_active": true
       },
       {
@@ -5795,7 +5795,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 19.6,
        "is_active": true
       },
       {
@@ -5813,7 +5813,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.5,
        "is_active": true
       },
       {
@@ -5831,7 +5831,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.0,
        "is_active": true
       },
       {
@@ -5849,7 +5849,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.5,
        "is_active": true
       },
       {
@@ -5867,7 +5867,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 24.5,
        "is_active": true
       },
       {
@@ -5885,7 +5885,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 21.0,
        "is_active": true
       },
       {
@@ -5903,7 +5903,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.5,
        "is_active": true
       }
      ]
@@ -5930,7 +5930,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.2,
        "is_active": true
       },
       {
@@ -5948,7 +5948,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.0,
        "is_active": true
       },
       {
@@ -5966,7 +5966,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.2,
        "is_active": true
       },
       {
@@ -5984,7 +5984,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.28,
        "is_active": true
       },
       {
@@ -6002,7 +6002,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.6,
        "is_active": true
       },
       {
@@ -6020,7 +6020,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.48,
        "is_active": true
       },
       {
@@ -6038,7 +6038,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.85,
        "is_active": true
       },
       {
@@ -6056,7 +6056,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.5,
        "is_active": true
       },
       {
@@ -6074,7 +6074,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.6,
        "is_active": true
       },
       {
@@ -6092,7 +6092,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.19,
        "is_active": true
       },
       {
@@ -6110,7 +6110,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.3,
        "is_active": true
       },
       {
@@ -6128,7 +6128,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.04,
        "is_active": true
       },
       {
@@ -6146,7 +6146,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.5,
        "is_active": true
       },
       {
@@ -6164,7 +6164,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.0,
        "is_active": true
       },
       {
@@ -6182,7 +6182,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.0,
        "is_active": true
       },
       {
@@ -6200,7 +6200,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.1,
        "is_active": true
       },
       {
@@ -6218,7 +6218,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.0,
        "is_active": true
       },
       {
@@ -6236,7 +6236,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.6,
        "is_active": true
       },
       {
@@ -6254,7 +6254,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.525,
        "is_active": true
       },
       {
@@ -6272,7 +6272,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.25,
        "is_active": true
       },
       {
@@ -6290,7 +6290,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.4,
        "is_active": true
       },
       {
@@ -6308,7 +6308,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.735,
        "is_active": true
       },
       {
@@ -6326,7 +6326,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.95,
        "is_active": true
       },
       {
@@ -6344,7 +6344,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.76,
        "is_active": true
       },
       {
@@ -6362,7 +6362,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.175,
        "is_active": true
       },
       {
@@ -6380,7 +6380,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.75,
        "is_active": true
       },
       {
@@ -6398,7 +6398,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.8,
        "is_active": true
       },
       {
@@ -6416,7 +6416,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.645,
        "is_active": true
       },
       {
@@ -6434,7 +6434,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.65,
        "is_active": true
       },
       {
@@ -6452,7 +6452,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.32,
        "is_active": true
       },
       {
@@ -6470,7 +6470,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.1,
        "is_active": true
       },
       {
@@ -6488,7 +6488,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.0,
        "is_active": true
       },
       {
@@ -6506,7 +6506,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.6,
        "is_active": true
       },
       {
@@ -6524,7 +6524,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.74,
        "is_active": true
       },
       {
@@ -6542,7 +6542,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.8,
        "is_active": true
       },
       {
@@ -6560,7 +6560,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.84,
        "is_active": true
       },
       {
@@ -6578,7 +6578,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.125,
        "is_active": true
       },
       {
@@ -6596,7 +6596,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.25,
        "is_active": true
       },
       {
@@ -6614,7 +6614,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.0,
        "is_active": true
       },
       {
@@ -6632,7 +6632,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.375,
        "is_active": true
       },
       {
@@ -6650,7 +6650,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.75,
        "is_active": true
       },
       {
@@ -6668,7 +6668,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.0,
        "is_active": true
       }
      ]
@@ -6695,7 +6695,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.0,
        "is_active": true
       },
       {
@@ -6713,7 +6713,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.8,
        "is_active": true
       },
       {
@@ -6731,7 +6731,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.84,
        "is_active": true
       },
       {
@@ -6749,7 +6749,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.4,
        "is_active": true
       },
       {
@@ -6767,7 +6767,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.72,
        "is_active": true
       },
       {
@@ -6785,7 +6785,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.376,
        "is_active": true
       },
       {
@@ -6803,7 +6803,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.75,
        "is_active": true
       },
       {
@@ -6821,7 +6821,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.4,
        "is_active": true
       },
       {
@@ -6839,7 +6839,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.32,
        "is_active": true
       },
       {
@@ -6857,7 +6857,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.45,
        "is_active": true
       },
       {
@@ -6875,7 +6875,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.56,
        "is_active": true
       },
       {
@@ -6893,7 +6893,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.048,
        "is_active": true
       },
       {
@@ -6911,7 +6911,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.5,
        "is_active": true
       },
       {
@@ -6929,7 +6929,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.0,
        "is_active": true
       },
       {
@@ -6947,7 +6947,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.8,
        "is_active": true
       },
       {
@@ -6965,7 +6965,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.5,
        "is_active": true
       },
       {
@@ -6983,7 +6983,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.4,
        "is_active": true
       },
       {
@@ -7001,7 +7001,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.72,
        "is_active": true
       },
       {
@@ -7019,7 +7019,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.375,
        "is_active": true
       },
       {
@@ -7037,7 +7037,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.1,
        "is_active": true
       },
       {
@@ -7055,7 +7055,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.08,
        "is_active": true
       },
       {
@@ -7073,7 +7073,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.925,
        "is_active": true
       },
       {
@@ -7091,7 +7091,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.14,
        "is_active": true
       },
       {
@@ -7109,7 +7109,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.712,
        "is_active": true
       },
       {
@@ -7127,7 +7127,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.125,
        "is_active": true
       },
       {
@@ -7145,7 +7145,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.7,
        "is_active": true
       },
       {
@@ -7163,7 +7163,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.56,
        "is_active": true
       },
       {
@@ -7181,7 +7181,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.975,
        "is_active": true
       },
       {
@@ -7199,7 +7199,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.98,
        "is_active": true
       },
       {
@@ -7217,7 +7217,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.384,
        "is_active": true
       },
       {
@@ -7235,7 +7235,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.5,
        "is_active": true
       },
       {
@@ -7253,7 +7253,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.4,
        "is_active": true
       },
       {
@@ -7271,7 +7271,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.72,
        "is_active": true
       },
       {
@@ -7289,7 +7289,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.7,
        "is_active": true
       },
       {
@@ -7307,7 +7307,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.76,
        "is_active": true
       },
       {
@@ -7325,7 +7325,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.408,
        "is_active": true
       },
       {
@@ -7343,7 +7343,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.375,
        "is_active": true
       },
       {
@@ -7361,7 +7361,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.5,
        "is_active": true
       },
       {
@@ -7379,7 +7379,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.0,
        "is_active": true
       },
       {
@@ -7397,7 +7397,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.125,
        "is_active": true
       },
       {
@@ -7415,7 +7415,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.5,
        "is_active": true
       },
       {
@@ -7433,7 +7433,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.4,
        "is_active": true
       }
      ]
@@ -7456,7 +7456,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.0,
        "is_active": true
       },
       {
@@ -7470,7 +7470,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.0,
        "is_active": true
       },
       {
@@ -7484,7 +7484,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.0,
        "is_active": true
       },
       {
@@ -7498,7 +7498,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 25.2,
        "is_active": true
       },
       {
@@ -7512,7 +7512,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 21.0,
        "is_active": true
       },
       {
@@ -7526,7 +7526,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.2,
        "is_active": true
       }
      ]
@@ -7753,32 +7753,32 @@
    "charges": [
     {
      "name": "Lamination - Glass",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Matt",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.5,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - 3D",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 6.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Special Work - Nurling",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -7786,7 +7786,7 @@
     {
      "name": "Special Work - Gold Foiling",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 900.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -7794,7 +7794,7 @@
     {
      "name": "Special Work - Silver Foiling",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 900.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -7802,7 +7802,7 @@
     {
      "name": "Special Work - Emposing",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 700.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -7827,7 +7827,7 @@
          "Maplitho Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.2,
        "is_active": true
       },
       {
@@ -7841,7 +7841,7 @@
          "Maplitho Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.0,
        "is_active": true
       },
       {
@@ -7855,7 +7855,7 @@
          "Art Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.85,
        "is_active": true
       },
       {
@@ -7869,7 +7869,7 @@
          "Art Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.5,
        "is_active": true
       },
       {
@@ -7883,7 +7883,7 @@
          "Art Board"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.5,
        "is_active": true
       },
       {
@@ -7897,7 +7897,7 @@
          "Art Board"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.0,
        "is_active": true
       },
       {
@@ -7911,7 +7911,7 @@
          "Duplex Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.525,
        "is_active": true
       },
       {
@@ -7925,7 +7925,7 @@
          "Duplex Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.25,
        "is_active": true
       },
       {
@@ -7939,7 +7939,7 @@
          "Duplex Board"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.175,
        "is_active": true
       },
       {
@@ -7953,7 +7953,7 @@
          "Duplex Board"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.75,
        "is_active": true
       },
       {
@@ -7967,7 +7967,7 @@
          "Metallic Board"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.1,
        "is_active": true
       },
       {
@@ -7981,7 +7981,7 @@
          "Metallic Board"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.0,
        "is_active": true
       },
       {
@@ -7995,7 +7995,7 @@
          "Brown Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.55,
        "is_active": true
       },
       {
@@ -8009,7 +8009,7 @@
          "Brown Paper"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.5,
        "is_active": true
       }
      ]
@@ -8032,7 +8032,7 @@
          "8x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.6,
        "is_active": true
       },
       {
@@ -8046,7 +8046,7 @@
          "8x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.76,
        "is_active": true
       },
       {
@@ -8060,7 +8060,7 @@
          "8x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.52,
        "is_active": true
       },
       {
@@ -8074,7 +8074,7 @@
          "8x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.88,
        "is_active": true
       },
       {
@@ -8088,7 +8088,7 @@
          "7.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.094,
        "is_active": true
       },
       {
@@ -8102,7 +8102,7 @@
          "7.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.33,
        "is_active": true
       },
       {
@@ -8116,7 +8116,7 @@
          "7.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.659,
        "is_active": true
       },
       {
@@ -8130,7 +8130,7 @@
          "7.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.716,
        "is_active": true
       },
       {
@@ -8144,7 +8144,7 @@
          "7x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.625,
        "is_active": true
       },
       {
@@ -8158,7 +8158,7 @@
          "7x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.931,
        "is_active": true
       },
       {
@@ -8172,7 +8172,7 @@
          "7x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.862,
        "is_active": true
       },
       {
@@ -8186,7 +8186,7 @@
          "7x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.637,
        "is_active": true
       },
       {
@@ -8200,7 +8200,7 @@
          "7x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.1,
        "is_active": true
       },
       {
@@ -8214,7 +8214,7 @@
          "7x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.485,
        "is_active": true
       },
       {
@@ -8228,7 +8228,7 @@
          "7x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.97,
        "is_active": true
       },
       {
@@ -8242,7 +8242,7 @@
          "7x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.43,
        "is_active": true
       },
       {
@@ -8256,7 +8256,7 @@
          "6.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.194,
        "is_active": true
       },
       {
@@ -8270,7 +8270,7 @@
          "6.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.565,
        "is_active": true
       },
       {
@@ -8284,7 +8284,7 @@
          "6.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.129,
        "is_active": true
       },
       {
@@ -8298,7 +8298,7 @@
          "6.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.646,
        "is_active": true
       },
       {
@@ -8312,7 +8312,7 @@
          "6x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.8,
        "is_active": true
       },
       {
@@ -8326,7 +8326,7 @@
          "6x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.23,
        "is_active": true
       },
       {
@@ -8340,7 +8340,7 @@
          "6x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.46,
        "is_active": true
       },
       {
@@ -8354,7 +8354,7 @@
          "6x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.74,
        "is_active": true
       },
       {
@@ -8368,7 +8368,7 @@
          "8x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.0,
        "is_active": true
       },
       {
@@ -8382,7 +8382,7 @@
          "8x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.25,
        "is_active": true
       },
       {
@@ -8396,7 +8396,7 @@
          "8x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.5,
        "is_active": true
       },
       {
@@ -8410,7 +8410,7 @@
          "8x5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.5,
        "is_active": true
       },
       {
@@ -8424,7 +8424,7 @@
          "8.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.506,
        "is_active": true
       },
       {
@@ -8438,7 +8438,7 @@
          "8.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.68,
        "is_active": true
       },
       {
@@ -8452,7 +8452,7 @@
          "8.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.361,
        "is_active": true
       },
       {
@@ -8466,7 +8466,7 @@
          "8.5x5.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.664,
        "is_active": true
       },
       {
@@ -8480,7 +8480,7 @@
          "9x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.05,
        "is_active": true
       },
       {
@@ -8494,7 +8494,7 @@
          "9x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.143,
        "is_active": true
       },
       {
@@ -8508,7 +8508,7 @@
          "9x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.285,
        "is_active": true
       },
       {
@@ -8522,7 +8522,7 @@
          "9x6"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.915,
        "is_active": true
       },
       {
@@ -8536,7 +8536,7 @@
          "9.5x6.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.631,
        "is_active": true
       },
       {
@@ -8550,7 +8550,7 @@
          "9.5x6.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.637,
        "is_active": true
       },
       {
@@ -8564,7 +8564,7 @@
          "9.5x6.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.273,
        "is_active": true
       },
       {
@@ -8578,7 +8578,7 @@
          "9.5x6.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.252,
        "is_active": true
       },
       {
@@ -8592,7 +8592,7 @@
          "9x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.7,
        "is_active": true
       },
       {
@@ -8606,7 +8606,7 @@
          "9x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.995,
        "is_active": true
       },
       {
@@ -8620,7 +8620,7 @@
          "9x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.99,
        "is_active": true
       },
       {
@@ -8634,7 +8634,7 @@
          "9x4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.81,
        "is_active": true
       },
       {
@@ -8648,7 +8648,7 @@
          "10.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.544,
        "is_active": true
       },
       {
@@ -8662,7 +8662,7 @@
          "10.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.712,
        "is_active": true
       },
       {
@@ -8676,7 +8676,7 @@
          "10.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.424,
        "is_active": true
       },
       {
@@ -8690,7 +8690,7 @@
          "10.5x4.5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.751,
        "is_active": true
       },
       {
@@ -8704,7 +8704,7 @@
          "12x8"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.2,
        "is_active": true
       },
       {
@@ -8718,7 +8718,7 @@
          "12x8"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.82,
        "is_active": true
       },
       {
@@ -8732,7 +8732,7 @@
          "12x8"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.64,
        "is_active": true
       },
       {
@@ -8746,7 +8746,7 @@
          "12x8"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 21.16,
        "is_active": true
       },
       {
@@ -8760,7 +8760,7 @@
          "12x9"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.1,
        "is_active": true
       },
       {
@@ -8774,7 +8774,7 @@
          "12x9"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.585,
        "is_active": true
       },
       {
@@ -8788,7 +8788,7 @@
          "12x9"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.17,
        "is_active": true
       },
       {
@@ -8802,7 +8802,7 @@
          "12x9"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 23.23,
        "is_active": true
       },
       {
@@ -8816,7 +8816,7 @@
          "12x10"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.0,
        "is_active": true
       },
       {
@@ -8830,7 +8830,7 @@
          "12x10"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.35,
        "is_active": true
       },
       {
@@ -8844,7 +8844,7 @@
          "12x10"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.7,
        "is_active": true
       },
       {
@@ -8858,7 +8858,7 @@
          "12x10"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 25.3,
        "is_active": true
       },
       {
@@ -8872,7 +8872,7 @@
          "9x14 (Legal)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.45,
        "is_active": true
       },
       {
@@ -8886,7 +8886,7 @@
          "9x14 (Legal)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.732,
        "is_active": true
       },
       {
@@ -8900,7 +8900,7 @@
          "9x14 (Legal)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 19.465,
        "is_active": true
       },
       {
@@ -8914,7 +8914,7 @@
          "9x14 (Legal)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 26.335,
        "is_active": true
       },
       {
@@ -8928,7 +8928,7 @@
          "12x17 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.3,
        "is_active": true
       },
       {
@@ -8942,7 +8942,7 @@
          "12x17 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.705,
        "is_active": true
       },
       {
@@ -8956,7 +8956,7 @@
          "12x17 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 29.41,
        "is_active": true
       },
       {
@@ -8970,7 +8970,7 @@
          "12x17 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 39.79,
        "is_active": true
       },
       {
@@ -8984,7 +8984,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 24.5,
        "is_active": true
       },
       {
@@ -8998,7 +8998,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 20.825,
        "is_active": true
       },
       {
@@ -9012,7 +9012,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 41.65,
        "is_active": true
       },
       {
@@ -9026,7 +9026,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 56.35,
        "is_active": true
       },
       {
@@ -9040,7 +9040,7 @@
          "Viboothi Cover"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.5,
        "is_active": true
       },
       {
@@ -9054,7 +9054,7 @@
          "Viboothi Cover"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.525,
        "is_active": true
       },
       {
@@ -9068,7 +9068,7 @@
          "Viboothi Cover"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.05,
        "is_active": true
       },
       {
@@ -9082,7 +9082,7 @@
          "Viboothi Cover"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.95,
        "is_active": true
       },
       {
@@ -9096,7 +9096,7 @@
          "Custom"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.5,
        "is_active": true
       },
       {
@@ -9110,7 +9110,7 @@
          "Custom"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.525,
        "is_active": true
       },
       {
@@ -9124,7 +9124,7 @@
          "Custom"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.05,
        "is_active": true
       },
       {
@@ -9138,7 +9138,7 @@
          "Custom"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.95,
        "is_active": true
       }
      ]
@@ -15316,112 +15316,112 @@
    "charges": [
     {
      "name": "Binding Type - Stitching Only",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 40.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Soft Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 60.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Spiral Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 50.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Lamination Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 80.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Without Stitch",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 30.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Hard Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 150.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Hard Binding Corner",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 190.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Paper Rexon",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 120.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Diamond Rexon",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 180.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding Type - Diamond Rexon Corner",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 230.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Leather Binding - With Marble",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 400.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Leather Binding - Corner",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 450.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Leather Binding - Paper Rexon",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 380.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Leather Binding - With Diamond Rexon",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 450.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15446,7 +15446,7 @@
          "Paper Rexon"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 120.0,
        "is_active": true
       },
       {
@@ -15460,7 +15460,7 @@
          "Diamond Rexon"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 180.0,
        "is_active": true
       },
       {
@@ -15474,7 +15474,7 @@
          "Leather"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 350.0,
        "is_active": true
       }
      ]
@@ -15497,7 +15497,7 @@
          "Art Board Print - Without Lamination"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.0,
        "is_active": true
       },
       {
@@ -15511,7 +15511,7 @@
          "Art Board Print - With Lamination"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 25.0,
        "is_active": true
       },
       {
@@ -15525,7 +15525,7 @@
          "Leather Printing - Screen"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 60.0,
        "is_active": true
       },
       {
@@ -15539,7 +15539,7 @@
          "Leather Printing - Leather"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 90.0,
        "is_active": true
       }
      ]
@@ -15664,47 +15664,47 @@
    "charges": [
     {
      "name": "Paper Name - Royal Ex.Bond",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 20.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Excel Bond",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 10.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Sirpur Ledger",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 25.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Palarpur Ledger",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 25.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Westcos Ledger",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 25.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - White Paper",
-     "charge_type": "flat",
+     "charge_type": "percentage",
      "amount": 0.0,
      "is_active": true,
      "group_name": null,
@@ -15712,7 +15712,7 @@
     },
     {
      "name": "Printing Color - 1 Color",
-     "charge_type": "flat",
+     "charge_type": "percentage",
      "amount": 0.0,
      "is_active": true,
      "group_name": null,
@@ -15720,24 +15720,24 @@
     },
     {
      "name": "Printing Color - 2 Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 10.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Printing Color - 3 Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 18.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Printing Color - Multi Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 35.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15745,7 +15745,7 @@
     {
      "name": "Binding Type - Side Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 40.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15753,7 +15753,7 @@
     {
      "name": "Binding Type - Center Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 60.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15761,7 +15761,7 @@
     {
      "name": "Binding Type - Section Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 80.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15769,7 +15769,7 @@
     {
      "name": "Binding - Soft Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 60.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15777,7 +15777,7 @@
     {
      "name": "Binding - Hard Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 150.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15785,7 +15785,7 @@
     {
      "name": "Binding - Calico Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 120.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15793,7 +15793,7 @@
     {
      "name": "Binding - Paper Rexon",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 140.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15801,7 +15801,7 @@
     {
      "name": "Binding - Rexon Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 180.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15809,7 +15809,7 @@
     {
      "name": "Binding - Rexon Corner",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 220.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15817,7 +15817,7 @@
     {
      "name": "Binding - Full Rexon",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 260.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15825,7 +15825,7 @@
     {
      "name": "Binding - Leather",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 400.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15833,7 +15833,7 @@
     {
      "name": "Binding - Leather Corner",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 450.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15841,7 +15841,7 @@
     {
      "name": "Binding Set - 25 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 20.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15849,7 +15849,7 @@
     {
      "name": "Binding Set - 50 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 30.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15857,7 +15857,7 @@
     {
      "name": "Binding Set - 100 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 45.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15865,7 +15865,7 @@
     {
      "name": "Binding Set - 200 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 70.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -15890,7 +15890,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.125,
        "is_active": true
       },
       {
@@ -15904,7 +15904,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.422,
        "is_active": true
       },
       {
@@ -15918,7 +15918,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.15,
        "is_active": true
       },
       {
@@ -15932,7 +15932,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.925,
        "is_active": true
       },
       {
@@ -15946,7 +15946,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.85,
        "is_active": true
       },
       {
@@ -15960,7 +15960,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.825,
        "is_active": true
       },
       {
@@ -15974,7 +15974,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.8,
        "is_active": true
       },
       {
@@ -15988,7 +15988,7 @@
          "20x30"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.938,
        "is_active": true
       },
       {
@@ -16002,7 +16002,7 @@
          "20x30"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.688,
        "is_active": true
       },
       {
@@ -16016,7 +16016,7 @@
          "20x30"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.2,
        "is_active": true
       },
       {
@@ -16030,7 +16030,7 @@
          "20x30"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.825,
        "is_active": true
       },
       {
@@ -16044,7 +16044,7 @@
          "20x30"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.683,
        "is_active": true
       },
       {
@@ -16058,7 +16058,7 @@
          "20x30"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.625,
        "is_active": true
       },
       {
@@ -16072,7 +16072,7 @@
          "20x30"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.58,
        "is_active": true
       },
       {
@@ -16086,7 +16086,7 @@
          "18x23"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.219,
        "is_active": true
       },
       {
@@ -16100,7 +16100,7 @@
          "18x23"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.281,
        "is_active": true
       },
       {
@@ -16114,7 +16114,7 @@
          "18x23"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.95,
        "is_active": true
       },
       {
@@ -16128,7 +16128,7 @@
          "18x23"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.65,
        "is_active": true
       },
       {
@@ -16142,7 +16142,7 @@
          "18x23"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.55,
        "is_active": true
       },
       {
@@ -16156,7 +16156,7 @@
          "18x23"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.5,
        "is_active": true
       },
       {
@@ -16170,7 +16170,7 @@
          "18x23"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.48,
        "is_active": true
       },
       {
@@ -16184,7 +16184,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.188,
        "is_active": true
       },
       {
@@ -16198,7 +16198,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.719,
        "is_active": true
       },
       {
@@ -16212,7 +16212,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.5,
        "is_active": true
       },
       {
@@ -16226,7 +16226,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.35,
        "is_active": true
       },
       {
@@ -16240,7 +16240,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.283,
        "is_active": true
       },
       {
@@ -16254,7 +16254,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.262,
        "is_active": true
       },
       {
@@ -16268,7 +16268,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.25,
        "is_active": true
       },
       {
@@ -16282,7 +16282,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.344,
        "is_active": true
       },
       {
@@ -16296,7 +16296,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.797,
        "is_active": true
       },
       {
@@ -16310,7 +16310,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.65,
        "is_active": true
       },
       {
@@ -16324,7 +16324,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.45,
        "is_active": true
       },
       {
@@ -16338,7 +16338,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.4,
        "is_active": true
       },
       {
@@ -16352,7 +16352,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.375,
        "is_active": true
       },
       {
@@ -16366,7 +16366,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.35,
        "is_active": true
       },
       {
@@ -16380,7 +16380,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 589.688,
        "is_active": true
       },
       {
@@ -16394,7 +16394,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 472.578,
        "is_active": true
       },
       {
@@ -16408,7 +16408,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 430.45,
        "is_active": true
       },
       {
@@ -16422,7 +16422,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 392.975,
        "is_active": true
       },
       {
@@ -16436,7 +16436,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 380.483,
        "is_active": true
       },
       {
@@ -16450,7 +16450,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 374.238,
        "is_active": true
       },
       {
@@ -16464,7 +16464,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 370.49,
        "is_active": true
       },
       {
@@ -16478,7 +16478,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.094,
        "is_active": true
       },
       {
@@ -16492,7 +16492,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.859,
        "is_active": true
       },
       {
@@ -16506,7 +16506,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.75,
        "is_active": true
       },
       {
@@ -16520,7 +16520,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.65,
        "is_active": true
       },
       {
@@ -16534,7 +16534,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.617,
        "is_active": true
       },
       {
@@ -16548,7 +16548,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.6,
        "is_active": true
       },
       {
@@ -16562,7 +16562,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.59,
        "is_active": true
       },
       {
@@ -16576,7 +16576,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.781,
        "is_active": true
       },
       {
@@ -16590,7 +16590,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.469,
        "is_active": true
       },
       {
@@ -16604,7 +16604,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.4,
        "is_active": true
       },
       {
@@ -16618,7 +16618,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.35,
        "is_active": true
       },
       {
@@ -16632,7 +16632,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.317,
        "is_active": true
       },
       {
@@ -16646,7 +16646,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.312,
        "is_active": true
       },
       {
@@ -16660,7 +16660,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.3,
        "is_active": true
       }
      ]
@@ -16793,7 +16793,7 @@
    "charges": [
     {
      "name": "Paper Name - White Paper",
-     "charge_type": "flat",
+     "charge_type": "percentage",
      "amount": 0.0,
      "is_active": true,
      "group_name": null,
@@ -16801,47 +16801,47 @@
     },
     {
      "name": "Paper Name - Royal Ex.Bond",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 20.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Excel Bond",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 10.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Ledger Paper",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 25.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Foreign Paper",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 60.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Paper Name - Special Paper",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 40.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Printing Color - 1 Color",
-     "charge_type": "flat",
+     "charge_type": "percentage",
      "amount": 0.0,
      "is_active": true,
      "group_name": null,
@@ -16849,24 +16849,24 @@
     },
     {
      "name": "Printing Color - 2 Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 10.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Printing Color - 3 Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 18.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Printing Color - Multi Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 35.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16874,7 +16874,7 @@
     {
      "name": "Binding - Soft Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 60.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16882,7 +16882,7 @@
     {
      "name": "Binding - Hard Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 150.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16890,7 +16890,7 @@
     {
      "name": "Binding - Calico Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 120.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16898,7 +16898,7 @@
     {
      "name": "Binding - Paper Rexon",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 140.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16906,7 +16906,7 @@
     {
      "name": "Binding - Rexon Binding",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 180.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16914,7 +16914,7 @@
     {
      "name": "Binding - Rexon Corner",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 220.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16922,7 +16922,7 @@
     {
      "name": "Binding - Full Rexon",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 260.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16930,7 +16930,7 @@
     {
      "name": "Binding - Leather",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 400.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16938,7 +16938,7 @@
     {
      "name": "Binding - Leather Corner",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 450.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16946,7 +16946,7 @@
     {
      "name": "Binding Set - 25 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 20.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16954,7 +16954,7 @@
     {
      "name": "Binding Set - 50 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 30.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16962,7 +16962,7 @@
     {
      "name": "Binding Set - 100 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 45.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16970,7 +16970,7 @@
     {
      "name": "Binding Set - 200 Set",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 70.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -16999,7 +16999,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.6,
        "is_active": true
       },
       {
@@ -17017,7 +17017,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.15,
        "is_active": true
       },
       {
@@ -17035,7 +17035,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.95,
        "is_active": true
       },
       {
@@ -17053,7 +17053,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.867,
        "is_active": true
       },
       {
@@ -17071,7 +17071,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.825,
        "is_active": true
       },
       {
@@ -17089,7 +17089,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.8,
        "is_active": true
       },
       {
@@ -17107,7 +17107,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.5,
        "is_active": true
       },
       {
@@ -17125,7 +17125,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.05,
        "is_active": true
       },
       {
@@ -17143,7 +17143,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.8,
        "is_active": true
       },
       {
@@ -17161,7 +17161,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.717,
        "is_active": true
       },
       {
@@ -17179,7 +17179,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.675,
        "is_active": true
       },
       {
@@ -17197,7 +17197,7 @@
          "15x20"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.66,
        "is_active": true
       },
       {
@@ -17215,7 +17215,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.9,
        "is_active": true
       },
       {
@@ -17233,7 +17233,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.6,
        "is_active": true
       },
       {
@@ -17251,7 +17251,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.4,
        "is_active": true
       },
       {
@@ -17269,7 +17269,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.35,
        "is_active": true
       },
       {
@@ -17287,7 +17287,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.325,
        "is_active": true
       },
       {
@@ -17305,7 +17305,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.3,
        "is_active": true
       },
       {
@@ -17323,7 +17323,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.6,
        "is_active": true
       },
       {
@@ -17341,7 +17341,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.2,
        "is_active": true
       },
       {
@@ -17359,7 +17359,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.025,
        "is_active": true
       },
       {
@@ -17377,7 +17377,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.967,
        "is_active": true
       },
       {
@@ -17395,7 +17395,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.938,
        "is_active": true
       },
       {
@@ -17413,7 +17413,7 @@
          "12x18"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.92,
        "is_active": true
       },
       {
@@ -17431,7 +17431,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.9,
        "is_active": true
       },
       {
@@ -17449,7 +17449,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.55,
        "is_active": true
       },
       {
@@ -17467,7 +17467,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.35,
        "is_active": true
       },
       {
@@ -17485,7 +17485,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.3,
        "is_active": true
       },
       {
@@ -17503,7 +17503,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.262,
        "is_active": true
       },
       {
@@ -17521,7 +17521,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.25,
        "is_active": true
       },
       {
@@ -17539,7 +17539,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.5,
        "is_active": true
       },
       {
@@ -17557,7 +17557,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.1,
        "is_active": true
       },
       {
@@ -17575,7 +17575,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.95,
        "is_active": true
       },
       {
@@ -17593,7 +17593,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.883,
        "is_active": true
       },
       {
@@ -17611,7 +17611,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.863,
        "is_active": true
       },
       {
@@ -17629,7 +17629,7 @@
          "11.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.84,
        "is_active": true
       },
       {
@@ -17647,7 +17647,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.0,
        "is_active": true
       },
       {
@@ -17665,7 +17665,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.65,
        "is_active": true
       },
       {
@@ -17683,7 +17683,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.475,
        "is_active": true
       },
       {
@@ -17701,7 +17701,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.4,
        "is_active": true
       },
       {
@@ -17719,7 +17719,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.375,
        "is_active": true
       },
       {
@@ -17737,7 +17737,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.36,
        "is_active": true
       },
       {
@@ -17755,7 +17755,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.7,
        "is_active": true
       },
       {
@@ -17773,7 +17773,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.3,
        "is_active": true
       },
       {
@@ -17791,7 +17791,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.1,
        "is_active": true
       },
       {
@@ -17809,7 +17809,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.05,
        "is_active": true
       },
       {
@@ -17827,7 +17827,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.013,
        "is_active": true
       },
       {
@@ -17845,7 +17845,7 @@
          "12.5x18 (A3)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.0,
        "is_active": true
       },
       {
@@ -17863,7 +17863,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 505.4,
        "is_active": true
       },
       {
@@ -17881,7 +17881,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 430.45,
        "is_active": true
       },
       {
@@ -17899,7 +17899,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 392.975,
        "is_active": true
       },
       {
@@ -17917,7 +17917,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 380.483,
        "is_active": true
       },
       {
@@ -17935,7 +17935,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 374.25,
        "is_active": true
       },
       {
@@ -17953,7 +17953,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 370.5,
        "is_active": true
       },
       {
@@ -17971,7 +17971,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 683.2,
        "is_active": true
       },
       {
@@ -17989,7 +17989,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 608.2,
        "is_active": true
       },
       {
@@ -18007,7 +18007,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 570.725,
        "is_active": true
       },
       {
@@ -18025,7 +18025,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 558.25,
        "is_active": true
       },
       {
@@ -18043,7 +18043,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 552.0,
        "is_active": true
       },
       {
@@ -18061,7 +18061,7 @@
          "A4 (210x297mm)"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 548.25,
        "is_active": true
       },
       {
@@ -18079,7 +18079,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.0,
        "is_active": true
       },
       {
@@ -18097,7 +18097,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.75,
        "is_active": true
       },
       {
@@ -18115,7 +18115,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.65,
        "is_active": true
       },
       {
@@ -18133,7 +18133,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.617,
        "is_active": true
       },
       {
@@ -18151,7 +18151,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.6,
        "is_active": true
       },
       {
@@ -18169,7 +18169,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.59,
        "is_active": true
       },
       {
@@ -18187,7 +18187,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.3,
        "is_active": true
       },
       {
@@ -18205,7 +18205,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.05,
        "is_active": true
       },
       {
@@ -18223,7 +18223,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.925,
        "is_active": true
       },
       {
@@ -18241,7 +18241,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.9,
        "is_active": true
       },
       {
@@ -18259,7 +18259,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.875,
        "is_active": true
       },
       {
@@ -18277,7 +18277,7 @@
          "A4"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.87,
        "is_active": true
       },
       {
@@ -18295,7 +18295,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.6,
        "is_active": true
       },
       {
@@ -18313,7 +18313,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.45,
        "is_active": true
       },
       {
@@ -18331,7 +18331,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.35,
        "is_active": true
       },
       {
@@ -18349,7 +18349,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.333,
        "is_active": true
       },
       {
@@ -18367,7 +18367,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.312,
        "is_active": true
       },
       {
@@ -18385,7 +18385,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.31,
        "is_active": true
       },
       {
@@ -18403,7 +18403,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.7,
        "is_active": true
       },
       {
@@ -18421,7 +18421,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.55,
        "is_active": true
       },
       {
@@ -18439,7 +18439,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.5,
        "is_active": true
       },
       {
@@ -18457,7 +18457,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.467,
        "is_active": true
       },
       {
@@ -18475,7 +18475,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.45,
        "is_active": true
       },
       {
@@ -18493,7 +18493,7 @@
          "A5"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.45,
        "is_active": true
       }
      ]
@@ -18639,40 +18639,40 @@
    "charges": [
     {
      "name": "Side - Both Side Printing",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "percentage",
+     "amount": 30.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Folding - Two Folding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 0.5,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Folding - Three Folding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 0.7,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Folding - 4 Folding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 0.9,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Folding - Booklet",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 1.5,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -18697,7 +18697,7 @@
          "Maplitho 54 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.9,
        "is_active": true
       },
       {
@@ -18711,7 +18711,7 @@
          "Maplitho 54 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.35,
        "is_active": true
       },
       {
@@ -18725,7 +18725,7 @@
          "Maplitho 54 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.8,
        "is_active": true
       },
       {
@@ -18739,7 +18739,7 @@
          "Maplitho 54 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.525,
        "is_active": true
       },
       {
@@ -18753,7 +18753,7 @@
          "Maplitho 60 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.474,
        "is_active": true
       },
       {
@@ -18767,7 +18767,7 @@
          "Maplitho 60 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.801,
        "is_active": true
       },
       {
@@ -18781,7 +18781,7 @@
          "Maplitho 60 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.128,
        "is_active": true
       },
       {
@@ -18795,7 +18795,7 @@
          "Maplitho 60 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.792,
        "is_active": true
       },
       {
@@ -18809,7 +18809,7 @@
          "Maplitho 70 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 13.426,
        "is_active": true
       },
       {
@@ -18823,7 +18823,7 @@
          "Maplitho 70 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.549,
        "is_active": true
       },
       {
@@ -18837,7 +18837,7 @@
          "Maplitho 70 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.672,
        "is_active": true
       },
       {
@@ -18851,7 +18851,7 @@
          "Maplitho 70 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.233,
        "is_active": true
       },
       {
@@ -18865,7 +18865,7 @@
          "Maplitho 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.378,
        "is_active": true
       },
       {
@@ -18879,7 +18879,7 @@
          "Maplitho 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.297,
        "is_active": true
       },
       {
@@ -18893,7 +18893,7 @@
          "Maplitho 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.216,
        "is_active": true
       },
       {
@@ -18907,7 +18907,7 @@
          "Maplitho 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.675,
        "is_active": true
       },
       {
@@ -18921,7 +18921,7 @@
          "Maplitho 85 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.854,
        "is_active": true
       },
       {
@@ -18935,7 +18935,7 @@
          "Maplitho 85 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.671,
        "is_active": true
       },
       {
@@ -18949,7 +18949,7 @@
          "Maplitho 85 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.488,
        "is_active": true
       },
       {
@@ -18963,7 +18963,7 @@
          "Maplitho 85 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.896,
        "is_active": true
       },
       {
@@ -18977,7 +18977,7 @@
          "Maplitho 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.33,
        "is_active": true
       },
       {
@@ -18991,7 +18991,7 @@
          "Maplitho 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.045,
        "is_active": true
       },
       {
@@ -19005,7 +19005,7 @@
          "Maplitho 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.76,
        "is_active": true
       },
       {
@@ -19019,7 +19019,7 @@
          "Maplitho 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.117,
        "is_active": true
       },
       {
@@ -19033,7 +19033,7 @@
          "Maplitho 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.296,
        "is_active": true
       },
       {
@@ -19047,7 +19047,7 @@
          "Maplitho 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.804,
        "is_active": true
       },
       {
@@ -19061,7 +19061,7 @@
          "Maplitho 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.312,
        "is_active": true
       },
       {
@@ -19075,7 +19075,7 @@
          "Maplitho 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.566,
        "is_active": true
       },
       {
@@ -19089,7 +19089,7 @@
          "Maplitho 120 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.2,
        "is_active": true
       },
       {
@@ -19103,7 +19103,7 @@
          "Maplitho 120 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.3,
        "is_active": true
       },
       {
@@ -19117,7 +19117,7 @@
          "Maplitho 120 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.4,
        "is_active": true
       },
       {
@@ -19131,7 +19131,7 @@
          "Maplitho 120 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.45,
        "is_active": true
       },
       {
@@ -19145,7 +19145,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.0,
        "is_active": true
       },
       {
@@ -19159,7 +19159,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.0,
        "is_active": true
       },
       {
@@ -19173,7 +19173,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.0,
        "is_active": true
       },
       {
@@ -19187,7 +19187,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.5,
        "is_active": true
       },
       {
@@ -19201,7 +19201,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.952,
        "is_active": true
       },
       {
@@ -19215,7 +19215,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.748,
        "is_active": true
       },
       {
@@ -19229,7 +19229,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.544,
        "is_active": true
       },
       {
@@ -19243,7 +19243,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.942,
        "is_active": true
       },
       {
@@ -19257,7 +19257,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.904,
        "is_active": true
       },
       {
@@ -19271,7 +19271,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.496,
        "is_active": true
       },
       {
@@ -19285,7 +19285,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 9.088,
        "is_active": true
       },
       {
@@ -19299,7 +19299,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 7.384,
        "is_active": true
       },
       {
@@ -19313,7 +19313,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.774,
        "is_active": true
       },
       {
@@ -19327,7 +19327,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.751,
        "is_active": true
       },
       {
@@ -19341,7 +19341,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.728,
        "is_active": true
       },
       {
@@ -19355,7 +19355,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.716,
        "is_active": true
       },
       {
@@ -19369,7 +19369,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 22.596,
        "is_active": true
       },
       {
@@ -19383,7 +19383,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.754,
        "is_active": true
       },
       {
@@ -19397,7 +19397,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.912,
        "is_active": true
       },
       {
@@ -19411,7 +19411,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 10.491,
        "is_active": true
       },
       {
@@ -19425,7 +19425,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 30.226,
        "is_active": true
       },
       {
@@ -19439,7 +19439,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 23.749,
        "is_active": true
       },
       {
@@ -19453,7 +19453,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.272,
        "is_active": true
       },
       {
@@ -19467,7 +19467,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.033,
        "is_active": true
       },
       {
@@ -19481,7 +19481,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 35.0,
        "is_active": true
       },
       {
@@ -19495,7 +19495,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 27.5,
        "is_active": true
       },
       {
@@ -19509,7 +19509,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 20.0,
        "is_active": true
       },
       {
@@ -19523,7 +19523,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.25,
        "is_active": true
       }
      ]
@@ -19764,7 +19764,7 @@
     {
      "name": "Designing Charge",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 300.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -19772,7 +19772,7 @@
     {
      "name": "Logo Designing Charge",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 600.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -19780,7 +19780,7 @@
     {
      "name": "Corner Cutting - Two Corner",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 60.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -19788,7 +19788,7 @@
     {
      "name": "Corner Cutting - Four Corner",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 100.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -19796,7 +19796,7 @@
     {
      "name": "Foiling - Gold",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 700.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -19804,7 +19804,7 @@
     {
      "name": "Foiling - Silver",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 700.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -19833,7 +19833,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.765,
        "is_active": true
       },
       {
@@ -19851,7 +19851,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.2,
        "is_active": true
       },
       {
@@ -19869,7 +19869,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.924,
        "is_active": true
       },
       {
@@ -19887,7 +19887,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.75,
        "is_active": true
       },
       {
@@ -19905,7 +19905,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.626,
        "is_active": true
       },
       {
@@ -19923,7 +19923,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.531,
        "is_active": true
       },
       {
@@ -19941,7 +19941,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.455,
        "is_active": true
       },
       {
@@ -19959,7 +19959,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.392,
        "is_active": true
       },
       {
@@ -19977,7 +19977,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.339,
        "is_active": true
       },
       {
@@ -19995,7 +19995,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.293,
        "is_active": true
       },
       {
@@ -20013,7 +20013,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.029,
        "is_active": true
       },
       {
@@ -20031,7 +20031,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.9,
        "is_active": true
       },
       {
@@ -20049,7 +20049,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.819,
        "is_active": true
       },
       {
@@ -20067,7 +20067,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.761,
        "is_active": true
       },
       {
@@ -20085,7 +20085,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.716,
        "is_active": true
       },
       {
@@ -20103,7 +20103,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.681,
        "is_active": true
       },
       {
@@ -20121,7 +20121,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.651,
        "is_active": true
       },
       {
@@ -20139,7 +20139,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.626,
        "is_active": true
       },
       {
@@ -20157,7 +20157,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.605,
        "is_active": true
       },
       {
@@ -20175,7 +20175,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.481,
        "is_active": true
       },
       {
@@ -20193,7 +20193,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.383,
        "is_active": true
       },
       {
@@ -20211,7 +20211,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.335,
        "is_active": true
       },
       {
@@ -20229,7 +20229,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.305,
        "is_active": true
       },
       {
@@ -20247,7 +20247,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.733,
        "is_active": true
       },
       {
@@ -20265,7 +20265,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.97,
        "is_active": true
       },
       {
@@ -20283,7 +20283,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.598,
        "is_active": true
       },
       {
@@ -20301,7 +20301,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.363,
        "is_active": true
       },
       {
@@ -20319,7 +20319,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.195,
        "is_active": true
       },
       {
@@ -20337,7 +20337,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.067,
        "is_active": true
       },
       {
@@ -20355,7 +20355,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.964,
        "is_active": true
       },
       {
@@ -20373,7 +20373,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.88,
        "is_active": true
       },
       {
@@ -20391,7 +20391,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.808,
        "is_active": true
       },
       {
@@ -20409,7 +20409,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.746,
        "is_active": true
       },
       {
@@ -20427,7 +20427,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.389,
        "is_active": true
       },
       {
@@ -20445,7 +20445,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.215,
        "is_active": true
       },
       {
@@ -20463,7 +20463,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.105,
        "is_active": true
       },
       {
@@ -20481,7 +20481,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.027,
        "is_active": true
       },
       {
@@ -20499,7 +20499,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.967,
        "is_active": true
       },
       {
@@ -20517,7 +20517,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.919,
        "is_active": true
       },
       {
@@ -20535,7 +20535,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.879,
        "is_active": true
       },
       {
@@ -20553,7 +20553,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.846,
        "is_active": true
       },
       {
@@ -20571,7 +20571,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.817,
        "is_active": true
       },
       {
@@ -20589,7 +20589,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.65,
        "is_active": true
       },
       {
@@ -20607,7 +20607,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.517,
        "is_active": true
       },
       {
@@ -20625,7 +20625,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.452,
        "is_active": true
       },
       {
@@ -20643,7 +20643,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.411,
        "is_active": true
       },
       {
@@ -20661,7 +20661,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.457,
        "is_active": true
       },
       {
@@ -20679,7 +20679,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.75,
        "is_active": true
       },
       {
@@ -20697,7 +20697,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.406,
        "is_active": true
       },
       {
@@ -20715,7 +20715,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.188,
        "is_active": true
       },
       {
@@ -20733,7 +20733,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.032,
        "is_active": true
       },
       {
@@ -20751,7 +20751,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.914,
        "is_active": true
       },
       {
@@ -20769,7 +20769,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.819,
        "is_active": true
       },
       {
@@ -20787,7 +20787,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.74,
        "is_active": true
       },
       {
@@ -20805,7 +20805,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.674,
        "is_active": true
       },
       {
@@ -20823,7 +20823,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.617,
        "is_active": true
       },
       {
@@ -20841,7 +20841,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.286,
        "is_active": true
       },
       {
@@ -20859,7 +20859,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.125,
        "is_active": true
       },
       {
@@ -20877,7 +20877,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.023,
        "is_active": true
       },
       {
@@ -20895,7 +20895,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.951,
        "is_active": true
       },
       {
@@ -20913,7 +20913,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.895,
        "is_active": true
       },
       {
@@ -20931,7 +20931,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.851,
        "is_active": true
       },
       {
@@ -20949,7 +20949,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.814,
        "is_active": true
       },
       {
@@ -20967,7 +20967,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.783,
        "is_active": true
       },
       {
@@ -20985,7 +20985,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.756,
        "is_active": true
       },
       {
@@ -21003,7 +21003,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.602,
        "is_active": true
       },
       {
@@ -21021,7 +21021,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.479,
        "is_active": true
       },
       {
@@ -21039,7 +21039,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.419,
        "is_active": true
       },
       {
@@ -21057,7 +21057,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.381,
        "is_active": true
       },
       {
@@ -21075,7 +21075,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.667,
        "is_active": true
       },
       {
@@ -21093,7 +21093,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.713,
        "is_active": true
       },
       {
@@ -21111,7 +21111,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.248,
        "is_active": true
       },
       {
@@ -21129,7 +21129,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.953,
        "is_active": true
       },
       {
@@ -21147,7 +21147,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.744,
        "is_active": true
       },
       {
@@ -21165,7 +21165,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.584,
        "is_active": true
       },
       {
@@ -21183,7 +21183,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.455,
        "is_active": true
       },
       {
@@ -21201,7 +21201,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.35,
        "is_active": true
       },
       {
@@ -21219,7 +21219,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.26,
        "is_active": true
       },
       {
@@ -21237,7 +21237,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.183,
        "is_active": true
       },
       {
@@ -21255,7 +21255,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.736,
        "is_active": true
       },
       {
@@ -21273,7 +21273,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.519,
        "is_active": true
       },
       {
@@ -21291,7 +21291,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.381,
        "is_active": true
       },
       {
@@ -21309,7 +21309,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.283,
        "is_active": true
       },
       {
@@ -21327,7 +21327,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.208,
        "is_active": true
       },
       {
@@ -21345,7 +21345,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.148,
        "is_active": true
       },
       {
@@ -21363,7 +21363,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.099,
        "is_active": true
       },
       {
@@ -21381,7 +21381,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.057,
        "is_active": true
       },
       {
@@ -21399,7 +21399,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.021,
        "is_active": true
       },
       {
@@ -21417,7 +21417,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.812,
        "is_active": true
       },
       {
@@ -21435,7 +21435,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.646,
        "is_active": true
       },
       {
@@ -21453,7 +21453,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.565,
        "is_active": true
       },
       {
@@ -21471,7 +21471,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.514,
        "is_active": true
       },
       {
@@ -21489,7 +21489,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.595,
        "is_active": true
       },
       {
@@ -21507,7 +21507,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.86,
        "is_active": true
       },
       {
@@ -21525,7 +21525,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.502,
        "is_active": true
       },
       {
@@ -21543,7 +21543,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.275,
        "is_active": true
       },
       {
@@ -21561,7 +21561,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.114,
        "is_active": true
       },
       {
@@ -21579,7 +21579,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.99,
        "is_active": true
       },
       {
@@ -21597,7 +21597,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.892,
        "is_active": true
       },
       {
@@ -21615,7 +21615,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.81,
        "is_active": true
       },
       {
@@ -21633,7 +21633,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.741,
        "is_active": true
       },
       {
@@ -21651,7 +21651,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.682,
        "is_active": true
       },
       {
@@ -21669,7 +21669,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.338,
        "is_active": true
       },
       {
@@ -21687,7 +21687,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.17,
        "is_active": true
       },
       {
@@ -21705,7 +21705,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.064,
        "is_active": true
       },
       {
@@ -21723,7 +21723,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.989,
        "is_active": true
       },
       {
@@ -21741,7 +21741,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.931,
        "is_active": true
       },
       {
@@ -21759,7 +21759,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.885,
        "is_active": true
       },
       {
@@ -21777,7 +21777,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.847,
        "is_active": true
       },
       {
@@ -21795,7 +21795,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.814,
        "is_active": true
       },
       {
@@ -21813,7 +21813,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.787,
        "is_active": true
       },
       {
@@ -21831,7 +21831,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.626,
        "is_active": true
       },
       {
@@ -21849,7 +21849,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.498,
        "is_active": true
       },
       {
@@ -21867,7 +21867,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.435,
        "is_active": true
       },
       {
@@ -21885,7 +21885,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.396,
        "is_active": true
       },
       {
@@ -21903,7 +21903,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.853,
        "is_active": true
       },
       {
@@ -21921,7 +21921,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.861,
        "is_active": true
       },
       {
@@ -21939,7 +21939,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.377,
        "is_active": true
       },
       {
@@ -21957,7 +21957,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.072,
        "is_active": true
       },
       {
@@ -21975,7 +21975,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.854,
        "is_active": true
       },
       {
@@ -21993,7 +21993,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.687,
        "is_active": true
       },
       {
@@ -22011,7 +22011,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.554,
        "is_active": true
       },
       {
@@ -22029,7 +22029,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.444,
        "is_active": true
       },
       {
@@ -22047,7 +22047,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.35,
        "is_active": true
       },
       {
@@ -22065,7 +22065,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.27,
        "is_active": true
       },
       {
@@ -22083,7 +22083,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.806,
        "is_active": true
       },
       {
@@ -22101,7 +22101,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.58,
        "is_active": true
       },
       {
@@ -22119,7 +22119,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.437,
        "is_active": true
       },
       {
@@ -22137,7 +22137,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.335,
        "is_active": true
       },
       {
@@ -22155,7 +22155,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.257,
        "is_active": true
       },
       {
@@ -22173,7 +22173,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.194,
        "is_active": true
       },
       {
@@ -22191,7 +22191,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.143,
        "is_active": true
       },
       {
@@ -22209,7 +22209,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.099,
        "is_active": true
       },
       {
@@ -22227,7 +22227,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.062,
        "is_active": true
       },
       {
@@ -22245,7 +22245,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.845,
        "is_active": true
       },
       {
@@ -22263,7 +22263,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.672,
        "is_active": true
       },
       {
@@ -22281,7 +22281,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.588,
        "is_active": true
       },
       {
@@ -22299,7 +22299,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.535,
        "is_active": true
       },
       {
@@ -22317,7 +22317,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.148,
        "is_active": true
       },
       {
@@ -22335,7 +22335,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.3,
        "is_active": true
       },
       {
@@ -22353,7 +22353,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.887,
        "is_active": true
       },
       {
@@ -22371,7 +22371,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.625,
        "is_active": true
       },
       {
@@ -22389,7 +22389,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.439,
        "is_active": true
       },
       {
@@ -22407,7 +22407,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.296,
        "is_active": true
       },
       {
@@ -22425,7 +22425,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.183,
        "is_active": true
       },
       {
@@ -22443,7 +22443,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.088,
        "is_active": true
       },
       {
@@ -22461,7 +22461,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.009,
        "is_active": true
       },
       {
@@ -22479,7 +22479,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.94,
        "is_active": true
       },
       {
@@ -22497,7 +22497,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.544,
        "is_active": true
       },
       {
@@ -22515,7 +22515,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.35,
        "is_active": true
       },
       {
@@ -22533,7 +22533,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.228,
        "is_active": true
       },
       {
@@ -22551,7 +22551,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.141,
        "is_active": true
       },
       {
@@ -22569,7 +22569,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.074,
        "is_active": true
       },
       {
@@ -22587,7 +22587,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.021,
        "is_active": true
       },
       {
@@ -22605,7 +22605,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.977,
        "is_active": true
       },
       {
@@ -22623,7 +22623,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.94,
        "is_active": true
       },
       {
@@ -22641,7 +22641,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.908,
        "is_active": true
       },
       {
@@ -22659,7 +22659,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.722,
        "is_active": true
       },
       {
@@ -22677,7 +22677,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.574,
        "is_active": true
       },
       {
@@ -22695,7 +22695,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.502,
        "is_active": true
       },
       {
@@ -22713,7 +22713,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.457,
        "is_active": true
       },
       {
@@ -22731,7 +22731,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.6,
        "is_active": true
       },
       {
@@ -22749,7 +22749,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.455,
        "is_active": true
       },
       {
@@ -22767,7 +22767,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.897,
        "is_active": true
       },
       {
@@ -22785,7 +22785,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.544,
        "is_active": true
       },
       {
@@ -22803,7 +22803,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.293,
        "is_active": true
       },
       {
@@ -22821,7 +22821,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.1,
        "is_active": true
       },
       {
@@ -22839,7 +22839,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.946,
        "is_active": true
       },
       {
@@ -22857,7 +22857,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.819,
        "is_active": true
       },
       {
@@ -22875,7 +22875,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.712,
        "is_active": true
       },
       {
@@ -22893,7 +22893,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.619,
        "is_active": true
       },
       {
@@ -22911,7 +22911,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.084,
        "is_active": true
       },
       {
@@ -22929,7 +22929,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.823,
        "is_active": true
       },
       {
@@ -22947,7 +22947,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.658,
        "is_active": true
       },
       {
@@ -22965,7 +22965,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.54,
        "is_active": true
       },
       {
@@ -22983,7 +22983,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.45,
        "is_active": true
       },
       {
@@ -23001,7 +23001,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.378,
        "is_active": true
       },
       {
@@ -23019,7 +23019,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.319,
        "is_active": true
       },
       {
@@ -23037,7 +23037,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.268,
        "is_active": true
       },
       {
@@ -23055,7 +23055,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.225,
        "is_active": true
       },
       {
@@ -23073,7 +23073,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.975,
        "is_active": true
       },
       {
@@ -23091,7 +23091,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.775,
        "is_active": true
       },
       {
@@ -23109,7 +23109,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.678,
        "is_active": true
       },
       {
@@ -23127,7 +23127,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.617,
        "is_active": true
       },
       {
@@ -23145,7 +23145,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.978,
        "is_active": true
       },
       {
@@ -23163,7 +23163,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.96,
        "is_active": true
       },
       {
@@ -23181,7 +23181,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.464,
        "is_active": true
       },
       {
@@ -23199,7 +23199,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.15,
        "is_active": true
       },
       {
@@ -23217,7 +23217,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.927,
        "is_active": true
       },
       {
@@ -23235,7 +23235,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.756,
        "is_active": true
       },
       {
@@ -23253,7 +23253,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.619,
        "is_active": true
       },
       {
@@ -23271,7 +23271,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.506,
        "is_active": true
       },
       {
@@ -23289,7 +23289,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.411,
        "is_active": true
       },
       {
@@ -23307,7 +23307,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.328,
        "is_active": true
       },
       {
@@ -23325,7 +23325,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.852,
        "is_active": true
       },
       {
@@ -23343,7 +23343,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.62,
        "is_active": true
       },
       {
@@ -23361,7 +23361,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.474,
        "is_active": true
       },
       {
@@ -23379,7 +23379,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.369,
        "is_active": true
       },
       {
@@ -23397,7 +23397,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.289,
        "is_active": true
       },
       {
@@ -23415,7 +23415,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.225,
        "is_active": true
       },
       {
@@ -23433,7 +23433,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.172,
        "is_active": true
       },
       {
@@ -23451,7 +23451,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.128,
        "is_active": true
       },
       {
@@ -23469,7 +23469,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.089,
        "is_active": true
       },
       {
@@ -23487,7 +23487,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.866,
        "is_active": true
       },
       {
@@ -23505,7 +23505,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.689,
        "is_active": true
       },
       {
@@ -23523,7 +23523,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.603,
        "is_active": true
       },
       {
@@ -23541,7 +23541,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.548,
        "is_active": true
       },
       {
@@ -23559,7 +23559,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.72,
        "is_active": true
       },
       {
@@ -23577,7 +23577,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.346,
        "is_active": true
       },
       {
@@ -23595,7 +23595,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.676,
        "is_active": true
       },
       {
@@ -23613,7 +23613,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 4.253,
        "is_active": true
       },
       {
@@ -23631,7 +23631,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.951,
        "is_active": true
       },
       {
@@ -23649,7 +23649,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.72,
        "is_active": true
       },
       {
@@ -23667,7 +23667,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.536,
        "is_active": true
       },
       {
@@ -23685,7 +23685,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.383,
        "is_active": true
       },
       {
@@ -23703,7 +23703,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.254,
        "is_active": true
       },
       {
@@ -23721,7 +23721,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.143,
        "is_active": true
       },
       {
@@ -23739,7 +23739,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.501,
        "is_active": true
       },
       {
@@ -23757,7 +23757,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 2.187,
        "is_active": true
       },
       {
@@ -23775,7 +23775,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.989,
        "is_active": true
       },
       {
@@ -23793,7 +23793,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.848,
        "is_active": true
       },
       {
@@ -23811,7 +23811,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.74,
        "is_active": true
       },
       {
@@ -23829,7 +23829,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.654,
        "is_active": true
       },
       {
@@ -23847,7 +23847,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.583,
        "is_active": true
       },
       {
@@ -23865,7 +23865,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.522,
        "is_active": true
       },
       {
@@ -23883,7 +23883,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.47,
        "is_active": true
       },
       {
@@ -23901,7 +23901,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 1.17,
        "is_active": true
       },
       {
@@ -23919,7 +23919,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.93,
        "is_active": true
       },
       {
@@ -23937,7 +23937,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.814,
        "is_active": true
       },
       {
@@ -23955,7 +23955,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 0.74,
        "is_active": true
       }
      ]
@@ -24002,80 +24002,80 @@
    "charges": [
     {
      "name": "Holder - Portrait",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 8.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Holder - Landscape",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 8.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Holder Quality - First Quality",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 6.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Holder Quality - 2nd Quality",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Rope - Single Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 5.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Rope - Multi Color",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 7.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Hook Model",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 10.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "PVC Pouch - Portrait",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 6.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "PVC Pouch - Landscape",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 6.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "ID Sticker Only",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 4.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -24100,7 +24100,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.0,
        "is_active": true
       },
       {
@@ -24114,7 +24114,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.8,
        "is_active": true
       }
      ]
@@ -24137,7 +24137,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 32.0,
        "is_active": true
       },
       {
@@ -24151,7 +24151,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 44.8,
        "is_active": true
       }
      ]
@@ -24174,7 +24174,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 95.0,
        "is_active": true
       },
       {
@@ -24188,7 +24188,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 133.0,
        "is_active": true
       }
      ]
@@ -24211,7 +24211,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 6.0,
        "is_active": true
       },
       {
@@ -24225,7 +24225,7 @@
          "Front & Back"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 8.4,
        "is_active": true
       }
      ]
@@ -24812,7 +24812,7 @@
     {
      "name": "Printer C10 (10x27 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 50.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24820,7 +24820,7 @@
     {
      "name": "Printer C20 (14x38 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 65.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24828,7 +24828,7 @@
     {
      "name": "Printer C30 (18x47 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 90.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24836,7 +24836,7 @@
     {
      "name": "Printer C40 (23x59 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 130.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24844,7 +24844,7 @@
     {
      "name": "Printer C50 (30x69 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 185.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24852,7 +24852,7 @@
     {
      "name": "Printer C60 (37x76 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 240.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24860,7 +24860,7 @@
     {
      "name": "Printer S200 (24x45 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 110.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24868,7 +24868,7 @@
     {
      "name": "Printer 53 (30x45 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 130.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24876,7 +24876,7 @@
     {
      "name": "Printer 35 (30x50 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 140.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24884,7 +24884,7 @@
     {
      "name": "Printer 38 (33x56 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 165.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24892,7 +24892,7 @@
     {
      "name": "Printer 54 (40x50 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 175.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24900,7 +24900,7 @@
     {
      "name": "Printer 55 (40x60 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 205.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24908,7 +24908,7 @@
     {
      "name": "Printer 05 (6x15 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 35.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24916,7 +24916,7 @@
     {
      "name": "Printer 15 (10x69 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 80.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24924,7 +24924,7 @@
     {
      "name": "Printer 25 (15x75 mm)",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 110.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24932,7 +24932,7 @@
     {
      "name": "Dura-Preink Stamp",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 70.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24940,7 +24940,7 @@
     {
      "name": "Sun Stamp",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 70.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -24948,7 +24948,7 @@
     {
      "name": "Numbering Seal Small",
      "pricing_type": "fixed",
-     "fixed_price": null,
+     "fixed_price": 70.0,
      "is_active": true,
      "description": null,
      "cells": []
@@ -25089,55 +25089,55 @@
     {
      "name": "Designing Charge",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 500.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Glass",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 1.5,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Matt",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 1.8,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - 3D",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.5,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Thermal Glass",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 2.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Lamination - Thermal Matt",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 2.2,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Special Work - Nurling",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 3.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -25145,7 +25145,7 @@
     {
      "name": "Special Work - Gold Foiling",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 1000.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -25153,7 +25153,7 @@
     {
      "name": "Special Work - Silver Foiling",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 1000.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -25161,191 +25161,191 @@
     {
      "name": "Special Work - Emposing",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 800.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Art Board",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 4.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Matt Art",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 5.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Criss Cross Board",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 9.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Needlepoint Board",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 9.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Gold Metalik",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 12.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Silver Metalik",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 12.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Nurling Board",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 10.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Board - Special Board",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 14.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Soft Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 15.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Hard Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 40.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Calico Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 35.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Paper Rexon",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 30.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Rexon Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 40.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Rexon Corner",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 50.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Full Rexon",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 60.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Leather",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 90.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Leather Corner",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 100.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Pouch Lamination",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 12.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Soft Biding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 15.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Karishma Bind",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 25.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Wiro Biding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 30.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Spiral Binding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 25.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Binding - Case Biding",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_unit",
+     "amount": 70.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -25370,7 +25370,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 22.0,
        "is_active": true
       },
       {
@@ -25384,7 +25384,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.0,
        "is_active": true
       },
       {
@@ -25398,7 +25398,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.0,
        "is_active": true
       },
       {
@@ -25412,7 +25412,7 @@
          "Art Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.0,
        "is_active": true
       },
       {
@@ -25426,7 +25426,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 23.496,
        "is_active": true
       },
       {
@@ -25440,7 +25440,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 19.224,
        "is_active": true
       },
       {
@@ -25454,7 +25454,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.952,
        "is_active": true
       },
       {
@@ -25468,7 +25468,7 @@
          "Art Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.748,
        "is_active": true
       },
       {
@@ -25482,7 +25482,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 24.992,
        "is_active": true
       },
       {
@@ -25496,7 +25496,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 20.448,
        "is_active": true
       },
       {
@@ -25510,7 +25510,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.904,
        "is_active": true
       },
       {
@@ -25524,7 +25524,7 @@
          "Art Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.496,
        "is_active": true
       },
       {
@@ -25538,7 +25538,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 29.502,
        "is_active": true
       },
       {
@@ -25552,7 +25552,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 24.138,
        "is_active": true
       },
       {
@@ -25566,7 +25566,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.774,
        "is_active": true
       },
       {
@@ -25580,7 +25580,7 @@
          "Art Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.751,
        "is_active": true
       },
       {
@@ -25594,7 +25594,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 35.508,
        "is_active": true
       },
       {
@@ -25608,7 +25608,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 29.052,
        "is_active": true
       },
       {
@@ -25622,7 +25622,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 22.596,
        "is_active": true
       },
       {
@@ -25636,7 +25636,7 @@
          "Art Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 17.754,
        "is_active": true
       },
       {
@@ -25650,7 +25650,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 47.498,
        "is_active": true
       },
       {
@@ -25664,7 +25664,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 38.862,
        "is_active": true
       },
       {
@@ -25678,7 +25678,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 30.226,
        "is_active": true
       },
       {
@@ -25692,7 +25692,7 @@
          "Art Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 23.749,
        "is_active": true
       },
       {
@@ -25706,7 +25706,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 55.0,
        "is_active": true
       },
       {
@@ -25720,7 +25720,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 45.0,
        "is_active": true
       },
       {
@@ -25734,7 +25734,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 35.0,
        "is_active": true
       },
       {
@@ -25748,7 +25748,7 @@
          "Art Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 27.5,
        "is_active": true
       },
       {
@@ -25762,7 +25762,7 @@
          "Maplitho Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 22.594,
        "is_active": true
       },
       {
@@ -25776,7 +25776,7 @@
          "Maplitho Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.486,
        "is_active": true
       },
       {
@@ -25790,7 +25790,7 @@
          "Maplitho Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 14.378,
        "is_active": true
       },
       {
@@ -25804,7 +25804,7 @@
          "Maplitho Paper 80 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 11.297,
        "is_active": true
       },
       {
@@ -25818,7 +25818,7 @@
          "Maplitho Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 24.09,
        "is_active": true
       },
       {
@@ -25832,7 +25832,7 @@
          "Maplitho Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 19.71,
        "is_active": true
       },
       {
@@ -25846,7 +25846,7 @@
          "Maplitho Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.33,
        "is_active": true
       },
       {
@@ -25860,7 +25860,7 @@
          "Maplitho Paper 90 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.045,
        "is_active": true
       },
       {
@@ -25874,7 +25874,7 @@
          "Maplitho Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 25.608,
        "is_active": true
       },
       {
@@ -25888,7 +25888,7 @@
          "Maplitho Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 20.952,
        "is_active": true
       },
       {
@@ -25902,7 +25902,7 @@
          "Maplitho Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.296,
        "is_active": true
       },
       {
@@ -25916,7 +25916,7 @@
          "Maplitho Paper 100 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.804,
        "is_active": true
       },
       {
@@ -25930,7 +25930,7 @@
          "Maplitho Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 30.096,
        "is_active": true
       },
       {
@@ -25944,7 +25944,7 @@
          "Maplitho Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 24.624,
        "is_active": true
       },
       {
@@ -25958,7 +25958,7 @@
          "Maplitho Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 19.152,
        "is_active": true
       },
       {
@@ -25972,7 +25972,7 @@
          "Maplitho Paper 130 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 15.048,
        "is_active": true
       },
       {
@@ -25986,7 +25986,7 @@
          "Maplitho Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 36.102,
        "is_active": true
       },
       {
@@ -26000,7 +26000,7 @@
          "Maplitho Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 29.538,
        "is_active": true
       },
       {
@@ -26014,7 +26014,7 @@
          "Maplitho Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 22.974,
        "is_active": true
       },
       {
@@ -26028,7 +26028,7 @@
          "Maplitho Paper 170 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 18.051,
        "is_active": true
       },
       {
@@ -26042,7 +26042,7 @@
          "Maplitho Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 48.092,
        "is_active": true
       },
       {
@@ -26056,7 +26056,7 @@
          "Maplitho Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 39.348,
        "is_active": true
       },
       {
@@ -26070,7 +26070,7 @@
          "Maplitho Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 30.604,
        "is_active": true
       },
       {
@@ -26084,7 +26084,7 @@
          "Maplitho Paper 250 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 24.046,
        "is_active": true
       },
       {
@@ -26098,7 +26098,7 @@
          "Maplitho Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 55.594,
        "is_active": true
       },
       {
@@ -26112,7 +26112,7 @@
          "Maplitho Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 45.486,
        "is_active": true
       },
       {
@@ -26126,7 +26126,7 @@
          "Maplitho Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 35.378,
        "is_active": true
       },
       {
@@ -26140,7 +26140,7 @@
          "Maplitho Paper 300 GSM"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 27.797,
        "is_active": true
       }
      ]
@@ -26188,7 +26188,7 @@
     {
      "name": "Cover Charge",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 150.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -26196,7 +26196,7 @@
     {
      "name": "Printing Color",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 250.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -26221,7 +26221,7 @@
          "Single Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 3.5,
        "is_active": true
       },
       {
@@ -26235,7 +26235,7 @@
          "Both Side"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 5.5,
        "is_active": true
       }
      ]
@@ -26324,24 +26324,24 @@
    "charges": [
     {
      "name": "Front Light",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_sqft",
+     "amount": 6.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "Back Light",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_sqft",
+     "amount": 10.0,
      "is_active": true,
      "group_name": null,
      "requires": null
     },
     {
      "name": "With Frame",
-     "charge_type": "flat",
-     "amount": 0.0,
+     "charge_type": "per_sqft",
+     "amount": 18.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -26349,7 +26349,7 @@
     {
      "name": "With Fittings",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 250.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -26357,7 +26357,7 @@
     {
      "name": "Transport Charge",
      "charge_type": "flat",
-     "amount": 0.0,
+     "amount": 300.0,
      "is_active": true,
      "group_name": null,
      "requires": null
@@ -26382,7 +26382,7 @@
          "Flex"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 12.0,
        "is_active": true
       },
       {
@@ -26396,7 +26396,7 @@
          "Star Flex"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 16.0,
        "is_active": true
       },
       {
@@ -26410,7 +26410,7 @@
          "Sticker"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 28.0,
        "is_active": true
       },
       {
@@ -26424,7 +26424,7 @@
          "Oneway Sticker"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 55.0,
        "is_active": true
       },
       {
@@ -26438,7 +26438,7 @@
          "Clear Sticker"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 40.0,
        "is_active": true
       },
       {
@@ -26452,7 +26452,7 @@
          "Eco Solvent Sticker"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 45.0,
        "is_active": true
       },
       {
@@ -26466,7 +26466,7 @@
          "Sunpack Sheet"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 65.0,
        "is_active": true
       },
       {
@@ -26480,7 +26480,7 @@
          "Foam Sheet"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 85.0,
        "is_active": true
       },
       {
@@ -26494,7 +26494,7 @@
          "Acrylic Sheet"
         ]
        ],
-       "unit_price": 0.0,
+       "unit_price": 220.0,
        "is_active": true
       }
      ]

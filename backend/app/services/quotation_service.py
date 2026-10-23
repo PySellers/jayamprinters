@@ -74,6 +74,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     # Without-GST (cash bill) orders carry no tax at all.
     tax_amount = round(subtotal * tax.rate_percent / 100, 2) if payload.with_gst else 0.0
     quotation.tax_id = tax.id
+    subtotal = round(subtotal, 2)
     quotation.total_amount = subtotal
     quotation.tax_amount = tax_amount
     quotation.grand_total = round(subtotal + tax_amount, 2)
