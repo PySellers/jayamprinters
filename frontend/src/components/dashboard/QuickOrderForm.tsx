@@ -382,11 +382,11 @@ export default function QuickOrderForm() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
-              label="Customer / Company Name"
+              label="Company Name"
               fullWidth
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
-              helperText="Optional — printed on the bill. Leave blank to use the billing person."
+              helperText="Optional — company or party name printed on the bill. Blank = billing person."
               slotProps={{ htmlInput: { ...noAutofill, name: 'qo-company' } }}
             />
           </Grid>

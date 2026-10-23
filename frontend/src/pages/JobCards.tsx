@@ -113,7 +113,7 @@ export default function JobCards() {
         Job Cards
       </Typography>
 
-      <Paper sx={{ borderRadius: 2 }}>
+      <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {jobCardsQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <CircularProgress />
@@ -137,7 +137,7 @@ export default function JobCards() {
             <TableBody>
               {(jobCardsQuery.data ?? []).map((jc) => (
                 <TableRow key={jc.id}>
-                  <TableCell>{jc.job_number}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{jc.job_number}</TableCell>
                   <TableCell>{customerName(jc.customer_id)}</TableCell>
                   <TableCell>{productName(jc.product_id)}</TableCell>
                   <TableCell>{machineName(jc.machine_id)}</TableCell>
@@ -146,7 +146,7 @@ export default function JobCards() {
                   <TableCell>
                     <Chip label={jc.priority} color={PRIORITY_COLORS[jc.priority]} size="small" />
                   </TableCell>
-                  <TableCell>{jc.delivery_date ?? '-'}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{jc.delivery_date ?? '-'}</TableCell>
                   <TableCell>
                     <StatusMenu
                       status={jc.status}
