@@ -347,10 +347,14 @@ export async function orderTests(browser) {
   }, page, live);
 
   await run('UI-QUO', M9, 'Open a quotation and download its PDF', 'Detail opens; PDF returns 200', async () => {
-    await page.locator('tbody tr').first().getByRole('button', { name: /^view$/i }).click();
+    // clicking the quotation number opens its detail page; the View button shows the PDF
+    await page.locator('tbody tr').first().locator('td').first().click();
     await page.waitForURL(/quotations\/\d+/, { timeout: 8000 });
     await page.waitForTimeout(800);
     await page.goBack();
+    const viewP = page.waitForResponse((r) => /quotations\/\d+\/pdf/.test(r.url()), { timeout: 15000 });
+    await page.locator('tbody tr').first().getByRole('button', { name: /^view$/i }).click();
+    expect((await viewP).status() === 200, 'View did not fetch the PDF');
     const respP = page.waitForResponse((r) => /quotations\/\d+\/pdf/.test(r.url()), { timeout: 15000 });
     await page.locator('tbody tr').first().getByRole('button', { name: /^download$/i }).click();
     const r = await respP;
