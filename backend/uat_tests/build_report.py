@@ -40,6 +40,8 @@ DEFECTS = [
     ("High", "Lists (Invoices, Job Cards, Customers, Purchases, Vendors, Users)", "Screens silently showed only the newest 100 records, so older invoices and customers disappeared and dashboard counts stopped at 100.", "Lists now return every record (up to 5,000); invoices stay newest-first."),
     ("High", "Book Covers pricing", "Readymade Cover held Offset, Screen and Digital rates for the same size and quantity with nothing to choose between, so the cheaper Offset rate was always quoted and Screen / Digital could never be reached.", "Split into Readymade Cover - Offset / - Screen / - Digital; each prices only its own quantity range."),
     ("High", "Complete Order screen", "The order screen showed no price at all until the invoice had been generated.", "Added a live rate / amount per line and an order total panel (subtotal, GST, total) that updates as options are chosen."),
+    ("High", "Payments and money boxes", "Amounts with paise (e.g. Rs 891.50) could not be entered in the payment box and other money / quantity boxes: the browser silently refused to submit.", "Money and quantity boxes now accept decimals everywhere."),
+    ("Low", "Record Payment box", "Entering an amount above the balance did nothing and gave no message.", "The box now shows the balance due and a clear message."),
     ("Medium", "Pricing", "An extra charge that had been switched off could still be billed if its id was sent.", "Inactive charges are refused."),
     ("Medium", "Orders", "An order with no items was accepted, and an order for a customer that does not exist caused a server error.", "Both are refused with a clear message (422 / 404)."),
     ("Medium", "Cash ledger and cheques", "Cash entries and cheques with zero or negative amounts were accepted.", "Amounts must be above zero."),
@@ -137,12 +139,16 @@ if shots and os.path.isdir(shots):
     ws.append(["Screens captured during the browser tests"])
     ws["A1"].font = Font(bold=True, size=13)
     row = 3
-    for f in sorted(os.listdir(shots)):
-        if f.startswith("FAIL") or not f.endswith(".png"):
+    KEEP = ["login-page", "dashboard-start-order", "order-form-visiting-card", "service-xerox-photocopy", "service-bill-books-stationery", "invoice-detail",
+            "invoice-paid", "dashboard-live-board", "job-card-sheet", "delivery-challan-saved", "quotations-list", "pricing-setup", "price-matrix",
+            "purchase-added", "cash-ledger", "reports", "layout-1366x768", "layout-menu-390x844"]
+    for k in KEEP:
+        f = k + ".png"
+        if not os.path.exists(os.path.join(shots, f)):
             continue
         img = XlImage(os.path.join(shots, f))
-        scale = 560 / img.width
-        img.width, img.height = 560, int(img.height * scale)
+        scale = 520 / img.width
+        img.width, img.height = 520, int(img.height * scale)
         ws.cell(row, 1, f[:-4].replace("-", " ").title()).font = Font(bold=True)
         ws.add_image(img, f"A{row + 1}")
         row += int(img.height / 20) + 4
