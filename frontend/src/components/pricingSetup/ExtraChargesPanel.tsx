@@ -88,10 +88,10 @@ export default function ExtraChargesPanel({ categoryId }: ExtraChargesPanelProps
                     <Chip label={charge.is_active ? 'Active' : 'Inactive'} color={charge.is_active ? 'success' : 'default'} size="small" />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => { setEditing(charge); setDialogOpen(true); }}>
+                    <IconButton size="small" aria-label="Edit" onClick={() => { setEditing(charge); setDialogOpen(true); }}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(charge)}>
+                    <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(charge)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>

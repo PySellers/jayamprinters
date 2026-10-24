@@ -240,7 +240,7 @@ ORDERS = [
     # ---- Book Covers ----
     ("BC-01", "St. Joseph College", spec("Book Covers", "Cover - Offset", [("Paper/Board Type", "Art Board")], 500, ["Lamination - Glass"]),
      True, "order", 10, 3, [("upi", 1.0)], "binding", "medium", "Heidelberg Offset (4-colour)", False),
-    ("BC-02", "Chennai Public School", spec("Book Covers", "Readymade Cover", [("Cover Size", "9x6")], 100),
+    ("BC-02", "Chennai Public School", spec("Book Covers", "Readymade Cover - Offset", [("Cover Size", "9x6")], 100),
      False, "order", 3, 2, [], "pending", "low", "Binding Section", False),
     # ---- Binding Services ----
     ("BS-01", "Chennai Public School", spec("Binding Services", "Project Binding", [("Binding Material", "Diamond Rexon")], 25, ["Binding Type - Hard Binding Corner"]),

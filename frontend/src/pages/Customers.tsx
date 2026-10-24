@@ -117,10 +117,10 @@ export default function Customers() {
                   <TableCell>{customer.reason || '-'}</TableCell>
                   <TableCell>{customer.gstin || '-'}</TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => openEdit(customer)}>
+                    <IconButton size="small" aria-label="Edit" onClick={() => openEdit(customer)}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(customer)}>
+                    <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(customer)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>

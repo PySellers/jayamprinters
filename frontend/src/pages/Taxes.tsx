@@ -91,10 +91,10 @@ export default function Taxes() {
                     <Chip label={tax.is_active ? 'Active' : 'Inactive'} color={tax.is_active ? 'success' : 'default'} size="small" />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => openEdit(tax)}>
+                    <IconButton size="small" aria-label="Edit" onClick={() => openEdit(tax)}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(tax)}>
+                    <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(tax)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
@@ -120,7 +120,7 @@ export default function Taxes() {
               <TextField label="Name" required fullWidth autoFocus error={Boolean(errors.name)} {...register('name', { required: true })} />
               <TextField
                 label="Rate (%)"
-                type="number"
+                type="number" slotProps={{ htmlInput: { step: 'any' } }}
                 required
                 fullWidth
                 error={Boolean(errors.rate_percent)}

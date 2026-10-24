@@ -58,7 +58,7 @@ export default function PricingSetup() {
                 onChange={(e) => setMinCharge(e.target.value)}
                 helperText="Blank = none. Tiny runs are billed at least this much."
                 sx={{ width: 260 }}
-                slotProps={{ input: { startAdornment: <InputAdornment position="start">₹</InputAdornment> } }}
+                slotProps={{ input: { startAdornment: <InputAdornment position="start">₹</InputAdornment> }, htmlInput: { step: 'any' } }}
               />
               <Button
                 variant="contained"

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -61,7 +62,11 @@ def delete_attribute(attribute_id: int, db: Session = Depends(get_db)):
     if not attribute:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute not found")
     db.delete(attribute)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This attribute is used by prices or orders, so it cannot be deleted. Switch it off (inactive) instead.")
     return None
 
 
@@ -95,5 +100,9 @@ def delete_attribute_option(option_id: int, db: Session = Depends(get_db)):
     if not option:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attribute option not found")
     db.delete(option)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This option is used by prices or orders, so it cannot be deleted. Switch it off (inactive) instead.")
     return None

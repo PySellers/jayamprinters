@@ -50,7 +50,7 @@ export default function MasterFormDialog({
           {hasExtraPrice && (
             <TextField
               label="Extra Price"
-              type="number"
+              type="number" slotProps={{ htmlInput: { step: 'any' } }}
               value={extraPrice}
               onChange={(e) => setExtraPrice(e.target.value)}
               fullWidth

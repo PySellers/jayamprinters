@@ -197,10 +197,10 @@ export default function PriceMatrix() {
                       <Chip label={cell.is_active ? 'Active' : 'Inactive'} color={cell.is_active ? 'success' : 'default'} size="small" />
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton size="small" onClick={() => { setEditing(cell); setDialogOpen(true); }}>
+                      <IconButton size="small" aria-label="Edit" onClick={() => { setEditing(cell); setDialogOpen(true); }}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" onClick={() => setDeleting(cell)}>
+                      <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(cell)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </TableCell>

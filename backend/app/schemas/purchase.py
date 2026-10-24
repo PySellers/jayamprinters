@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import date, datetime
 
@@ -57,12 +57,14 @@ class InventoryItemOut(InventoryItemCreate):
 
 class PurchaseItemIn(BaseModel):
     inventory_item_id: int
-    quantity: float
-    unit_price: float
+    quantity: float = Field(gt=0)
+    unit_price: float = Field(ge=0)
 
 
 class PurchaseItemOut(PurchaseItemIn):
     id: int
+    quantity: float  # outputs never re-validate stored rows
+    unit_price: float
     total_price: float
 
     class Config:

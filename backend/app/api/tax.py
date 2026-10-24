@@ -21,7 +21,7 @@ def _unset_other_defaults(db: Session, exclude_id: int = None):
 
 
 @router.get("/", response_model=List[TaxOut])
-def get_taxes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_taxes(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(Tax).offset(skip).limit(limit).all()
 
 

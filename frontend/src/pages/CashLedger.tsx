@@ -107,7 +107,7 @@ function CashSummaryTab() {
                   </TextField>
                 )}
               />
-              <TextField label="Amount" type="number" required fullWidth {...register('amount', { required: true, valueAsNumber: true, min: 0.01 })} />
+              <TextField label="Amount" type="number" slotProps={{ htmlInput: { step: 'any' } }} required fullWidth {...register('amount', { required: true, valueAsNumber: true, min: 0.01 })} />
               <TextField label="Note" fullWidth multiline rows={2} {...register('note')} />
             </Stack>
           </DialogContent>
@@ -228,7 +228,7 @@ function ChequesTab() {
               />
               <TextField label="Cheque No." required fullWidth {...register('cheque_no', { required: true })} />
               <TextField label="Party Name" fullWidth {...register('party_name')} />
-              <TextField label="Amount" type="number" required fullWidth {...register('amount', { required: true, valueAsNumber: true, min: 0.01 })} />
+              <TextField label="Amount" type="number" slotProps={{ htmlInput: { step: 'any' } }} required fullWidth {...register('amount', { required: true, valueAsNumber: true, min: 0.01 })} />
               <TextField label="Cheque Date" type="date" fullWidth slotProps={{ inputLabel: { shrink: true } }} {...register('cheque_date')} />
               <TextField label="Bank / Branch" fullWidth {...register('bank_branch')} />
               <TextField label="Deposit Date" type="date" fullWidth slotProps={{ inputLabel: { shrink: true } }} {...register('deposit_date')} />

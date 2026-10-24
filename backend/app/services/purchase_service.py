@@ -1,13 +1,13 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.services.numbering import next_number
 
 from app.models.purchase import Purchase, PurchaseItem, PurchasePayment, PurchaseStatus, InventoryItem, Vendor
 from app.schemas.purchase import PurchaseCreate, PurchasePaymentCreate
 
 
 def generate_purchase_number(db: Session) -> str:
-    count = db.query(Purchase).count() + 1
-    return f"PUR-{count:05d}"
+    return next_number(db, Purchase.purchase_number, "PUR")
 
 
 def create_purchase(db: Session, payload: PurchaseCreate) -> Purchase:
@@ -52,11 +52,11 @@ def create_purchase(db: Session, payload: PurchaseCreate) -> Purchase:
 
 
 def _recompute_purchase_status(db: Session, purchase: Purchase) -> None:
-    total_paid = sum(p.amount for p in purchase.payments)
+    total_paid = round(sum(p.amount for p in purchase.payments), 2)
     purchase.paid_amount = total_paid
     if total_paid <= 0:
         purchase.status = PurchaseStatus.unpaid
-    elif total_paid >= purchase.total_amount:
+    elif total_paid >= round(purchase.total_amount, 2):
         purchase.status = PurchaseStatus.paid
     else:
         purchase.status = PurchaseStatus.partially_paid
@@ -70,6 +70,12 @@ def record_purchase_payment(db: Session, purchase_id: int, payload: PurchasePaym
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Purchase not found")
     if payload.amount <= 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payment amount must be positive")
+    balance = round(purchase.total_amount - (purchase.paid_amount or 0.0), 2)
+    if round(payload.amount, 2) > balance:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Payment of Rs. {payload.amount:.2f} is more than the balance owed (Rs. {max(balance, 0):.2f})",
+        )
 
     db.add(PurchasePayment(purchase_id=purchase.id, **payload.model_dump()))
     db.commit()

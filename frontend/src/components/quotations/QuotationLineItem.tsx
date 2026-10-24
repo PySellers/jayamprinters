@@ -161,7 +161,7 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
           )}
         </Grid>
         <Grid size={{ xs: 4, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-          <IconButton onClick={onRemove} disabled={!canRemove}>
+          <IconButton aria-label="Remove line" onClick={onRemove} disabled={!canRemove}>
             <DeleteIcon />
           </IconButton>
         </Grid>
@@ -188,10 +188,10 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
         {product && product.pricing_type === 'per_area' && (
           <>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <TextField label="Width (ft)" type="number" fullWidth size="small" value={width} onChange={(e) => setWidth(e.target.value)} />
+              <TextField label="Width (ft)" type="number" slotProps={{ htmlInput: { step: 'any' } }} fullWidth size="small" value={width} onChange={(e) => setWidth(e.target.value)} />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <TextField label="Height (ft)" type="number" fullWidth size="small" value={height} onChange={(e) => setHeight(e.target.value)} />
+              <TextField label="Height (ft)" type="number" slotProps={{ htmlInput: { step: 'any' } }} fullWidth size="small" value={height} onChange={(e) => setHeight(e.target.value)} />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
               <TextField label="Area (sq.ft)" fullWidth size="small" value={area.toFixed(2)} disabled />

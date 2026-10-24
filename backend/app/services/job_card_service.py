@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.services.numbering import next_number
 from typing import List
 
 from datetime import date
@@ -13,8 +14,7 @@ from app.services.time_utils import utc_naive_to_ist
 
 
 def generate_job_number(db: Session) -> str:
-    count = db.query(JobCard).count() + 1
-    return f"JC-{count:05d}"
+    return next_number(db, JobCard.job_number, "JC")
 
 
 def convert_quotation_to_job_cards(db: Session, quotation_id: int) -> List[JobCard]:

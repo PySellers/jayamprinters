@@ -120,7 +120,7 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
                 <Fragment key={attr.id}>
                   <TableRow>
                     <TableCell>
-                      <IconButton size="small" onClick={() => toggleExpand(attr.id)}>
+                      <IconButton size="small" aria-label="Show options" onClick={() => toggleExpand(attr.id)}>
                         {expanded.has(attr.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                       </IconButton>
                     </TableCell>
@@ -130,10 +130,10 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
                       <Chip label={attr.is_active ? 'Active' : 'Inactive'} color={attr.is_active ? 'success' : 'default'} size="small" />
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton size="small" onClick={() => { setEditingAttr(attr); setAttrDialogOpen(true); }}>
+                      <IconButton size="small" aria-label="Edit attribute" onClick={() => { setEditingAttr(attr); setAttrDialogOpen(true); }}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" onClick={() => setDeletingAttr(attr)}>
+                      <IconButton size="small" aria-label="Delete attribute" onClick={() => setDeletingAttr(attr)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </TableCell>
@@ -170,10 +170,10 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
                                     <Chip label={opt.is_active ? 'Active' : 'Inactive'} color={opt.is_active ? 'success' : 'default'} size="small" />
                                   </TableCell>
                                   <TableCell align="right">
-                                    <IconButton size="small" onClick={() => { setOptionDialogFor(attr); setEditingOption(opt); }}>
+                                    <IconButton size="small" aria-label="Edit option" onClick={() => { setOptionDialogFor(attr); setEditingOption(opt); }}>
                                       <EditIcon fontSize="small" />
                                     </IconButton>
-                                    <IconButton size="small" onClick={() => setDeletingOption(opt)}>
+                                    <IconButton size="small" aria-label="Delete option" onClick={() => setDeletingOption(opt)}>
                                       <DeleteIcon fontSize="small" />
                                     </IconButton>
                                   </TableCell>

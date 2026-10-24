@@ -17,7 +17,7 @@ write_roles = [Depends(require_role(UserRole.admin, UserRole.accounts))]
 
 
 @router.get("/", response_model=List[PurchaseOut])
-def get_purchases(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_purchases(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(Purchase).order_by(Purchase.id.desc()).offset(skip).limit(limit).all()
 
 

@@ -22,7 +22,7 @@ admin_only = [Depends(require_role(UserRole.admin))]
 
 
 @router.get("/", response_model=List[JobCardOut])
-def get_job_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_job_cards(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(JobCard).order_by(JobCard.id.desc()).offset(skip).limit(limit).all()
 
 

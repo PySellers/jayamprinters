@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm, useFieldArray, Controller, FormProvider } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, Controller, FormProvider } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Autocomplete, Box, Typography, Paper, Button, TextField, Stack, Grid, Alert, ToggleButton, ToggleButtonGroup,
@@ -12,7 +12,7 @@ import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
-import type { QuotationCreateInput, QuotationItemInput } from '../types/quotations';
+import type { QuotationCreateInput, QuotationItemInput, QuotationPreview } from '../types/quotations';
 import type { Customer, CustomerInput } from '../types/customers';
 import EntitySelect from '../components/pickers/EntitySelect';
 import QuotationLineItem from '../components/quotations/QuotationLineItem';
@@ -75,6 +75,38 @@ export default function QuotationCreate() {
   const { control, register, handleSubmit } = methods;
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
   const withGst = methods.watch('with_gst');
+
+  // ---- live price: the same calculation the saved order will use ----------------
+  const watchedItems = useWatch({ control, name: 'items' });
+  const watchedTaxId = useWatch({ control, name: 'tax_id' });
+  const [preview, setPreview] = useState<QuotationPreview | null>(null);
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const lines = (watchedItems ?? []).map((it) => (it && it.product_id ? it : null));
+    if (!lines.some(Boolean)) {
+      setPreview(null);
+      return;
+    }
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    previewTimer.current = setTimeout(() => {
+      // Keep line positions: an unpicked line is sent as nothing and shown as "not priced yet".
+      const picked = lines.filter((l): l is QuotationItemInput => l !== null);
+      quotationsApi
+        .preview({ tax_id: watchedTaxId, items: picked })
+        .then((result) => {
+          let k = 0;
+          const items = lines.map((l) => (l ? result.items[k++] : { unit_price: 0, total_price: 0, priceable: false }));
+          setPreview({ ...result, items });
+        })
+        .catch(() => setPreview(null));
+    }, 300);
+    return () => {
+      if (previewTimer.current) clearTimeout(previewTimer.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(watchedItems), watchedTaxId]);
+  const allPriced = Boolean(preview) && (preview?.items ?? []).every((i) => i.priceable);
+  const gstAmount = withGst ? preview?.tax_amount ?? 0 : 0;
 
   // ---- service -> item (step 2 of Start New Order) ----------------------------
   const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
@@ -441,6 +473,7 @@ export default function QuotationCreate() {
                 index={index}
                 onRemove={() => remove(index)}
                 canRemove={fields.length > 1}
+                previewItem={preview?.items[index]}
               />
             );
           })}
@@ -448,6 +481,34 @@ export default function QuotationCreate() {
           <Button startIcon={<AddIcon />} onClick={() => append(emptyItem)} sx={{ mb: 3 }}>
             Add Line Item
           </Button>
+
+          {preview && (
+            <Paper variant="outlined" sx={{ p: 2, mb: 3, maxWidth: 360, ml: 'auto' }} data-testid="order-total">
+              <Stack spacing={0.5}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                  <Typography color="text.secondary">Subtotal</Typography>
+                  <Typography>₹{preview.subtotal.toFixed(2)}</Typography>
+                </Stack>
+                {withGst && (
+                  <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                    <Typography color="text.secondary">GST</Typography>
+                    <Typography>₹{gstAmount.toFixed(2)}</Typography>
+                  </Stack>
+                )}
+                <Stack direction="row" sx={{ justifyContent: 'space-between', pt: 0.5, borderTop: '1px solid', borderColor: 'divider' }}>
+                  <Typography sx={{ fontWeight: 'bold' }}>Total</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>
+                    ₹{(preview.subtotal + gstAmount).toFixed(2)}
+                  </Typography>
+                </Stack>
+                {!allPriced && (
+                  <Typography variant="caption" color="warning.main">
+                    Some lines are not priced yet — complete their options to include them.
+                  </Typography>
+                )}
+              </Stack>
+            </Paper>
+          )}
 
           <Stack direction="row" spacing={2}>
             <Button

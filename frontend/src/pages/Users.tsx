@@ -149,10 +149,10 @@ export default function Users() {
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => openEdit(u)}>
+                    <IconButton size="small" aria-label="Edit" onClick={() => openEdit(u)}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" disabled={u.id === Number(me?.id)} onClick={() => setDeleting(u)}>
+                    <IconButton size="small" disabled={u.id === Number(me?.id)} aria-label="Delete" onClick={() => setDeleting(u)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>

@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.services.numbering import next_number
 
 from app.models.quotation import Quotation, QuotationStatus
 from app.models.invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment, PaymentMethod, InvoiceStatus
@@ -8,8 +9,7 @@ from app.services.job_card_service import convert_quotation_to_job_cards
 
 
 def generate_invoice_number(db: Session) -> str:
-    count = db.query(Invoice).count() + 1
-    return f"INV-{count:05d}"
+    return next_number(db, Invoice.invoice_number, "INV")
 
 
 def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
@@ -91,6 +91,12 @@ def record_payment(db: Session, invoice_id: int, payload: PaymentCreate) -> Invo
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
     if payload.amount <= 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payment amount must be positive")
+    balance = round(invoice.grand_total - (invoice.amount_paid or 0.0), 2)
+    if round(payload.amount, 2) > balance:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Payment of Rs. {payload.amount:.2f} is more than the balance due (Rs. {max(balance, 0):.2f})",
+        )
 
     db.add(Payment(invoice_id=invoice.id, **payload.model_dump()))
     db.commit()
