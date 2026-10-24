@@ -61,6 +61,7 @@ export async function run(prefix, module, scenario, expected, fn, page, problems
     if (page) { try { await page.screenshot({ path: `${SHOTS}/FAIL-${id}.png` }); } catch { /* ignore */ } }
   }
   RESULTS.push({ id, module, scenario, expected, actual, status, ms: Date.now() - t0 });
+  if (process.env.UAT_PARTIAL) fs.writeFileSync(process.env.UAT_PARTIAL, JSON.stringify(RESULTS, null, 1));
   console.log(`[${status}] ${id} ${module} :: ${scenario}` + (status === 'PASS' ? '' : `\n       -> ${actual}`));
   return status === 'PASS';
 }

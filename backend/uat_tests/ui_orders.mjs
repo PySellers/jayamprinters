@@ -55,7 +55,7 @@ export async function orderTests(browser) {
     await pick(page, 'Service', 'Visiting Card');
     await page.getByRole('button', { name: /start order/i }).click();
     await page.waitForURL(/quotations\/new/, { timeout: 10000 });
-    await page.waitForTimeout(800);
+    await page.getByText(startCust.name).first().waitFor({ timeout: 10000 });
     expect((await bodyText(page)).includes(startCust.name), 'customer name not carried to the order form');
     expect((await bodyText(page)).toLowerCase().includes('complete order'), 'order form heading missing');
     await shot(page, 'order-form-visiting-card');

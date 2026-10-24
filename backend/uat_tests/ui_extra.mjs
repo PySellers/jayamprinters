@@ -252,7 +252,8 @@ export async function extraTests(browser) {
   await run('UI-DSH', M6, 'Typing the phone number of an existing customer finds that customer', 'Existing customer is linked (name filled), with a way to start a new one', async () => {
     await go('/dashboard');
     await page.getByLabel('Phone Number', { exact: false }).first().fill(cust.phone);
-    await page.waitForTimeout(1500);
+    await page.keyboard.press('Tab'); // the lookup runs when the phone box loses focus
+    await page.waitForTimeout(1800);
     const t = await bodyText(page);
     expect(t.includes(cust.name), 'existing customer not found by phone: ' + t.slice(t.indexOf('Start New Order'), t.indexOf('Start New Order') + 200));
     await shot(page, 'dashboard-existing-customer');
@@ -262,6 +263,7 @@ export async function extraTests(browser) {
     await page.getByRole('button', { name: /new customer/i }).click();
     await page.waitForTimeout(500);
     expect((await page.getByRole('button', { name: /new customer/i }).count()) === 0, 'still linked to the existing customer');
+    expect((await page.getByLabel('Phone Number', { exact: false }).first().inputValue()) === '', 'phone not cleared');
   }, page, problems);
 
   await run('UI-DSH', M6, 'The dashboard shows summary cards and the Live Job Status board', 'Cards with numbers and job chips', async () => {

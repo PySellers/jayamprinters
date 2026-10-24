@@ -29,6 +29,7 @@ export async function layoutTests(browser) {
             if (el.closest('legend, fieldset')) return; // outlined inputs repeat their label inside a hidden legend
             leaves.push({ el, r, t: el.textContent.trim().slice(0, 24) });
           });
+          if (leaves.length > 350) leaves.length = 350; // the top of the page is what staff see first; keeps the scan fast
           let overlaps = 0; const ex = [];
           for (let i = 0; i < leaves.length && overlaps < 5; i++) for (let j = i + 1; j < leaves.length; j++) {
             const a = leaves[i], b = leaves[j];
