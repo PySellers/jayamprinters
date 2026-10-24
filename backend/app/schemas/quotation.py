@@ -46,7 +46,7 @@ class QuotationCreate(BaseModel):
     proof2_time: Optional[str] = None
     delivery_date: Optional[date] = None
     delivery_time: Optional[str] = None
-    items: List[QuotationItemCreate]
+    items: List[QuotationItemCreate] = Field(min_length=1)
 
 class QuotationOut(BaseModel):
     id: int

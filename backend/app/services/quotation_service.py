@@ -1,5 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.services.numbering import next_number
+from app.models.customer import Customer
 from app.models.product import Product
 from app.models.quotation import Quotation, QuotationItem, QuotationStatus, QuotationItemAttributeOption, QuotationItemExtraCharge
 from app.schemas.quotation import QuotationCreate
@@ -8,12 +10,11 @@ from app.services import pricing_service
 def generate_quotation_number(db: Session, is_order: bool = False) -> str:
     """QT-00001... for real quotations, OD-00001... for Start New Order orders,
     so the two series never mix on screen."""
-    prefix = "OD" if is_order else "QT"
-    existing = db.query(Quotation.quotation_number).filter(Quotation.quotation_number.like(f"{prefix}-%")).all()
-    numbers = [int(n[0].split("-")[1]) for n in existing if n[0].split("-")[1].isdigit()]
-    return f"{prefix}-{(max(numbers) if numbers else 0) + 1:05d}"
+    return next_number(db, Quotation.quotation_number, "OD" if is_order else "QT")
 
 def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
+    if not db.query(Customer.id).filter(Customer.id == payload.customer_id).first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
     quotation = Quotation(
         quotation_number=generate_quotation_number(db, payload.is_order),
         customer_id=payload.customer_id,

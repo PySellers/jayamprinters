@@ -83,10 +83,10 @@ export default function QuantitySlabsPanel({ categoryId }: QuantitySlabsPanelPro
                   <TableCell>{slab.display_order}</TableCell>
                   <TableCell>{slab.is_incremental ? 'Incremental' : 'Whole quantity'}</TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => { setEditing(slab); setDialogOpen(true); }}>
+                    <IconButton size="small" aria-label="Edit" onClick={() => { setEditing(slab); setDialogOpen(true); }}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(slab)}>
+                    <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(slab)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>

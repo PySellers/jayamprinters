@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
@@ -9,6 +10,7 @@ from app.schemas.quotation import (
 from app.schemas.job_card import JobCardOut
 from app.models.customer import Customer
 from app.models.product import Product
+from app.models.invoice import Invoice
 from app.models.quotation import Quotation
 from app.services import pricing_service
 from app.services.quotation_service import create_quotation
@@ -105,6 +107,12 @@ def delete_quotation(quotation_id: int, db: Session = Depends(get_db)):
     q = db.query(Quotation).filter(Quotation.id == quotation_id).first()
     if not q:
         raise HTTPException(status_code=404, detail="Quotation not found")
+    if db.query(Invoice.id).filter(Invoice.quotation_id == quotation_id).first():
+        raise HTTPException(status_code=400, detail="This order already has an invoice. Delete the invoice first.")
     db.delete(q)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="This order already has job cards. Delete them first.")
     return {"detail": "Deleted"}

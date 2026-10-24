@@ -127,7 +127,7 @@ export default function BulkPriceGrid({ productId, attributes, slabs, cells, onS
                   <TableCell key={combo.key}>
                     <TextField
                       size="small"
-                      type="number"
+                      type="number" slotProps={{ htmlInput: { step: 'any' } }}
                       value={values[`${slab.id}::${combo.key}`] ?? '0'}
                       onChange={(e) => handleChange(slab.id, combo.key, e.target.value)}
                       sx={{ width: 100 }}

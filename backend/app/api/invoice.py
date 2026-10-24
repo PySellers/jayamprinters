@@ -26,7 +26,7 @@ def create_from_quotation(quotation_id: int, db: Session = Depends(get_db)):
 
 
 @invoice_router.get("/", response_model=List[InvoiceOut])
-def get_invoices(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_invoices(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(Invoice).order_by(Invoice.id.desc()).offset(skip).limit(limit).all()
 
 

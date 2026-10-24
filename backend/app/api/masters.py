@@ -19,7 +19,7 @@ def make_master_router(model, create_schema, update_schema, out_schema, prefix, 
     router = APIRouter(prefix=prefix, tags=[tag])
 
     @router.get("/", response_model=List[out_schema])
-    def list_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    def list_items(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
         return db.query(model).offset(skip).limit(limit).all()
 
     @router.get("/{item_id}", response_model=out_schema)

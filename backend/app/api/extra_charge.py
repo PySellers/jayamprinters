@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -57,5 +58,9 @@ def delete_extra_charge(charge_id: int, db: Session = Depends(get_db)):
     if not charge:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Extra charge not found")
     db.delete(charge)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This extra charge is used on existing orders, so it cannot be deleted. Switch it off (inactive) instead.")
     return None

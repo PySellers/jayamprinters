@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import date, datetime
 
@@ -7,12 +7,13 @@ from app.models.cash_ledger import CashTxnType, ChequeDirection, ChequeStatus
 
 class CashTransactionCreate(BaseModel):
     txn_type: CashTxnType
-    amount: float
+    amount: float = Field(gt=0)
     note: Optional[str] = None
     created_by: Optional[str] = None
 
 
 class CashTransactionOut(CashTransactionCreate):
+    amount: float  # outputs never re-validate stored rows
     id: int
     created_at: datetime
 
@@ -32,7 +33,7 @@ class ChequeTransactionCreate(BaseModel):
     cheque_date: Optional[date] = None
     bank_branch: Optional[str] = None
     deposit_date: Optional[date] = None
-    amount: float
+    amount: float = Field(gt=0)
     party_name: Optional[str] = None
     notes: Optional[str] = None
 
@@ -42,6 +43,7 @@ class ChequeStatusUpdate(BaseModel):
 
 
 class ChequeTransactionOut(ChequeTransactionCreate):
+    amount: float  # outputs never re-validate stored rows
     id: int
     status: ChequeStatus
     created_at: datetime

@@ -51,7 +51,7 @@ export default function ExtraChargeFormDialog({ open, title, initialValues, onSa
               <MenuItem key={t} value={t}>{t.replace('_', ' ')}</MenuItem>
             ))}
           </TextField>
-          <TextField label="Amount" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} fullWidth />
+          <TextField label="Amount" type="number" slotProps={{ htmlInput: { step: 'any' } }} value={amount} onChange={(e) => setAmount(e.target.value)} fullWidth />
           <FormControlLabel
             control={<Checkbox checked={global} onChange={(e) => setGlobal(e.target.checked)} />}
             label="Apply to all categories (global)"

@@ -8015,7 +8015,7 @@
      ]
     },
     {
-     "name": "Readymade Cover",
+     "name": "Readymade Cover - Offset",
      "pricing_type": "matrix",
      "fixed_price": null,
      "is_active": true,
@@ -8052,34 +8052,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "8x6"
-        ]
-       ],
-       "unit_price": 9.52,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "8x6"
-        ]
-       ],
-       "unit_price": 12.88,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8103,34 +8075,6 @@
         ]
        ],
        "unit_price": 4.33,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "7.5x5.5"
-        ]
-       ],
-       "unit_price": 8.659,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "7.5x5.5"
-        ]
-       ],
-       "unit_price": 11.716,
        "is_active": true
       },
       {
@@ -8164,34 +8108,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "7x5"
-        ]
-       ],
-       "unit_price": 7.862,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "7x5"
-        ]
-       ],
-       "unit_price": 10.637,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8215,34 +8131,6 @@
         ]
        ],
        "unit_price": 3.485,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "7x4"
-        ]
-       ],
-       "unit_price": 6.97,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "7x4"
-        ]
-       ],
-       "unit_price": 9.43,
        "is_active": true
       },
       {
@@ -8276,34 +8164,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "6.5x4.5"
-        ]
-       ],
-       "unit_price": 7.129,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "6.5x4.5"
-        ]
-       ],
-       "unit_price": 9.646,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8327,34 +8187,6 @@
         ]
        ],
        "unit_price": 3.23,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "6x4"
-        ]
-       ],
-       "unit_price": 6.46,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "6x4"
-        ]
-       ],
-       "unit_price": 8.74,
        "is_active": true
       },
       {
@@ -8388,34 +8220,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "8x5"
-        ]
-       ],
-       "unit_price": 8.5,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "8x5"
-        ]
-       ],
-       "unit_price": 11.5,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8439,34 +8243,6 @@
         ]
        ],
        "unit_price": 4.68,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "8.5x5.5"
-        ]
-       ],
-       "unit_price": 9.361,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "8.5x5.5"
-        ]
-       ],
-       "unit_price": 12.664,
        "is_active": true
       },
       {
@@ -8500,34 +8276,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9x6"
-        ]
-       ],
-       "unit_price": 10.285,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9x6"
-        ]
-       ],
-       "unit_price": 13.915,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8551,34 +8299,6 @@
         ]
        ],
        "unit_price": 5.637,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9.5x6.5"
-        ]
-       ],
-       "unit_price": 11.273,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9.5x6.5"
-        ]
-       ],
-       "unit_price": 15.252,
        "is_active": true
       },
       {
@@ -8612,34 +8332,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9x4"
-        ]
-       ],
-       "unit_price": 7.99,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9x4"
-        ]
-       ],
-       "unit_price": 10.81,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8663,34 +8355,6 @@
         ]
        ],
        "unit_price": 4.712,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "10.5x4.5"
-        ]
-       ],
-       "unit_price": 9.424,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "10.5x4.5"
-        ]
-       ],
-       "unit_price": 12.751,
        "is_active": true
       },
       {
@@ -8724,34 +8388,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x8"
-        ]
-       ],
-       "unit_price": 15.64,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x8"
-        ]
-       ],
-       "unit_price": 21.16,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8775,34 +8411,6 @@
         ]
        ],
        "unit_price": 8.585,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x9"
-        ]
-       ],
-       "unit_price": 17.17,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x9"
-        ]
-       ],
-       "unit_price": 23.23,
        "is_active": true
       },
       {
@@ -8836,34 +8444,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x10"
-        ]
-       ],
-       "unit_price": 18.7,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x10"
-        ]
-       ],
-       "unit_price": 25.3,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -8887,34 +8467,6 @@
         ]
        ],
        "unit_price": 9.732,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9x14 (Legal)"
-        ]
-       ],
-       "unit_price": 19.465,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "9x14 (Legal)"
-        ]
-       ],
-       "unit_price": 26.335,
        "is_active": true
       },
       {
@@ -8948,34 +8500,6 @@
       {
        "slab": [
         1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x17 (A3)"
-        ]
-       ],
-       "unit_price": 29.41,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        50
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "12x17 (A3)"
-        ]
-       ],
-       "unit_price": 39.79,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         500
        ],
        "options": [
@@ -9004,6 +8528,309 @@
       {
        "slab": [
         1,
+        500
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "Viboothi Cover"
+        ]
+       ],
+       "unit_price": 6.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "Viboothi Cover"
+        ]
+       ],
+       "unit_price": 5.525,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        500
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "Custom"
+        ]
+       ],
+       "unit_price": 6.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        501,
+        1000
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "Custom"
+        ]
+       ],
+       "unit_price": 5.525,
+       "is_active": true
+      }
+     ]
+    },
+    {
+     "name": "Readymade Cover - Screen",
+     "pricing_type": "matrix",
+     "fixed_price": null,
+     "is_active": true,
+     "description": null,
+     "cells": [
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "8x6"
+        ]
+       ],
+       "unit_price": 9.52,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "7.5x5.5"
+        ]
+       ],
+       "unit_price": 8.659,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "7x5"
+        ]
+       ],
+       "unit_price": 7.862,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "7x4"
+        ]
+       ],
+       "unit_price": 6.97,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "6.5x4.5"
+        ]
+       ],
+       "unit_price": 7.129,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "6x4"
+        ]
+       ],
+       "unit_price": 6.46,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "8x5"
+        ]
+       ],
+       "unit_price": 8.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "8.5x5.5"
+        ]
+       ],
+       "unit_price": 9.361,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9x6"
+        ]
+       ],
+       "unit_price": 10.285,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9.5x6.5"
+        ]
+       ],
+       "unit_price": 11.273,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9x4"
+        ]
+       ],
+       "unit_price": 7.99,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "10.5x4.5"
+        ]
+       ],
+       "unit_price": 9.424,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x8"
+        ]
+       ],
+       "unit_price": 15.64,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x9"
+        ]
+       ],
+       "unit_price": 17.17,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x10"
+        ]
+       ],
+       "unit_price": 18.7,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9x14 (Legal)"
+        ]
+       ],
+       "unit_price": 19.465,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x17 (A3)"
+        ]
+       ],
+       "unit_price": 29.41,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
         100
        ],
        "options": [
@@ -9013,6 +8840,281 @@
         ]
        ],
        "unit_price": 41.65,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "Viboothi Cover"
+        ]
+       ],
+       "unit_price": 11.05,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        100
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "Custom"
+        ]
+       ],
+       "unit_price": 11.05,
+       "is_active": true
+      }
+     ]
+    },
+    {
+     "name": "Readymade Cover - Digital",
+     "pricing_type": "matrix",
+     "fixed_price": null,
+     "is_active": true,
+     "description": null,
+     "cells": [
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "8x6"
+        ]
+       ],
+       "unit_price": 12.88,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "7.5x5.5"
+        ]
+       ],
+       "unit_price": 11.716,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "7x5"
+        ]
+       ],
+       "unit_price": 10.637,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "7x4"
+        ]
+       ],
+       "unit_price": 9.43,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "6.5x4.5"
+        ]
+       ],
+       "unit_price": 9.646,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "6x4"
+        ]
+       ],
+       "unit_price": 8.74,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "8x5"
+        ]
+       ],
+       "unit_price": 11.5,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "8.5x5.5"
+        ]
+       ],
+       "unit_price": 12.664,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9x6"
+        ]
+       ],
+       "unit_price": 13.915,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9.5x6.5"
+        ]
+       ],
+       "unit_price": 15.252,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9x4"
+        ]
+       ],
+       "unit_price": 10.81,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "10.5x4.5"
+        ]
+       ],
+       "unit_price": 12.751,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x8"
+        ]
+       ],
+       "unit_price": 21.16,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x9"
+        ]
+       ],
+       "unit_price": 23.23,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x10"
+        ]
+       ],
+       "unit_price": 25.3,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "9x14 (Legal)"
+        ]
+       ],
+       "unit_price": 26.335,
+       "is_active": true
+      },
+      {
+       "slab": [
+        1,
+        50
+       ],
+       "options": [
+        [
+         "Cover Size",
+         "12x17 (A3)"
+        ]
+       ],
+       "unit_price": 39.79,
        "is_active": true
       },
       {
@@ -9032,48 +9134,6 @@
       {
        "slab": [
         1,
-        500
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "Viboothi Cover"
-        ]
-       ],
-       "unit_price": 6.5,
-       "is_active": true
-      },
-      {
-       "slab": [
-        501,
-        1000
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "Viboothi Cover"
-        ]
-       ],
-       "unit_price": 5.525,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "Viboothi Cover"
-        ]
-       ],
-       "unit_price": 11.05,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
         50
        ],
        "options": [
@@ -9083,48 +9143,6 @@
         ]
        ],
        "unit_price": 14.95,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        500
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "Custom"
-        ]
-       ],
-       "unit_price": 6.5,
-       "is_active": true
-      },
-      {
-       "slab": [
-        501,
-        1000
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "Custom"
-        ]
-       ],
-       "unit_price": 5.525,
-       "is_active": true
-      },
-      {
-       "slab": [
-        1,
-        100
-       ],
-       "options": [
-        [
-         "Cover Size",
-         "Custom"
-        ]
-       ],
-       "unit_price": 11.05,
        "is_active": true
       },
       {

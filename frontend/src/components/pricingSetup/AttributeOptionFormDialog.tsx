@@ -41,7 +41,7 @@ export default function AttributeOptionFormDialog({ open, title, initialValues, 
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <TextField label="Value" value={value} onChange={(e) => setValue(e.target.value)} required fullWidth autoFocus />
-          <TextField label="Extra Price" type="number" value={extraPrice} onChange={(e) => setExtraPrice(e.target.value)} fullWidth />
+          <TextField label="Extra Price" type="number" slotProps={{ htmlInput: { step: 'any' } }} value={extraPrice} onChange={(e) => setExtraPrice(e.target.value)} fullWidth />
           <TextField label="Display Order" type="number" value={displayOrder} onChange={(e) => setDisplayOrder(e.target.value)} fullWidth />
           <FormControlLabel control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />} label="Active" />
         </Stack>

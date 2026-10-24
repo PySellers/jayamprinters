@@ -302,11 +302,12 @@ export default function InvoiceDetail() {
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField
                 label="Amount"
-                type="number"
+                type="number" slotProps={{ htmlInput: { step: 'any' } }}
                 fullWidth
                 required
                 error={Boolean(errors.amount)}
-                {...register('amount', { required: true, valueAsNumber: true, min: 0.01, max: balance })}
+                helperText={errors.amount ? `Enter an amount between ₹0.01 and the balance due (₹${balance.toFixed(2)})` : `Balance due ₹${balance.toFixed(2)}`}
+                {...register('amount', { required: true, valueAsNumber: true, min: 0.01, max: Number(balance.toFixed(2)) })}
               />
               <Controller
                 name="method"

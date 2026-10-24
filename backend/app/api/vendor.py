@@ -14,7 +14,7 @@ admin_write = [Depends(require_role(UserRole.admin, UserRole.accounts))]
 
 
 @router.get("/", response_model=List[VendorOut])
-def get_vendors(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_vendors(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(Vendor).offset(skip).limit(limit).all()
 
 

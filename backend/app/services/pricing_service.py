@@ -144,6 +144,12 @@ def calculate_unit_price(
     computed_charges: List[Tuple[int, float]] = []
     if extra_charge_ids:
         charges = db.query(ExtraCharge).filter(ExtraCharge.id.in_(extra_charge_ids)).all()
+        unavailable = [c.name for c in charges if not c.is_active]
+        if unavailable or len(charges) != len(set(extra_charge_ids)):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Extra charge no longer available: {', '.join(unavailable) or 'unknown charge'}",
+            )
         _validate_extra_charges(charges, {opt_id for _, opt_id in selected_options})
         for charge in charges:
             if charge.charge_type == ChargeType.per_unit:

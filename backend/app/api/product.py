@@ -5,7 +5,11 @@ from typing import List
 
 from app.core.database import get_db
 from app.core.security import require_role
+from app.models.invoice import InvoiceItem
+from app.models.job_card import JobCard
+from app.models.price_matrix import PriceMatrixCell
 from app.models.product import ProductCategory, Product
+from app.models.quotation import QuotationItem
 from app.models.user import UserRole
 from app.schemas.product import (
     ProductCategoryCreate, ProductCategoryUpdate, ProductCategoryOut,
@@ -111,6 +115,19 @@ def delete_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    used = (
+        db.query(QuotationItem.id).filter(QuotationItem.product_id == product_id).first()
+        or db.query(JobCard.id).filter(JobCard.product_id == product_id).first()
+        or db.query(InvoiceItem.id).filter(InvoiceItem.product_id == product_id).first()
+    )
+    if used:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This item is used on existing orders, so it cannot be deleted. Switch it off (inactive) instead.",
+        )
+    # Unused item: its own rate-grid cells go with it.
+    for cell in db.query(PriceMatrixCell).filter(PriceMatrixCell.product_id == product_id).all():
+        db.delete(cell)
     db.delete(product)
     try:
         db.commit()

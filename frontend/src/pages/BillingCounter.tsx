@@ -246,7 +246,7 @@ export default function BillingCounter() {
           <Grid size={{ xs: 6, sm: 3, lg: 2 }}>
             <TextField
               label="Cash Tendered"
-              type="number"
+              type="number" slotProps={{ htmlInput: { step: 'any' } }}
               size="small"
               fullWidth
               value={tendered}

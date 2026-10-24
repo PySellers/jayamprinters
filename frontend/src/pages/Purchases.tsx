@@ -91,8 +91,8 @@ function VendorsTab() {
                   <TableCell>{v.email || '-'}</TableCell>
                   <TableCell>{v.gstin || '-'}</TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => openEdit(v)}><EditIcon fontSize="small" /></IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(v)}><DeleteIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" aria-label="Edit" onClick={() => openEdit(v)}><EditIcon fontSize="small" /></IconButton>
+                    <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(v)}><DeleteIcon fontSize="small" /></IconButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -265,10 +265,10 @@ function PurchasesTab() {
                     />
                   </Grid>
                   <Grid size={{ xs: 3 }}>
-                    <TextField label="Quantity" type="number" size="small" fullWidth {...register(`items.${index}.quantity`, { valueAsNumber: true, min: 0.01 })} />
+                    <TextField label="Quantity" type="number" slotProps={{ htmlInput: { step: 'any' } }} size="small" fullWidth {...register(`items.${index}.quantity`, { valueAsNumber: true, min: 0.01 })} />
                   </Grid>
                   <Grid size={{ xs: 3 }}>
-                    <TextField label="Unit Price" type="number" size="small" fullWidth {...register(`items.${index}.unit_price`, { valueAsNumber: true, min: 0 })} />
+                    <TextField label="Unit Price" type="number" slotProps={{ htmlInput: { step: 'any' } }} size="small" fullWidth {...register(`items.${index}.unit_price`, { valueAsNumber: true, min: 0 })} />
                   </Grid>
                   <Grid size={{ xs: 1 }}>
                     <IconButton size="small" onClick={() => remove(index)} disabled={fields.length === 1}>
@@ -297,7 +297,7 @@ function PurchasesTab() {
             {paymentMutation.isError && <Alert severity="error" sx={{ mb: 2 }}>{getErrorMessage(paymentMutation.error, 'Failed to record payment')}</Alert>}
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField
-                label="Amount" type="number" fullWidth required
+                label="Amount" type="number" slotProps={{ htmlInput: { step: 'any' } }} fullWidth required
                 {...registerPay('amount', { required: true, valueAsNumber: true, min: 0.01, max: paymentTarget ? paymentTarget.total_amount - paymentTarget.paid_amount : undefined })}
               />
               <TextField label="Method" select fullWidth defaultValue="cash" {...registerPay('method')}>

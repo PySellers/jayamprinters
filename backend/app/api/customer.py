@@ -1,6 +1,7 @@
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -38,8 +39,8 @@ def get_billing_defaults(db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[CustomerResponse])
-def get_customers(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return db.query(Customer).offset(skip).limit(limit).all()
+def get_customers(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
+    return db.query(Customer).order_by(Customer.id).offset(skip).limit(limit).all()
 
 
 @router.get("/{customer_id}", response_model=CustomerResponse)
@@ -81,7 +82,14 @@ def delete_customer(customer_id: int, db: Session = Depends(get_db)):
     if not customer:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
     db.delete(customer)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This customer has orders, invoices or challans, so it cannot be deleted.",
+        )
     return None
 
 

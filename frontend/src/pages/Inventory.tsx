@@ -119,10 +119,10 @@ export default function Inventory() {
                   </TableCell>
                   {canWrite && (
                     <TableCell align="right">
-                      <IconButton size="small" onClick={() => openEdit(item)}>
+                      <IconButton size="small" aria-label="Edit" onClick={() => openEdit(item)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" onClick={() => setDeleting(item)}>
+                      <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(item)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </TableCell>
@@ -153,8 +153,8 @@ export default function Inventory() {
             <Stack spacing={2} sx={{ mt: 1 }}>
               <TextField label="Item Name" required fullWidth autoFocus error={Boolean(errors.name)} {...register('name', { required: true })} />
               <TextField label="Unit (e.g. sheets, reams, pcs, litres)" required fullWidth {...register('unit', { required: true })} />
-              <TextField label="Current Quantity" type="number" fullWidth {...register('current_qty', { valueAsNumber: true })} />
-              <TextField label="Reorder Threshold" type="number" fullWidth helperText="Flagged Low Stock at or below this level" {...register('reorder_threshold', { valueAsNumber: true })} />
+              <TextField label="Current Quantity" type="number" slotProps={{ htmlInput: { step: 'any' } }} fullWidth {...register('current_qty', { valueAsNumber: true })} />
+              <TextField label="Reorder Threshold" type="number" slotProps={{ htmlInput: { step: 'any' } }} fullWidth helperText="Flagged Low Stock at or below this level" {...register('reorder_threshold', { valueAsNumber: true })} />
               <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
             </Stack>
           </DialogContent>

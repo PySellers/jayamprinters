@@ -18,7 +18,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/", response_model=List[UserOut])
-def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def get_users(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(User).offset(skip).limit(limit).all()
 
 

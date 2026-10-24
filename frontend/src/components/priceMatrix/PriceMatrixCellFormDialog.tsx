@@ -96,7 +96,7 @@ export default function PriceMatrixCellFormDialog({
             />
           ))}
 
-          <TextField label="Unit Price" type="number" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} required fullWidth />
+          <TextField label="Unit Price" type="number" slotProps={{ htmlInput: { step: 'any' } }} value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} required fullWidth />
           <FormControlLabel control={<Switch checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />} label="Active" />
         </Stack>
       </DialogContent>

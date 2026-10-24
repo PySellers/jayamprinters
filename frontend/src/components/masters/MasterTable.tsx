@@ -105,6 +105,7 @@ export default function MasterTable() {
                   <TableCell align="right">
                     <IconButton
                       size="small"
+                      aria-label="Edit"
                       onClick={() => {
                         setEditing(row);
                         setDialogOpen(true);
@@ -112,7 +113,7 @@ export default function MasterTable() {
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(row)}>
+                    <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(row)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>

@@ -143,10 +143,10 @@ export default function Products() {
                         <GridOnIcon fontSize="small" />
                       </IconButton>
                     )}
-                    <IconButton size="small" onClick={() => openEdit(product)}>
+                    <IconButton size="small" aria-label="Edit" onClick={() => openEdit(product)}>
                       <EditIcon fontSize="small" />
                     </IconButton>
-                    <IconButton size="small" onClick={() => setDeleting(product)}>
+                    <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(product)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
@@ -194,7 +194,7 @@ export default function Products() {
               {pricingType === 'fixed' && (
                 <TextField
                   label="Fixed Price"
-                  type="number"
+                  type="number" slotProps={{ htmlInput: { step: 'any' } }}
                   fullWidth
                   {...register('fixed_price', { valueAsNumber: true })}
                 />
