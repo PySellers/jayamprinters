@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Date, Enum, Boolean, text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Date, Enum, Boolean, JSON, text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -32,6 +32,8 @@ class Quotation(Base):
     proof2_time = Column(String, nullable=True)
     delivery_date = Column(Date, nullable=True)
     delivery_time = Column(String, nullable=True)
+    # Free text for a quotation, e.g. "5 working days" or "by 12 Nov" (a quotation has no proof or delivery dates).
+    estimated_delivery = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -53,6 +55,13 @@ class QuotationItem(Base):
     spec_notes = Column(String, nullable=True)
     # How many copies (sets) of the document -- per-set charges such as binding multiply by this.
     sets = Column(Integer, nullable=False, default=1)
+    # Paper GSM of the 2nd, 3rd... copy of a bill book set (option ids; blank = same as the top copy).
+    layer_gsm_option_ids = Column(JSON, nullable=True)
+    # Printing charge included in unit_price / total_price (kept for the breakdown shown to staff).
+    print_charge = Column(Float, nullable=False, default=0.0, server_default="0")
+    hsn_code = Column(String, nullable=True)
+    tax_rate = Column(Float, nullable=False, default=0.0, server_default="0")
+    tax_amount = Column(Float, nullable=False, default=0.0, server_default="0")
 
     quotation = relationship("Quotation", back_populates="items")
     product = relationship("Product")

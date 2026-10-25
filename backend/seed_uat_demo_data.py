@@ -126,12 +126,21 @@ def user(email):
 
 # ----------------------------------------------------------------------------- independent price recomputation
 def expected_line(c, product, qty, options, charge_names, sets=1, area=None):
-    """Recompute a line from the raw rate tables, without calling the pricing service."""
+    """Recompute a line from the raw rate tables, without calling the pricing service.
+
+    Rules: grid price (whole quantity at its band's rate, incremental bands priced band by band), never less than
+    the previous band's top quantity at that band's rate; each extra copy of a set ("1+2") is one more layer of
+    paper; option surcharges; extra charges; the service's printing charge; the service minimum."""
     opt_rows = []
     for attr, value in options:
         a = db.query(Attribute).filter_by(category_id=c.id, name=attr).one()
         o = db.query(AttributeOption).filter_by(attribute_id=a.id, value=value).one()
         opt_rows.append((a, o))
+    layers = 1
+    for a, o in opt_rows:
+        if a.name == "Copies per Set":
+            parts = str(o.value).split("+")
+            layers = 1 + sum(int(x) for x in parts[1:] if x.strip())
     if product.pricing_type.value == "fixed":
         base = product.fixed_price
     else:
@@ -147,17 +156,27 @@ def expected_line(c, product, qty, options, charge_names, sets=1, area=None):
         price, slab = cell_price(qty)
         if product.pricing_type.value == "per_area":
             base = price * (area or 0)
-        elif slab.is_incremental:
-            total = 0.0
-            for s in db.query(QuantitySlab).filter_by(category_id=c.id, is_incremental=True).order_by(QuantitySlab.min_quantity):
-                if s.min_quantity > qty:
-                    break
-                upper = qty if s.max_quantity is None else min(qty, s.max_quantity)
-                total += (upper - s.min_quantity + 1) * cell_price(s.min_quantity)[0]
-            base = total / qty
         else:
-            base = price
+            if slab.is_incremental:
+                total = 0.0
+                for s in db.query(QuantitySlab).filter_by(category_id=c.id, is_incremental=True).order_by(QuantitySlab.min_quantity):
+                    if s.min_quantity > qty:
+                        break
+                    upper = qty if s.max_quantity is None else min(qty, s.max_quantity)
+                    total += (upper - s.min_quantity + 1) * cell_price(s.min_quantity)[0]
+                paper = total / qty
+            else:
+                paper = price
+                previous = db.query(QuantitySlab).filter_by(category_id=c.id, is_incremental=False, max_quantity=slab.min_quantity - 1).first()
+                if previous is not None:
+                    floor = cell_price(previous.max_quantity)[0] * previous.max_quantity
+                    paper = max(paper, floor / qty)
+            base = paper * (layers if any(a.name == "Paper/GSM Type" and a.in_price_matrix for a, _ in opt_rows) else 1)
         base += sum(o.extra_price for _, o in opt_rows)
+        if layers > 1:
+            gsm = [o for a, o in opt_rows if a.name == "Paper/GSM Type" and a.in_price_matrix]
+            if gsm:
+                base += (layers - 1) * gsm[0].extra_price
     extra = 0.0
     for name in charge_names:
         ch = db.query(ExtraCharge).filter_by(category_id=c.id, name=name, is_active=True).one()
@@ -172,10 +191,25 @@ def expected_line(c, product, qty, options, charge_names, sets=1, area=None):
             extra += ch.amount / qty
         elif t == ChargeType.percentage:
             extra += base * ch.amount / 100
-    unit = base + extra
-    if c.min_charge and unit * qty < c.min_charge:
-        unit = c.min_charge / qty
-    return round(unit * qty, 2)
+    total = (base + extra) * qty
+    if c.print_charge_mode == "block" and c.print_block_size and c.print_block_rate:
+        total += max(1, -(-qty // c.print_block_size)) * c.print_block_rate * (layers if c.print_per_layer else 1)
+    elif c.print_charge_mode == "per_copy" and c.print_per_copy_rate:
+        total += c.print_per_copy_rate * qty * (layers if c.print_per_layer else 1)
+    if c.min_charge and total < c.min_charge:
+        total = c.min_charge
+    return round(total, 2)
+
+
+def expected_tax_rate(c, product):
+    """GST % of a line: the product's own HSN, else the service's, else the default tax."""
+    from app.models.company import HsnCode
+    for hsn_id in (product.hsn_id, c.hsn_id):
+        if hsn_id:
+            hsn = db.query(HsnCode).get(hsn_id)
+            if hsn and hsn.is_active:
+                return float(hsn.gst_rate)
+    return float(db.query(Tax).filter_by(is_default=True).one().rate_percent)
 
 
 # ----------------------------------------------------------------------------- scenarios

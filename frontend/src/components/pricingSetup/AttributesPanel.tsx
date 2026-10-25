@@ -156,7 +156,7 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
                             <TableHead>
                               <TableRow>
                                 <TableCell>Value</TableCell>
-                                <TableCell>Extra Price</TableCell>
+                                <TableCell>Price</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell align="right">Actions</TableCell>
                               </TableRow>

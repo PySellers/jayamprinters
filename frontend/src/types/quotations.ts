@@ -12,6 +12,10 @@ export interface QuotationItem {
   area_sqft?: number | null;
   unit_price: number;
   total_price: number;
+  hsn_code?: string | null;
+  tax_rate?: number;
+  tax_amount?: number;
+  print_charge?: number;
   selected_options: SelectedOption[];
 }
 
@@ -46,6 +50,8 @@ export interface QuotationItemInput {
   spec_notes?: string | null;
   /** Number of copies (sets) of the document; per-set charges such as binding multiply by it. */
   sets?: number;
+  /** GSM option of the 2nd, 3rd... copy of a bill-book set (blank = same as the top copy). */
+  layer_gsm_option_ids?: number[];
 }
 
 export interface QuotationCreateInput {
@@ -60,11 +66,13 @@ export interface QuotationCreateInput {
   proof2_time?: string | null;
   delivery_date?: string | null;
   delivery_time?: string | null;
+  estimated_delivery?: string | null;
   items: QuotationItemInput[];
 }
 
 export interface QuotationPreviewRequest {
   tax_id?: number | null;
+  with_gst?: boolean;
   items: QuotationItemInput[];
 }
 
@@ -72,6 +80,18 @@ export interface QuotationPreviewItem {
   unit_price: number;
   total_price: number;
   priceable: boolean;
+  paper_total?: number;
+  print_charge?: number;
+  hsn_code?: string | null;
+  tax_rate?: number;
+  tax_amount?: number;
+}
+
+export interface TaxBreakdownRow {
+  hsn_code?: string | null;
+  rate: number;
+  taxable: number;
+  tax: number;
 }
 
 export interface QuotationPreview {
@@ -79,4 +99,5 @@ export interface QuotationPreview {
   subtotal: number;
   tax_amount: number;
   grand_total: number;
+  tax_breakdown?: TaxBreakdownRow[];
 }

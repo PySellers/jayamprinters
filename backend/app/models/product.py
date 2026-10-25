@@ -14,6 +14,15 @@ class ProductCategory(Base):
     guided_flow = Column(String, nullable=True)
     # Smallest amount billed for one line of this service (small runs cost more per unit).
     min_charge = Column(Float, nullable=True)
+    # Default HSN / SAC (and so GST rate) for everything sold under this service.
+    hsn_id = Column(Integer, ForeignKey("hsn_codes.id"), nullable=True)
+    # Printing charge, on top of the paper cost: 'block' = a fixed rate per block of copies (minimum one block),
+    # 'per_copy' = a rate per copy. Blank = no separate printing charge.
+    print_charge_mode = Column(String, nullable=True)
+    print_block_size = Column(Integer, nullable=True)
+    print_block_rate = Column(Float, nullable=True)
+    print_per_copy_rate = Column(Float, nullable=True)
+    print_per_layer = Column(Boolean, nullable=False, default=False, server_default="false")
 
 
 class ProductPricingType(str, enum.Enum):
@@ -31,5 +40,6 @@ class Product(Base):
     description = Column(String, nullable=True)
     pricing_type = Column(Enum(ProductPricingType), default=ProductPricingType.matrix)
     fixed_price = Column(Float, nullable=True)
+    hsn_id = Column(Integer, ForeignKey("hsn_codes.id"), nullable=True)  # overrides the service's HSN
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)

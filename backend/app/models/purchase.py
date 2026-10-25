@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, Integer, String, Float, Date, DateTime, ForeignKey, Enum
+from sqlalchemy import Boolean, Column, Integer, String, Float, Date, DateTime, ForeignKey, Enum, LargeBinary
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -74,6 +74,19 @@ class PurchaseItem(Base):
 
     purchase = relationship("Purchase", back_populates="items")
     inventory_item = relationship("InventoryItem")
+
+
+class PurchaseBill(Base):
+    """The supplier's original bill (photo or PDF) kept with a purchase."""
+
+    __tablename__ = "purchase_bills"
+
+    id = Column(Integer, primary_key=True, index=True)
+    purchase_id = Column(Integer, ForeignKey("purchases.id"), unique=True, nullable=False)
+    filename = Column(String, nullable=True)
+    content_type = Column(String, nullable=False)
+    data = Column(LargeBinary, nullable=False)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
 
 
 class PurchasePayment(Base):

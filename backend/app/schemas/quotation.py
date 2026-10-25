@@ -19,6 +19,8 @@ class QuotationItemCreate(BaseModel):
     extra_charge_ids: List[int] = []
     spec_notes: Optional[str] = None
     sets: int = Field(default=1, ge=1)
+    # GSM of the 2nd, 3rd... copy of a bill-book set (attribute option ids); blank = same as the top copy.
+    layer_gsm_option_ids: List[int] = []
 
 class QuotationItemOut(BaseModel):
     id: int
@@ -29,6 +31,11 @@ class QuotationItemOut(BaseModel):
     total_price: float
     spec_notes: Optional[str] = None
     sets: int = 1
+    layer_gsm_option_ids: Optional[List[int]] = None
+    print_charge: float = 0.0
+    hsn_code: Optional[str] = None
+    tax_rate: float = 0.0
+    tax_amount: float = 0.0
     selected_options: List[SelectedOptionOut] = []
 
     class Config:
@@ -46,6 +53,7 @@ class QuotationCreate(BaseModel):
     proof2_time: Optional[str] = None
     delivery_date: Optional[date] = None
     delivery_time: Optional[str] = None
+    estimated_delivery: Optional[str] = None
     items: List[QuotationItemCreate] = Field(min_length=1)
 
 class QuotationOut(BaseModel):
@@ -66,6 +74,7 @@ class QuotationOut(BaseModel):
     proof2_time: Optional[str] = None
     delivery_date: Optional[date] = None
     delivery_time: Optional[str] = None
+    estimated_delivery: Optional[str] = None
     created_at: datetime
     items: List[QuotationItemOut]
 
@@ -82,9 +91,11 @@ class QuotationPreviewItemIn(BaseModel):
     selected_options: List[SelectedOptionIn] = []
     extra_charge_ids: List[int] = []
     sets: int = Field(default=1, ge=1)
+    layer_gsm_option_ids: List[int] = []
 
 class QuotationPreviewRequest(BaseModel):
     tax_id: Optional[int] = None
+    with_gst: bool = True
     items: List[QuotationPreviewItemIn]
 
 class QuotationPreviewItemOut(BaseModel):
@@ -94,9 +105,22 @@ class QuotationPreviewItemOut(BaseModel):
     # hasn't been picked) -- the counter screen shows this line as "--"
     # instead of a misleading zero.
     priceable: bool
+    # Breakdown shown on the order screen before the invoice is generated.
+    paper_total: float = 0.0
+    print_charge: float = 0.0
+    hsn_code: Optional[str] = None
+    tax_rate: float = 0.0
+    tax_amount: float = 0.0
+
+class TaxBreakdownRow(BaseModel):
+    hsn_code: Optional[str] = None
+    rate: float
+    taxable: float
+    tax: float
 
 class QuotationPreviewOut(BaseModel):
     items: List[QuotationPreviewItemOut]
     subtotal: float
     tax_amount: float
     grand_total: float
+    tax_breakdown: List[TaxBreakdownRow] = []

@@ -8,6 +8,14 @@ export interface ProductCategory {
   guided_flow?: string | null;
   /** Smallest amount billed for one line of this service. */
   min_charge?: number | null;
+  /** Default HSN / SAC code of the service (sets the GST rate). */
+  hsn_id?: number | null;
+  /** Printing charge on top of paper cost: 'block' (rate per block of copies) or 'per_copy'. */
+  print_charge_mode?: 'block' | 'per_copy' | null;
+  print_block_size?: number | null;
+  print_block_rate?: number | null;
+  print_per_copy_rate?: number | null;
+  print_per_layer?: boolean;
 }
 
 export interface Product {
@@ -17,6 +25,7 @@ export interface Product {
   description?: string | null;
   pricing_type: ProductPricingType;
   fixed_price?: number | null;
+  hsn_id?: number | null;
   is_active: boolean;
   created_at: string;
 }
@@ -27,5 +36,6 @@ export interface ProductInput {
   description?: string | null;
   pricing_type?: ProductPricingType;
   fixed_price?: number | null;
+  hsn_id?: number | null;
   is_active?: boolean;
 }

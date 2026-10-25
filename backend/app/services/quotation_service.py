@@ -27,31 +27,43 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
         proof2_time=payload.proof2_time,
         delivery_date=payload.delivery_date,
         delivery_time=payload.delivery_time,
+        estimated_delivery=(payload.estimated_delivery or None),
         status=QuotationStatus.draft,
     )
     db.add(quotation)
     db.flush()
 
     subtotal = 0.0
+    tax_total = 0.0
     for item in payload.items:
         product = db.query(Product).filter(Product.id == item.product_id).first()
         if not product:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Product {item.product_id} not found")
 
         selected_options = [(so.attribute_id, so.attribute_option_id) for so in item.selected_options]
-        unit_price, computed_charges = pricing_service.calculate_unit_price(
-            db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets
+        line = pricing_service.price_line(
+            db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets,
+            item.layer_gsm_option_ids, payload.tax_id,
         )
+        computed_charges = line.charges
+        line_total = round(line.total, 2)
+        # GST is worked out per line from the item's HSN code; a cash bill carries no tax at all.
+        line_tax_amount = round(line_total * line.tax_rate / 100, 2) if payload.with_gst else 0.0
 
         db_item = QuotationItem(
             quotation_id=quotation.id,
             product_id=item.product_id,
             quantity=item.quantity,
             area_sqft=item.area_sqft,
-            unit_price=unit_price,
-            total_price=unit_price * item.quantity,
+            unit_price=line.unit_price,
+            total_price=line_total,
             spec_notes=item.spec_notes,
             sets=item.sets,
+            layer_gsm_option_ids=item.layer_gsm_option_ids or None,
+            print_charge=round(line.print_charge, 2),
+            hsn_code=line.hsn_code,
+            tax_rate=line.tax_rate if payload.with_gst else 0.0,
+            tax_amount=line_tax_amount,
         )
         db.add(db_item)
         db.flush()
@@ -70,10 +82,10 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
             ))
 
         subtotal += db_item.total_price
+        tax_total += line_tax_amount
 
     tax = pricing_service.resolve_tax(db, payload.tax_id)
-    # Without-GST (cash bill) orders carry no tax at all.
-    tax_amount = round(subtotal * tax.rate_percent / 100, 2) if payload.with_gst else 0.0
+    tax_amount = round(tax_total, 2)
     quotation.tax_id = tax.id
     subtotal = round(subtotal, 2)
     quotation.total_amount = subtotal

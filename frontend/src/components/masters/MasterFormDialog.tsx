@@ -49,7 +49,7 @@ export default function MasterFormDialog({
           <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} required fullWidth autoFocus />
           {hasExtraPrice && (
             <TextField
-              label="Extra Price"
+              label="Price"
               type="number" slotProps={{ htmlInput: { step: 'any' } }}
               value={extraPrice}
               onChange={(e) => setExtraPrice(e.target.value)}

@@ -209,7 +209,7 @@ export async function orderTests(browser) {
   // ------------------------------------------------------------------ GST order
   const M6 = 'GST orders';
   const gcust = await mkCustomer('GST');
-  await run('UI-GST', M6, 'An order started "With GST" shows GST on the invoice', 'Tax = 18% of the subtotal', async () => {
+  await run('UI-GST', M6, 'An order started "With GST" shows GST on the invoice', 'Tax = the GST rate of the item HSN code on the subtotal', async () => {
     await page.goto(BASE + orderUrl(gcust, vc.category_id, 1), { waitUntil: 'networkidle' });
     await page.waitForTimeout(800);
     await pick(page, 'Item / Size', 'Visiting Card');
@@ -220,7 +220,7 @@ export async function orderTests(browser) {
     await page.waitForURL(/\/invoices\/\d+/, { timeout: 15000 });
     await page.waitForTimeout(900);
     const t = await bodyText(page);
-    const tax = Math.round(vc.expected * 0.18 * 100) / 100;
+    const tax = Math.round(vc.expected * vc.tax_rate / 100 * 100) / 100;
     expect(t.includes(`₹${tax.toFixed(2)}`), `GST Rs${tax} not on the invoice`);
     expect(t.includes(`₹${(vc.expected + tax).toFixed(2)}`), 'grand total with GST missing');
     return `Rs${vc.expected} + GST Rs${tax} = Rs${(vc.expected + tax).toFixed(2)}`;

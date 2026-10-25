@@ -92,7 +92,7 @@ export default function QuotationCreate() {
       // Keep line positions: an unpicked line is sent as nothing and shown as "not priced yet".
       const picked = lines.filter((l): l is QuotationItemInput => l !== null);
       quotationsApi
-        .preview({ tax_id: watchedTaxId, items: picked })
+        .preview({ tax_id: watchedTaxId, with_gst: Boolean(withGst), items: picked })
         .then((result) => {
           let k = 0;
           const items = lines.map((l) => (l ? result.items[k++] : { unit_price: 0, total_price: 0, priceable: false }));
@@ -104,9 +104,10 @@ export default function QuotationCreate() {
       if (previewTimer.current) clearTimeout(previewTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(watchedItems), watchedTaxId]);
+  }, [JSON.stringify(watchedItems), watchedTaxId, withGst]);
   const allPriced = Boolean(preview) && (preview?.items ?? []).every((i) => i.priceable);
   const gstAmount = withGst ? preview?.tax_amount ?? 0 : 0;
+  const printingTotal = (preview?.items ?? []).reduce((sum, i) => sum + (i.print_charge ?? 0), 0);
 
   // ---- service -> item (step 2 of Start New Order) ----------------------------
   const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
@@ -227,6 +228,7 @@ export default function QuotationCreate() {
       proof2_time: data.proof2_time || undefined,
       delivery_date: data.delivery_date || undefined,
       delivery_time: data.delivery_time || undefined,
+      estimated_delivery: data.estimated_delivery?.trim() || undefined,
       items: data.items.map((item) => ({ ...item, product_id: Number(item.product_id) })),
     });
   };
@@ -383,60 +385,74 @@ export default function QuotationCreate() {
                   />
                 </Grid>
               )}
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Proof 1 Date"
-                  type="date"
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('proof1_date')}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Proof 1 Time"
-                  type="time"
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('proof1_time')}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Proof 2 Date (optional)"
-                  type="date"
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('proof2_date')}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Proof 2 Time (optional)"
-                  type="time"
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('proof2_time')}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Delivery Date"
-                  type="date"
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('delivery_date')}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField
-                  label="Delivery Time"
-                  type="time"
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  {...register('delivery_time')}
-                />
-              </Grid>
+              {isQuick ? (
+                <>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    label="Proof 1 Date"
+                    type="date"
+                    fullWidth
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    {...register('proof1_date')}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    label="Proof 1 Time"
+                    type="time"
+                    fullWidth
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    {...register('proof1_time')}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    label="Proof 2 Date (optional)"
+                    type="date"
+                    fullWidth
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    {...register('proof2_date')}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    label="Proof 2 Time (optional)"
+                    type="time"
+                    fullWidth
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    {...register('proof2_time')}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    label="Delivery Date"
+                    type="date"
+                    fullWidth
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    {...register('delivery_date')}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField
+                    label="Delivery Time"
+                    type="time"
+                    fullWidth
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    {...register('delivery_time')}
+                  />
+                </Grid>
+                </>
+              ) : (
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    label="Estimated delivery"
+                    fullWidth
+                    placeholder="e.g. 5 working days, or 12 Nov"
+                    helperText="Free text - printed on the quotation"
+                    {...register('estimated_delivery')}
+                  />
+                </Grid>
+              )}
               {!isQuick && (
                 <Grid size={{ xs: 12 }}>
                   <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
@@ -489,10 +505,28 @@ export default function QuotationCreate() {
                   <Typography color="text.secondary">Subtotal</Typography>
                   <Typography>₹{preview.subtotal.toFixed(2)}</Typography>
                 </Stack>
+                {printingTotal > 0 && (
+                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right' }}>
+                    includes printing charge ₹{printingTotal.toFixed(2)}
+                  </Typography>
+                )}
+                {withGst &&
+                  (preview.tax_breakdown ?? []).map((row) => (
+                    <Box key={`${row.hsn_code}-${row.rate}`}>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                        <Typography color="text.secondary">CGST {row.rate / 2}%{row.hsn_code ? ` (HSN ${row.hsn_code})` : ''}</Typography>
+                        <Typography>₹{(row.tax / 2).toFixed(2)}</Typography>
+                      </Stack>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
+                        <Typography color="text.secondary">SGST {row.rate / 2}%{row.hsn_code ? ` (HSN ${row.hsn_code})` : ''}</Typography>
+                        <Typography>₹{(row.tax - row.tax / 2).toFixed(2)}</Typography>
+                      </Stack>
+                    </Box>
+                  ))}
                 {withGst && (
                   <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-                    <Typography color="text.secondary">GST</Typography>
-                    <Typography>₹{gstAmount.toFixed(2)}</Typography>
+                    <Typography sx={{ fontWeight: 600 }}>Total GST</Typography>
+                    <Typography sx={{ fontWeight: 600 }}>₹{gstAmount.toFixed(2)}</Typography>
                   </Stack>
                 )}
                 <Stack direction="row" sx={{ justifyContent: 'space-between', pt: 0.5, borderTop: '1px solid', borderColor: 'divider' }}>

@@ -12,6 +12,7 @@ import type { QuotationCreateInput, SelectedOption } from '../../types/quotation
 import SearchSelect from './SearchSelect';
 import { applicableCharges, chargeLabel, pruneCharges, setChargeInGroup } from './ChargeGroupPicker';
 
+const PRINT_COLOURS = ['Black', 'Navy Blue', 'Custom'];
 const LAYER_NAMES = ['Original', 'Duplicate', 'Triplicate', 'Quadruplicate', 'Quintuplicate', 'Sextuplicate', 'Septuplicate'];
 
 function GroupHeading({ children }: { children: ReactNode }) {
@@ -110,7 +111,9 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
   const [layerColours, setLayerColours] = useState<string[]>([]);
   const [layerCustom, setLayerCustom] = useState<string[]>([]);
   const [paperCustom, setPaperCustom] = useState('');
-  const [printColour, setPrintColour] = useState('');
+  const [printColour, setPrintColour] = useState('Black');
+  const [printColourCustom, setPrintColourCustom] = useState('');
+  const [layerGsm, setLayerGsm] = useState<(number | null)[]>([]);
   const [slFrom, setSlFrom] = useState('');
   const [slTo, setSlTo] = useState('');
   const [bookNo, setBookNo] = useState('');
@@ -119,7 +122,17 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
   useEffect(() => {
     setLayerColours((prev) => Array.from({ length: layerCount }, (_, i) => prev[i] ?? ''));
     setLayerCustom((prev) => Array.from({ length: layerCount }, (_, i) => prev[i] ?? ''));
+    // One GSM choice per extra copy (copy 2, 3 ...); empty = same paper as the top copy.
+    setLayerGsm((prev) => Array.from({ length: Math.max(layerCount - 1, 0) }, (_, i) => prev[i] ?? null));
   }, [layerCount]);
+
+  const topGsmId = optionOf(gsmAttr);
+  useEffect(() => {
+    // Sent to the price calculation so every copy is priced in its own GSM.
+    const effective = layerGsm.map((id) => (id && id !== topGsmId ? id : 0));
+    setValue(`items.${index}.layer_gsm_option_ids`, effective.some(Boolean) ? effective : [], { shouldDirty: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(layerGsm), topGsmId]);
 
   // Coloured paper costs more: pick the matching "Coloured Layers" charge automatically
   // from the colours chosen per copy (white / rough paper carry no surcharge).
@@ -136,6 +149,16 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [colouredCount, colouredCharge?.id, currentColouredId, charges.length]);
 
+  // Bill type starts as "Nil": some documents have no bill type at all, so staff only pick one when it applies.
+  const nilBillType = charges.find((c) => c.is_active && c.group_name === 'Bill Type' && /nil/i.test(c.name));
+  const hasBillType = chargeIds.some((id) => charges.find((c) => c.id === id)?.group_name === 'Bill Type');
+  useEffect(() => {
+    if (nilBillType && !hasBillType) {
+      setValue(`items.${index}.extra_charge_ids`, setChargeInGroup(chargeIds, charges, 'Bill Type', nilBillType.id), { shouldDirty: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nilBillType?.id, hasBillType]);
+
   const paperNameValue = optionValue(paperNameAttr);
   const bindingType = chargeIn('Binding Type');
   const bindingIsCustom = Boolean(bindingType && /custom/i.test(bindingType.name));
@@ -148,9 +171,14 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
         return colour ? `${LAYER_NAMES[i] ?? `Copy ${i + 1}`}: ${colour}` : '';
       }).filter(Boolean);
       parts.push(`Copies ${copiesValue}${perLayer.length ? ` (${perLayer.join(', ')})` : ''}`);
+      const gsmByCopy = layerGsm
+        .map((id, i) => (id && id !== topGsmId ? `${LAYER_NAMES[i + 1] ?? `Copy ${i + 2}`}: ${optionsOf(gsmAttr).find((o) => o.id === id)?.value ?? ''}` : ''))
+        .filter(Boolean);
+      if (gsmByCopy.length) parts.push(`GSM ${gsmByCopy.join(', ')}`);
     }
     if (paperNameValue === 'Custom' && paperCustom.trim()) parts.push(`Paper: ${paperCustom.trim()}`);
-    if (printColour.trim()) parts.push(`Printing colour: ${printColour.trim()}`);
+    const printColourText = printColour === 'Custom' ? printColourCustom.trim() : printColour;
+    if (printColourText) parts.push(`Printing colour: ${printColourText}`);
     const numbering = [
       slFrom || slTo ? `Sl.No ${slFrom || '?'}–${slTo || '?'}` : '',
       bookNo ? `Book No ${bookNo}` : '',
@@ -158,15 +186,16 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
     if (numbering.length) parts.push(numbering.join(', '));
     if (bindingIsCustom && bindingCustom.trim()) parts.push(`Binding: ${bindingCustom.trim()}`);
     return parts.join(' | ');
-  }, [layerCount, copiesValue, layerColours, layerCustom, paperNameValue, paperCustom, printColour, slFrom, slTo, bookNo, bindingIsCustom, bindingCustom]);
+  }, [layerCount, copiesValue, layerColours, layerCustom, layerGsm, topGsmId, paperNameValue, paperCustom, printColour, printColourCustom, slFrom, slTo, bookNo, bindingIsCustom, bindingCustom]);
 
   useEffect(() => {
     setValue(`items.${index}.spec_notes`, notes || undefined);
   }, [notes, index, setValue]);
 
   // ---- live price ---------------------------------------------------------------
-  const [price, setPrice] = useState<{ rate: number; amount: number; priceable: boolean } | null>(null);
-  const priceKey = JSON.stringify([item?.product_id, item?.quantity, selected, chargeIds]);
+  const withGst = useWatch({ control, name: 'with_gst' });
+  const [price, setPrice] = useState<{ rate: number; amount: number; priceable: boolean; paper: number; printing: number; tax: number } | null>(null);
+  const priceKey = JSON.stringify([item?.product_id, item?.quantity, selected, chargeIds, item?.layer_gsm_option_ids, withGst]);
   useEffect(() => {
     if (!item?.product_id) {
       setPrice(null);
@@ -176,14 +205,19 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
       quotationsApi
         .preview({
           tax_id: null,
+          with_gst: Boolean(withGst),
           items: [{
             product_id: item.product_id,
             quantity: Number(item.quantity) || 1,
             selected_options: selected,
             extra_charge_ids: chargeIds,
+            layer_gsm_option_ids: item.layer_gsm_option_ids ?? [],
           }],
         })
-        .then((r) => setPrice({ rate: r.items[0].unit_price, amount: r.items[0].total_price, priceable: r.items[0].priceable }))
+        .then((r) => setPrice({
+          rate: r.items[0].unit_price, amount: r.items[0].total_price, priceable: r.items[0].priceable,
+          paper: r.items[0].paper_total ?? 0, printing: r.items[0].print_charge ?? 0, tax: r.items[0].tax_amount ?? 0,
+        }))
         .catch(() => setPrice(null));
     }, 400);
     return () => clearTimeout(timer);
@@ -241,7 +275,7 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
       {/* Document ------------------------------------------------------ */}
       <GroupHeading>Document</GroupHeading>
       <Grid container spacing={1.5}>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SearchSelect
             required
             label="Document type"
@@ -250,7 +284,7 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
             onChange={(id) => setOption(docAttr, id)}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SearchSelect
             required
             label="Size"
@@ -260,17 +294,28 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
             onChange={(id) => setValue(`items.${index}.product_id`, id ?? 0, { shouldDirty: true })}
           />
         </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+          <TextField
+            fullWidth
+            required
+            size="small"
+            label="Quantity (Nos)"
+            type="number"
+            disabled={!s2}
+            {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
+          />
+        </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <SearchSelect
             label="Copies per set"
             disabled={!early}
-            options={toChoices(optionsOf(copiesAttr))}
+            options={optionsOf(copiesAttr).map((o) => ({ id: o.id, label: o.value === '1' ? '1 (no extra copy)' : o.value }))}
             value={optionOf(copiesAttr)}
             onChange={(id) => setOption(copiesAttr, id)}
           />
         </Grid>
         {Array.from({ length: layerCount }, (_, i) => (
-          <Grid key={i} size={{ xs: 12, sm: 6, md: 3 }}>
+          <Grid key={i} size={{ xs: 12, sm: 6, md: i === 0 ? 3 : 3 }}>
             <SearchSelect
               label={`${LAYER_NAMES[i] ?? `Copy ${i + 1}`} colour`}
               options={toChoices(colourOptions)}
@@ -289,6 +334,18 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
                 value={layerCustom[i] ?? ''}
                 onChange={(e) => setLayerCustom((prev) => prev.map((c, k) => (k === i ? e.target.value : c)))}
               />
+            )}
+            {i > 0 && (
+              <Box sx={{ mt: 0.75 }}>
+                <SearchSelect
+                  label={`${LAYER_NAMES[i] ?? `Copy ${i + 1}`} GSM`}
+                  disabled={!sGsm}
+                  helperText={layerGsm[i - 1] ? undefined : 'Same as the top copy'}
+                  options={toChoices(optionsOf(gsmAttr))}
+                  value={layerGsm[i - 1] ?? topGsmId}
+                  onChange={(id) => setLayerGsm((prev) => prev.map((g, k) => (k === i - 1 ? id : g)))}
+                />
+              </Box>
             )}
           </Grid>
         ))}
@@ -330,7 +387,16 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <TextField fullWidth size="small" label="Printing colour(s)" disabled={!late} value={printColour} onChange={(e) => setPrintColour(e.target.value)} />
+          <SearchSelect
+            label="Printing colour"
+            disabled={!late}
+            options={PRINT_COLOURS.map((c, i) => ({ id: i + 1, label: c }))}
+            value={PRINT_COLOURS.indexOf(printColour) + 1 || null}
+            onChange={(id) => setPrintColour(id == null ? '' : PRINT_COLOURS[id - 1])}
+          />
+          {printColour === 'Custom' && (
+            <TextField fullWidth size="small" sx={{ mt: 0.75 }} placeholder="Printing colour(s)" value={printColourCustom} onChange={(e) => setPrintColourCustom(e.target.value)} />
+          )}
         </Grid>
       </Grid>
 
@@ -401,20 +467,17 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
       {/* Quantity & price ------------------------------------------------ */}
       <Divider sx={{ mt: 2.5, mb: 1.5 }} />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-        <TextField
-          label="Quantity (Nos)"
-          type="number"
-          size="small"
-          disabled={!late}
-          sx={{ width: 190 }}
-          {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
-        />
         {price &&
           (price.priceable ? (
             <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 3, flexWrap: 'wrap' }}>
               <Typography variant="body2" color="text.secondary">
                 Rate: <strong>₹{price.rate.toFixed(2)}</strong>
               </Typography>
+              {price.printing > 0 && (
+                <Typography variant="body2" color="text.secondary">
+                  Paper &amp; extras ₹{(price.amount - price.printing).toFixed(2)} + printing <strong>₹{price.printing.toFixed(2)}</strong>
+                </Typography>
+              )}
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a237e' }}>
                 Amount: ₹{price.amount.toFixed(2)}
               </Typography>
@@ -425,7 +488,7 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
               )}
             </Box>
           ) : (
-            <Typography variant="body2" color="text.secondary">Price appears once size and paper are chosen.</Typography>
+            <Typography variant="body2" color="text.secondary">Price appears once size, quantity and paper are chosen.</Typography>
           ))}
       </Box>
     </Paper>

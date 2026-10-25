@@ -96,6 +96,7 @@ class PurchasePaymentOut(PurchasePaymentCreate):
 
 class PurchaseOut(BaseModel):
     id: int
+    has_bill: bool = False  # a supplier bill (photo / PDF) is attached
     purchase_number: str
     vendor_id: int
     purchase_date: date
@@ -109,3 +110,26 @@ class PurchaseOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+class BillScanLine(BaseModel):
+    description: str
+    quantity: float = 1.0
+    unit: Optional[str] = None
+    unit_price: float = 0.0
+    amount: Optional[float] = None
+    inventory_item_id: Optional[int] = None  # the stock item this looks like, when there is one
+
+
+class BillScanOut(BaseModel):
+    """A supplier bill read into a draft purchase (not saved)."""
+
+    vendor_id: Optional[int] = None  # matched vendor, when there is one
+    vendor_name: Optional[str] = None
+    vendor_gstin: Optional[str] = None
+    bill_number: Optional[str] = None
+    bill_date: Optional[str] = None
+    lines: List[BillScanLine] = []
+    total_amount: Optional[float] = None
+    notes: Optional[str] = None

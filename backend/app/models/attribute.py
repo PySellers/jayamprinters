@@ -17,7 +17,7 @@ class Attribute(Base):
     in_price_matrix = Column(Boolean, default=True, nullable=False)
 
     category = relationship("ProductCategory")
-    options = relationship("AttributeOption", back_populates="attribute", cascade="all, delete-orphan")
+    options = relationship("AttributeOption", back_populates="attribute", cascade="all, delete-orphan", order_by="AttributeOption.display_order, AttributeOption.id")
 
 
 class AttributeOption(Base):

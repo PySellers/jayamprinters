@@ -5,7 +5,7 @@ from typing import List
 from app.core.database import get_db
 from app.schemas.quotation import (
     QuotationCreate, QuotationOut, QuotationStatusUpdate,
-    QuotationPreviewRequest, QuotationPreviewOut, QuotationPreviewItemOut,
+    QuotationPreviewRequest, QuotationPreviewOut, QuotationPreviewItemOut, TaxBreakdownRow,
 )
 from app.schemas.job_card import JobCardOut
 from app.models.customer import Customer
@@ -16,6 +16,7 @@ from app.services import pricing_service
 from app.services.quotation_service import create_quotation
 from app.services.job_card_service import convert_quotation_to_job_cards
 from app.services.quotation_pdf_service import generate_quotation_pdf
+from app.services.company_service import get_company
 
 router = APIRouter(prefix="/quotations")
 
@@ -30,28 +31,41 @@ def preview(payload: QuotationPreviewRequest, db: Session = Depends(get_db)):
     the same way a retail POS shows the amount before the sale is finalized."""
     subtotal = 0.0
     items_out: List[QuotationPreviewItemOut] = []
+    breakdown: dict = {}
     for item in payload.items:
         product = db.query(Product).filter(Product.id == item.product_id).first()
         if not product:
             raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
         selected_options = [(so.attribute_id, so.attribute_option_id) for so in item.selected_options]
         try:
-            unit_price, _ = pricing_service.calculate_unit_price(
-                db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets
+            line = pricing_service.price_line(
+                db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets,
+                item.layer_gsm_option_ids, payload.tax_id,
             )
         except HTTPException:
             # Required attribute not picked yet, or no matrix cell for this
             # combination -- not an error at preview time, just not priceable yet.
             items_out.append(QuotationPreviewItemOut(unit_price=0, total_price=0, priceable=False))
             continue
-        total_price = unit_price * item.quantity
+        total_price = round(line.total, 2)
+        line_tax = round(total_price * line.tax_rate / 100, 2) if payload.with_gst else 0.0
         subtotal += total_price
-        items_out.append(QuotationPreviewItemOut(unit_price=unit_price, total_price=total_price, priceable=True))
+        items_out.append(QuotationPreviewItemOut(
+            unit_price=line.unit_price, total_price=total_price, priceable=True,
+            paper_total=round(line.paper_total, 2), print_charge=round(line.print_charge, 2),
+            hsn_code=line.hsn_code, tax_rate=line.tax_rate if payload.with_gst else 0.0, tax_amount=line_tax,
+        ))
+        if payload.with_gst:
+            key = (line.hsn_code, line.tax_rate)
+            row = breakdown.setdefault(key, {"taxable": 0.0, "tax": 0.0})
+            row["taxable"] += total_price
+            row["tax"] += line_tax
 
-    tax = pricing_service.resolve_tax(db, payload.tax_id)
-    tax_amount = round(subtotal * tax.rate_percent / 100, 2)
+    tax_amount = round(sum(r["tax"] for r in breakdown.values()), 2)
+    subtotal = round(subtotal, 2)
     return QuotationPreviewOut(
-        items=items_out, subtotal=subtotal, tax_amount=tax_amount, grand_total=round(subtotal + tax_amount, 2)
+        items=items_out, subtotal=subtotal, tax_amount=tax_amount, grand_total=round(subtotal + tax_amount, 2),
+        tax_breakdown=[TaxBreakdownRow(hsn_code=k[0], rate=k[1], taxable=round(v["taxable"], 2), tax=round(v["tax"], 2)) for k, v in breakdown.items()],
     )
 
 @router.get("/", response_model=List[QuotationOut])
@@ -82,7 +96,7 @@ def quotation_pdf(quotation_id: int, db: Session = Depends(get_db)):
     product_ids = {item.product_id for item in q.items}
     products_by_id = {p.id: p for p in db.query(Product).filter(Product.id.in_(product_ids)).all()}
     return Response(
-        content=generate_quotation_pdf(q, customer, products_by_id),
+        content=generate_quotation_pdf(q, customer, products_by_id, get_company(db)),
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="{q.quotation_number}.pdf"'},
     )

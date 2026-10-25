@@ -49,6 +49,9 @@ DEFECTS = [
     ("Medium", "Products", "Deleting an unused item that had a price grid was blocked with a misleading 'in use' message.", "Unused items delete together with their price grid; items used on orders are protected."),
     ("Low", "Money totals", "Tiny floating-point residue (e.g. 220.00000000000003) could show a fully paid cash bill as part-paid.", "Totals are rounded to the paisa and compared in paise."),
     ("Low", "Price import", "The price sync tool did not copy each item's pricing type, leaving one invitation item on the old type in production.", "Pricing type is now synced too."),
+    ("Medium", "Purchases - supplier bill upload (new)", "The first build sent the bill photo / PDF to the server in the wrong format, so every upload was refused with 'Field required'.", "Uploads are now sent as proper file uploads; checked with a real upload in the browser."),
+    ("Medium", "Pricing - bands that overlap (new)", "Printout and Scanning have overlapping page bands; the 'a bigger order never costs less' rule could pick the wrong neighbouring band, and which one depended on database order.", "The rule now uses the neighbouring band that actually has a rate for that item; tests replay every price cell."),
+    ("Low", "Copies per set (new)", "The new '1' choice was listed last instead of first, because options were shown in the order they were created.", "Options are returned in their display order everywhere."),
     ("Low", "Accessibility", "Edit / Delete icon buttons in the tables had no names for screen readers or automated tests.", "Added Edit / Delete labels."),
 ]
 
@@ -91,7 +94,7 @@ facts = [
     ("How it was tested", "Automated tests drive the real application the way staff do: every API action directly, and every screen in a real Chrome browser (typing, clicking, downloading). Each order is also priced independently from the raw rate tables and compared with what the system shows."),
     ("Test data", "14 customers, 33 orders (every one of the 14 services), 4 quotations, invoices that are paid / part-paid / unpaid (GST and cash bills), job cards in every stage, delivery challans, vendors, stock (3 items below reorder level), purchases, cash ledger entries and cheques, plus staff logins for each role."),
     ("Environment", "Identical application code and the same demo data as the UAT site. Tests that create and delete records ran on a separate copy, so the UAT site's data was left untouched."),
-    ("Not covered", "Printing on physical printers, performance with many simultaneous users, WhatsApp / e-mail sending (not part of this release), and the correctness of the estimated rates against the client's own rate card."),
+    ("Not covered", "Reading a supplier bill with the real AI service (needs the client's API key; the screen was tested for the case where no key is set), printing on physical printers, performance with many simultaneous users, WhatsApp / e-mail sending (not part of this release), and the correctness of the estimated rates against the client's own rate card."),
     ("Defects", f"{len(DEFECTS)} issues were found during this cycle and all were fixed and re-tested (see 'Issues found & fixed')."),
 ]
 for k, v in facts:
@@ -141,7 +144,9 @@ if shots and os.path.isdir(shots):
     row = 3
     KEEP = ["login-page", "dashboard-start-order", "order-form-visiting-card", "service-xerox-photocopy", "service-bill-books-stationery", "invoice-detail",
             "invoice-paid", "dashboard-live-board", "job-card-sheet", "delivery-challan-saved", "quotations-list", "pricing-setup", "price-matrix",
-            "purchase-added", "cash-ledger", "reports", "layout-1366x768", "layout-menu-390x844"]
+            "purchase-added", "cash-ledger", "reports", "layout-1366x768", "layout-menu-390x844",
+            "company-details", "hsn-codes", "printing-and-tax", "order-gst-breakdown", "bill-book-wizard", "bill-book-copies", "outsource-list",
+            "purchase-upload", "financial-statement", "quotation-estimated-delivery"]
     for k in KEEP:
         f = k + ".png"
         if not os.path.exists(os.path.join(shots, f)):

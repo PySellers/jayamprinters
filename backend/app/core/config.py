@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Optional: lets the Purchases screen read a supplier's bill (photo / PDF). Set it as an environment variable.
+    ANTHROPIC_API_KEY: str | None = None
+    ANTHROPIC_MODEL: str = "claude-sonnet-5-5"
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parents[2] / ".env",

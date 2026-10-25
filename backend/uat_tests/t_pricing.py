@@ -123,19 +123,32 @@ def run_all():
         return "50 x Rs10 = Rs500"
     run("ENG", M_ENG, "Price a quantity inside the first band", "50 A4 = Rs500 (Rs10 each)", t)
 
-    for qty, size, unit, label in ((99, "A4", 10, "last unit of band 1"), (100, "A4", 8, "first unit of band 2"), (499, "A4", 8, "last unit of band 2"),
-                                   (500, "A4", 6, "first unit of band 3"), (5000, "A4", 6, "very large quantity"), (100, "A3", 16, "different size A3")):
-        def t(qty=qty, size=size, unit=unit):
+    # A bigger order never costs less than a smaller one: at the start of a cheaper band the total is held at the
+    # previous band's top quantity at that band's rate (99 x Rs10 = Rs990, 499 x Rs8 = Rs3,992, 99 x Rs20 = Rs1,980).
+    for qty, size, expected, label in ((99, "A4", 990, "last unit of band 1"), (100, "A4", 990, "first unit of band 2 - held at the band-1 total"),
+                                       (150, "A4", 1200, "inside band 2, above the held total"), (499, "A4", 3992, "last unit of band 2"),
+                                       (500, "A4", 3992, "first unit of band 3 - held at the band-2 total"), (5000, "A4", 30000, "very large quantity"),
+                                       (100, "A3", 1980, "different size A3 - held at the band-1 total")):
+        def t(qty=qty, size=size, expected=expected):
             tot = total_of([line(ids["pm"], qty, [(ids["size"], ids[size])])])
-            expect(abs(tot - qty * unit) < 0.01, f"got {tot}, expected {qty * unit}")
-            return f"{qty} x Rs{unit} = Rs{qty * unit}"
-        run("ENG", M_ENG, f"Band boundary: {qty} x {size} ({label})", f"Rs{unit} each -> Rs{qty * unit}", t)
+            expect(abs(tot - expected) < 0.01, f"got {tot}, expected {expected}")
+            return f"{qty} x {size} = Rs{expected}"
+        run("ENG", M_ENG, f"Band boundary: {qty} x {size} ({label})", f"Rs{expected}", t)
 
     def t():
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A3"]), (ids["paper"], ids["Gold"])])])
-        expect(abs(tot - 100 * 18) < 0.01, f"got {tot}")
-        return "Rs16 grid price + Rs2 Gold surcharge = Rs18 x 100"
-    run("ENG", M_ENG, "Option surcharge (Gold paper +Rs2 per piece)", "100 A3 Gold = Rs1,800", t)
+        last = 0
+        for qty in range(1, 700):
+            tot = total_of([line(ids["pm"], qty, [(ids["size"], ids["A4"])])])
+            expect(tot >= last - 0.005, f"{qty} pieces cost Rs{tot}, less than {qty - 1} pieces (Rs{last})")
+            last = tot
+        return "Checked every quantity from 1 to 699: the total never goes down"
+    run("ENG", M_ENG, "More pieces never cost less than fewer pieces", "Total never decreases as quantity grows", t)
+
+    def t():
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A3"]), (ids["paper"], ids["Gold"])])])
+        expect(abs(tot - 200 * 18) < 0.01, f"got {tot}")
+        return "Rs16 grid price + Rs2 Gold surcharge = Rs18 x 200"
+    run("ENG", M_ENG, "Option surcharge (Gold paper +Rs2 per piece)", "200 A3 Gold = Rs3,600", t)
 
     def t():
         d = preview([line(ids["pm"], 50, [(ids["size"], ids["A5"])])])
@@ -170,31 +183,31 @@ def run_all():
 
     def t():
         flat = charge("Design charge", "flat", 300)
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A4"])], [flat])])
-        expect(abs(tot - 1100) < 0.01, f"got {tot}")
-        return "Rs800 + flat Rs300 = Rs1,100"
-    run("ENG", M_ENG, "Flat extra charge (design Rs300)", "100 A4 + Rs300 = Rs1,100", t)
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A4"])], [flat])])
+        expect(abs(tot - 1900) < 0.01, f"got {tot}")
+        return "Rs1,600 + flat Rs300 = Rs1,900"
+    run("ENG", M_ENG, "Flat extra charge (design Rs300)", "200 A4 + Rs300 = Rs1,900", t)
 
     def t():
         pu = charge("Lamination per piece", "per_unit", 1.5)
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A4"])], [pu])])
-        expect(abs(tot - 950) < 0.01, f"got {tot}")
-        return "Rs800 + 100 x Rs1.5 = Rs950"
-    run("ENG", M_ENG, "Per-piece extra charge (Rs1.5 each)", "100 A4 + Rs150 = Rs950", t)
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A4"])], [pu])])
+        expect(abs(tot - 1900) < 0.01, f"got {tot}")
+        return "Rs1,600 + 200 x Rs1.5 = Rs1,900"
+    run("ENG", M_ENG, "Per-piece extra charge (Rs1.5 each)", "200 A4 + Rs300 = Rs1,900", t)
 
     def t():
         pc = charge("Rush 10%", "percentage", 10)
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A4"])], [pc])])
-        expect(abs(tot - 880) < 0.01, f"got {tot}")
-        return "Rs800 + 10% = Rs880"
-    run("ENG", M_ENG, "Percentage extra charge (10%)", "100 A4 + 10% = Rs880", t)
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A4"])], [pc])])
+        expect(abs(tot - 1760) < 0.01, f"got {tot}")
+        return "Rs1,600 + 10% = Rs1,760"
+    run("ENG", M_ENG, "Percentage extra charge (10%)", "200 A4 + 10% = Rs1,760", t)
 
     def t():
         ps = charge("Binding per set", "per_set", 25)
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A4"])], [ps], sets=4)])
-        expect(abs(tot - 900) < 0.01, f"got {tot}")
-        return "Rs800 + 4 sets x Rs25 = Rs900"
-    run("ENG", M_ENG, "Per-set extra charge (4 sets x Rs25)", "100 A4 + Rs100 = Rs900", t)
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A4"])], [ps], sets=4)])
+        expect(abs(tot - 1700) < 0.01, f"got {tot}")
+        return "Rs1,600 + 4 sets x Rs25 = Rs1,700"
+    run("ENG", M_ENG, "Per-set extra charge (4 sets x Rs25)", "200 A4 + Rs100 = Rs1,700", t)
 
     def t():
         a = charge("Stitch", "flat", 10, group_name="Binding")
@@ -211,9 +224,9 @@ def run_all():
         bad = api("POST", "/quotations/", {"customer_id": _any_customer(), "items": [dict(product_id=ids["pm"], quantity=100, extra_charge_ids=[dep],
                                                                                          selected_options=[dict(attribute_id=ids["size"], attribute_option_id=ids["A4"])])]}, admin())
         expect_status(bad, 400)
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A3"]), (ids["paper"], ids["Gold"])], [dep])])
-        expect(abs(tot - 1850) < 0.01, f"got {tot}")
-        return "Refused without Gold paper; Rs1,800 + Rs50 = Rs1,850 with it"
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A3"]), (ids["paper"], ids["Gold"])], [dep])])
+        expect(abs(tot - 3650) < 0.01, f"got {tot}")
+        return "Refused without Gold paper; Rs3,600 + Rs50 = Rs3,650 with it"
     run("ENG", M_ENG, "Dependent charge needs its option", "Refused without the option, accepted with it", t)
 
     # fixed / per-area / minimum / incremental
@@ -248,10 +261,10 @@ def run_all():
         d = api("PUT", f"/product-categories/{ids['cat']}", {"min_charge": 300}, admin())
         expect_status(d, 200)
         tot = total_of([line(ids["pm"], 10, [(ids["size"], ids["A4"])])])
-        big = total_of([line(ids["pm"], 100, [(ids["size"], ids["A4"])])])
-        expect(abs(tot - 300) < 0.01 and abs(big - 800) < 0.01, f"small {tot}, big {big}")
+        big = total_of([line(ids["pm"], 200, [(ids["size"], ids["A4"])])])
+        expect(abs(tot - 300) < 0.01 and abs(big - 1600) < 0.01, f"small {tot}, big {big}")
         api("PUT", f"/product-categories/{ids['cat']}", {"min_charge": None}, admin())
-        return "Rs100 job lifted to the Rs300 minimum; Rs800 job unchanged"
+        return "Rs100 job lifted to the Rs300 minimum; Rs1,600 job unchanged"
     run("ENG", M_ENG, "Minimum charge per line (Rs300)", "Small jobs billed at the minimum, big jobs unaffected", t)
 
     def t():
@@ -271,19 +284,19 @@ def run_all():
     # GST
     def t():
         tid = [x for x in api("GET", "/taxes/", token=admin()).data if x["is_default"]][0]
-        d = preview([line(ids["pm"], 100, [(ids["size"], ids["A4"])])])
-        expect(d["subtotal"] == 800, d)
-        expect(abs(d["tax_amount"] - 144) < 0.01 and abs(d["grand_total"] - 944) < 0.01, f"tax {d['tax_amount']} total {d['grand_total']}")
-        return f"Rs800 + {tid['rate_percent']}% GST Rs144 = Rs944"
-    run("ENG", M_ENG, "GST added at the default tax rate", "Rs800 -> tax Rs144 -> Rs944", t)
+        d = preview([line(ids["pm"], 200, [(ids["size"], ids["A4"])])])
+        expect(d["subtotal"] == 1600, d)
+        expect(abs(d["tax_amount"] - 288) < 0.01 and abs(d["grand_total"] - 1888) < 0.01, f"tax {d['tax_amount']} total {d['grand_total']}")
+        return f"Rs1,600 + {tid['rate_percent']}% GST Rs288 = Rs1,888"
+    run("ENG", M_ENG, "GST added at the default tax rate", "Rs1,600 -> tax Rs288 -> Rs1,888", t)
 
     # edit & deactivate cells
     def t():
         cell = [c for c in api("GET", f"/price-matrix-cells/?product_id={ids['pm']}", token=admin()).data
                 if c["quantity_slab_id"] == ids["slabs"][1] and ids["A4"] in [o["attribute_option_id"] for o in c["options"]]][0]
         api("PUT", f"/price-matrix-cells/{cell['id']}", {"unit_price": 9}, admin())
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A4"])])])
-        expect(abs(tot - 900) < 0.01, f"got {tot}")
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A4"])])])
+        expect(abs(tot - 1800) < 0.01, f"got {tot}")
         api("PUT", f"/price-matrix-cells/{cell['id']}", {"unit_price": 8}, admin())
         api("PUT", f"/price-matrix-cells/{cell['id']}", {"is_active": False}, admin())
         d = preview([line(ids["pm"], 100, [(ids["size"], ids["A4"])])])
@@ -295,19 +308,19 @@ def run_all():
     def t():
         r = api("PUT", f"/attributes/options/{ids['Gold']}", {"extra_price": 5}, admin())
         expect_status(r, 200)
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A3"]), (ids["paper"], ids["Gold"])])])
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A3"]), (ids["paper"], ids["Gold"])])])
         api("PUT", f"/attributes/options/{ids['Gold']}", {"extra_price": 2}, admin())
-        expect(abs(tot - 2100) < 0.01, f"got {tot}")
-        return "Surcharge Rs2 -> Rs5 changed 1,800 to 2,100, then restored"
+        expect(abs(tot - 4200) < 0.01, f"got {tot}")
+        return "Surcharge Rs2 -> Rs5 changed 3,600 to 4,200, then restored"
     run("PRC", M_CAT, "Edit an option's surcharge", "Surcharge change flows into the price", t)
 
     def t():
         r = api("PUT", f"/extra-charges/{ids['charges'][0]}", {"amount": 400}, admin())
         expect_status(r, 200)
-        tot = total_of([line(ids["pm"], 100, [(ids["size"], ids["A4"])], [ids["charges"][0]])])
+        tot = total_of([line(ids["pm"], 200, [(ids["size"], ids["A4"])], [ids["charges"][0]])])
         api("PUT", f"/extra-charges/{ids['charges'][0]}", {"amount": 300}, admin())
-        expect(abs(tot - 1200) < 0.01, f"got {tot}")
-        return "Charge Rs300 -> Rs400 changed 1,100 to 1,200, then restored"
+        expect(abs(tot - 2000) < 0.01, f"got {tot}")
+        return "Charge Rs300 -> Rs400 changed 1,900 to 2,000, then restored"
     run("PRC", M_CAT, "Edit an extra charge amount", "New amount used in the price", t)
 
     def t():

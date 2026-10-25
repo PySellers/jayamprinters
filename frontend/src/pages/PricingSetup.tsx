@@ -6,6 +6,7 @@ import { productCategoriesApi } from '../api/productsApi';
 import AttributesPanel from '../components/pricingSetup/AttributesPanel';
 import QuantitySlabsPanel from '../components/pricingSetup/QuantitySlabsPanel';
 import ExtraChargesPanel from '../components/pricingSetup/ExtraChargesPanel';
+import PrintingTaxPanel from '../components/pricingSetup/PrintingTaxPanel';
 
 export default function PricingSetup() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
@@ -74,7 +75,7 @@ export default function PricingSetup() {
       </Paper>
 
       {!categoryId ? (
-        <Alert severity="info">Select a category to manage its attributes, quantity slabs, and extra charges.</Alert>
+        <Alert severity="info">Select a category to manage its attributes, quantity slabs, extra charges, printing charge and GST.</Alert>
       ) : (
         <>
           <Paper sx={{ borderRadius: 2, mb: 3 }}>
@@ -82,12 +83,14 @@ export default function PricingSetup() {
               <Tab label="Attributes" />
               <Tab label="Quantity Slabs" />
               <Tab label="Extra Charges" />
+              <Tab label="Printing & Tax" />
             </Tabs>
           </Paper>
 
           {tab === 0 && <AttributesPanel categoryId={categoryId} />}
           {tab === 1 && <QuantitySlabsPanel categoryId={categoryId} />}
           {tab === 2 && <ExtraChargesPanel categoryId={categoryId} />}
+          {tab === 3 && category && <PrintingTaxPanel category={category} />}
         </>
       )}
     </Box>
