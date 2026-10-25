@@ -18,6 +18,8 @@ from .delivery_challan import DeliveryChallan
 from .invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment
 from .purchase import Vendor, InventoryItem, Purchase, PurchaseItem, PurchasePayment
 from .cash_ledger import CashTransaction, ChequeTransaction
+from .company import HsnCode, CompanySettings
+from .outsource import OutsourceJob, OutsourceStatus
 
 __all__ = [
     "User",

@@ -13,6 +13,7 @@ from app.schemas.invoice import InvoiceOut, InvoiceStatusUpdate, PaymentCreate
 from app.services.invoice_service import create_invoice_from_quotation, record_payment, delete_payment, set_invoice_status
 from app.services.pdf_service import generate_invoice_pdf, generate_invoice_thermal_pdf, THERMAL_WIDTHS_MM
 from app.services.bill_pdf_service import generate_gst_bill_pdf, generate_cash_bill_pdf
+from app.services.company_service import get_company
 
 admin_only = [Depends(require_role(UserRole.admin))]
 router = APIRouter(tags=["billing"])
@@ -102,10 +103,10 @@ def download_invoice_bill_pdf(
     products_by_id = {p.id: p for p in db.query(Product).filter(Product.id.in_(product_ids)).all()}
 
     if bill_type == "gst":
-        pdf_bytes = generate_gst_bill_pdf(invoice, customer, products_by_id)
+        pdf_bytes = generate_gst_bill_pdf(invoice, customer, products_by_id, get_company(db))
         suffix = "gst-invoice"
     else:
-        pdf_bytes = generate_cash_bill_pdf(invoice, customer, products_by_id)
+        pdf_bytes = generate_cash_bill_pdf(invoice, customer, products_by_id, get_company(db))
         suffix = "cash-bill"
 
     return Response(

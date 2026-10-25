@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GridOnIcon from '@mui/icons-material/GridOn';
 import { productsApi, productCategoriesApi } from '../api/productsApi';
 import { priceMatrixApi } from '../api/priceMatrixApi';
+import { hsnApi } from '../api/companyApi';
 import type { Product, ProductInput, ProductPricingType } from '../types/products';
 import EntitySelect from '../components/pickers/EntitySelect';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -36,6 +37,7 @@ export default function Products() {
 
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
   const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
+  const hsnQuery = useQuery({ queryKey: ['hsn-codes'], queryFn: hsnApi.list });
   const cellsQuery = useQuery({ queryKey: ['price-matrix-cells', 'all'], queryFn: priceMatrixApi.listAll });
 
   // Price shown in the list: fixed / per-area products use their own rate,
@@ -80,7 +82,7 @@ export default function Products() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: '', category_id: null, description: '', pricing_type: 'matrix', fixed_price: null, is_active: true });
+    reset({ name: '', category_id: null, description: '', pricing_type: 'matrix', fixed_price: null, hsn_id: null, is_active: true });
     setDialogOpen(true);
   };
 
@@ -92,6 +94,7 @@ export default function Products() {
       description: product.description ?? '',
       pricing_type: product.pricing_type,
       fixed_price: product.fixed_price,
+      hsn_id: product.hsn_id ?? null,
       is_active: product.is_active,
     });
     setDialogOpen(true);
@@ -199,6 +202,27 @@ export default function Products() {
                   {...register('fixed_price', { valueAsNumber: true })}
                 />
               )}
+              <Controller
+                name="hsn_id"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    select
+                    fullWidth
+                    label="HSN / GST (optional)"
+                    helperText="Leave on 'Same as the service' unless this product has its own HSN code."
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+                  >
+                    <MenuItem value="">Same as the service</MenuItem>
+                    {(hsnQuery.data ?? [])
+                      .filter((h) => h.is_active || h.id === field.value)
+                      .map((h) => (
+                        <MenuItem key={h.id} value={h.id}>{h.code} - {h.description} ({h.gst_rate}% GST)</MenuItem>
+                      ))}
+                  </TextField>
+                )}
+              />
               <Controller
                 name="is_active"
                 control={control}

@@ -83,7 +83,7 @@ export default function MasterTable() {
             <TableHead>
               <TableRow>
                 <TableCell>Name</TableCell>
-                {config.hasExtraPrice && <TableCell>Extra Price</TableCell>}
+                {config.hasExtraPrice && <TableCell>Price</TableCell>}
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>

@@ -6,6 +6,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PriceChangeIcon from '@mui/icons-material/PriceChange';
 import BarChartIcon from '@mui/icons-material/BarChart';
@@ -34,6 +35,7 @@ export const mainNavItems: NavItem[] = [
   { label: 'Pricing Setup', path: '/pricing-setup', icon: PriceChangeIcon, roles: ['admin'] },
   { label: 'Purchases', path: '/purchases', icon: ShoppingCartIcon, roles: ['admin', 'accounts'] },
   { label: 'Inventory', path: '/inventory', icon: WarehouseIcon },
+  { label: 'Outsource', path: '/outsource', icon: LocalShippingIcon, roles: ['admin', 'accounts', 'counter'] },
   { label: 'Cash Ledger', path: '/cash-ledger', icon: AccountBalanceIcon, roles: ['admin', 'accounts'] },
   { label: 'Reports', path: '/reports', icon: BarChartIcon },
   { label: 'Users', path: '/users', icon: ManageAccountsIcon, roles: ['admin'] },
@@ -46,4 +48,6 @@ export const mainNavItems: NavItem[] = [
 export const mastersNavItems: NavItem[] = [
   ...mastersConfig.map((c) => ({ label: c.label, path: `/masters/${c.slug}`, icon: TuneIcon, roles: ['admin'] as UserRole[] })),
   { label: 'Tax', path: '/taxes', icon: TuneIcon, roles: ['admin'] },
+  { label: 'HSN Codes', path: '/hsn-codes', icon: TuneIcon, roles: ['admin'] },
+  { label: 'Company Details', path: '/company', icon: TuneIcon, roles: ['admin'] },
 ];

@@ -24,6 +24,8 @@ class Invoice(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     invoice_number = Column(String, unique=True, index=True)
+    # The serial printed on the bill, from the shop's own GST / cash-bill series (see CompanySettings).
+    bill_no = Column(Integer, nullable=True)
     quotation_id = Column(Integer, ForeignKey("quotations.id"), unique=True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
     tax_id = Column(Integer, ForeignKey("taxes.id"), nullable=True)
@@ -55,6 +57,9 @@ class InvoiceItem(Base):
     unit_price = Column(Float)
     total_price = Column(Float)
     spec_notes = Column(String, nullable=True)
+    hsn_code = Column(String, nullable=True)
+    tax_rate = Column(Float, nullable=False, default=0.0, server_default="0")
+    tax_amount = Column(Float, nullable=False, default=0.0, server_default="0")
 
     invoice = relationship("Invoice", back_populates="items")
     selected_options = relationship("InvoiceItemAttributeOption", cascade="all, delete-orphan")

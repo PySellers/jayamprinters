@@ -9,6 +9,12 @@ class ProductCategoryCreate(BaseModel):
     is_active: bool = True
     guided_flow: Optional[str] = None
     min_charge: Optional[float] = None
+    hsn_id: Optional[int] = None
+    print_charge_mode: Optional[str] = None  # 'block' | 'per_copy' | None
+    print_block_size: Optional[int] = None
+    print_block_rate: Optional[float] = None
+    print_per_copy_rate: Optional[float] = None
+    print_per_layer: bool = False
 
 
 class ProductCategoryUpdate(BaseModel):
@@ -16,6 +22,12 @@ class ProductCategoryUpdate(BaseModel):
     is_active: Optional[bool] = None
     guided_flow: Optional[str] = None
     min_charge: Optional[float] = None
+    hsn_id: Optional[int] = None
+    print_charge_mode: Optional[str] = None  # 'block' | 'per_copy' | None
+    print_block_size: Optional[int] = None
+    print_block_rate: Optional[float] = None
+    print_per_copy_rate: Optional[float] = None
+    print_per_layer: Optional[bool] = None
 
 
 class ProductCategoryOut(ProductCategoryCreate):
@@ -31,6 +43,7 @@ class ProductCreate(BaseModel):
     description: Optional[str] = None
     pricing_type: ProductPricingType = ProductPricingType.matrix
     fixed_price: Optional[float] = None
+    hsn_id: Optional[int] = None
     is_active: bool = True
 
 
@@ -40,6 +53,7 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
     pricing_type: Optional[ProductPricingType] = None
     fixed_price: Optional[float] = None
+    hsn_id: Optional[int] = None
     is_active: Optional[bool] = None
 
 

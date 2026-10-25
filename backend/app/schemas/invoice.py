@@ -13,6 +13,9 @@ class InvoiceItemOut(BaseModel):
     unit_price: float
     total_price: float
     spec_notes: Optional[str] = None
+    hsn_code: Optional[str] = None
+    tax_rate: float = 0.0
+    tax_amount: float = 0.0
     selected_options: List[SelectedOptionOut] = []
 
     class Config:
@@ -42,6 +45,7 @@ class PaymentOut(PaymentCreate):
 class InvoiceOut(BaseModel):
     id: int
     invoice_number: str
+    bill_no: Optional[int] = None
     quotation_id: int
     customer_id: int
     tax_id: Optional[int]

@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.services.numbering import next_number
+from app.services.company_service import take_bill_number
 
 from app.models.quotation import Quotation, QuotationStatus
 from app.models.invoice import Invoice, InvoiceItem, InvoiceItemAttributeOption, Payment, PaymentMethod, InvoiceStatus
@@ -43,6 +44,7 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
         tax_amount=quotation.tax_amount if with_gst else 0.0,
         grand_total=quotation.grand_total if with_gst else quotation.total_amount,
         with_gst=with_gst,
+        bill_no=take_bill_number(db, with_gst),
         status=InvoiceStatus.unpaid,
     )
     db.add(invoice)
@@ -57,6 +59,9 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
             unit_price=item.unit_price,
             total_price=item.total_price,
             spec_notes=item.spec_notes,
+            hsn_code=item.hsn_code,
+            tax_rate=item.tax_rate,
+            tax_amount=item.tax_amount,
         )
         db.add(invoice_item)
         db.flush()

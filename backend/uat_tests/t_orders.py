@@ -12,6 +12,22 @@ VC = "Visiting Card"
 S = {}  # shared state between tests
 
 
+def vc_money():
+    """What 100 plain visiting cards cost: Rs220 of paper + the service's printing charge, and the GST rate of its HSN code."""
+    cat = catalog.category(VC)
+    block = cat.get("print_block_size") or 1
+    print_charge = 0.0
+    if cat.get("print_charge_mode") == "block":
+        print_charge = -(-100 // block) * (cat.get("print_block_rate") or 0)
+    elif cat.get("print_charge_mode") == "per_copy":
+        print_charge = 100 * (cat.get("print_per_copy_rate") or 0)
+    rate = 18.0
+    if cat.get("hsn_id"):
+        rate = next(h for h in api("GET", "/hsn-codes/", token=admin()).data if h["id"] == cat["hsn_id"])["gst_rate"]
+    base = 220 + print_charge
+    return base, round(base * rate / 100, 2), rate
+
+
 def vc(qty=100, lam="Without Lamination", side="Single Side", **kw):
     return catalog.item(VC, "Visiting Card", qty, [("Finish/Lamination Type", lam), ("Side", side)], **kw)
 
@@ -52,17 +68,19 @@ def run_all():
         d = r.data
         expect(d["quotation_number"].startswith("QT-"), d["quotation_number"])
         expect(d["status"] == "draft", d["status"])
-        expect(d["total_amount"] == 220 and abs(d["tax_amount"] - 39.6) < 0.01 and abs(d["grand_total"] - 259.6) < 0.01, d)
+        base, tax, rate = vc_money()
+        expect(d["total_amount"] == base and abs(d["tax_amount"] - tax) < 0.01 and abs(d["grand_total"] - (base + tax)) < 0.01, d)
         S["q"] = d
-        return f"{d['quotation_number']}: Rs220 + 18% GST Rs39.60 = Rs259.60, status draft"
-    run("QUO", M, "Create a quotation WITH GST", "Number QT-xxxxx, draft, Rs220 + GST 18% = Rs259.60", t)
+        return f"{d['quotation_number']}: Rs{base:,.2f} + {rate:g}% GST Rs{tax:,.2f} = Rs{base + tax:,.2f}, status draft"
+    run("QUO", M, "Create a quotation WITH GST", "Number QT-xxxxx, draft, paper + printing charge + the HSN's GST", t)
 
     def t():
         r = quote([vc()], gst=False)
         expect_status(r, 200, 201)
-        expect(r.data["tax_amount"] == 0 and r.data["grand_total"] == 220, r.data)
+        base = vc_money()[0]
+        expect(r.data["tax_amount"] == 0 and r.data["grand_total"] == base, r.data)
         S["q_nogst"] = r.data
-        return "Cash bill: no tax, grand total Rs220"
+        return f"Cash bill: no tax, grand total Rs{base:,.2f}"
     run("QUO", M, "Create a quotation WITHOUT GST (cash bill)", "No tax; total equals subtotal", t)
 
     def t():
@@ -78,10 +96,11 @@ def run_all():
     def t():
         r = quote([vc(), vc(), vc()], gst=False)
         expect_status(r, 200, 201)
-        expect(r.data["total_amount"] == 660, r.data["total_amount"])
+        base = vc_money()[0]
+        expect(abs(r.data["total_amount"] - 3 * base) < 0.01, r.data["total_amount"])
         api("DELETE", f"/quotations/{r.data['id']}", token=admin())
-        return "3 identical lines = Rs660"
-    run("QUO", M, "Quotation with the same item three times", "Total = 3 x Rs220 = Rs660", t)
+        return f"3 identical lines = Rs{3 * base:,.2f}"
+    run("QUO", M, "Quotation with the same item three times", "Total = 3 x the price of one line", t)
 
     def t():
         r = quote([vc()], proof1_date=str(date.today()), proof1_time="11:30", proof2_date=str(date.today() + timedelta(days=1)), proof2_time="15:00",
@@ -132,8 +151,9 @@ def run_all():
     def t():
         r = api("GET", f"/quotations/{S['q']['id']}", token=admin())
         expect_status(r, 200)
-        expect(r.data["items"][0]["unit_price"] == 2.2, r.data["items"][0]["unit_price"])
-        return "Detail shows items, unit price Rs2.20"
+        base = vc_money()[0]
+        expect(abs(r.data["items"][0]["unit_price"] - base / 100) < 0.01, r.data["items"][0]["unit_price"])
+        return f"Detail shows items, unit price Rs{base / 100:.2f}"
     run("QUO", M, "Open a quotation", "Detail with items and unit price", t)
 
     def t():
@@ -176,9 +196,10 @@ def run_all():
         d = r.data
         expect(d["invoice_number"].startswith("INV-"), d["invoice_number"])
         expect(d["status"] == "unpaid" and d["with_gst"] is True, d)
-        expect(abs(d["subtotal"] - 220) < 0.01 and abs(d["tax_amount"] - 39.6) < 0.01 and abs(d["grand_total"] - 259.6) < 0.01, d)
+        base, tax, _rate = vc_money()
+        expect(abs(d["subtotal"] - base) < 0.01 and abs(d["tax_amount"] - tax) < 0.01 and abs(d["grand_total"] - (base + tax)) < 0.01, d)
         S["inv"] = d
-        return f"{d['invoice_number']} created: Rs220 + Rs39.60 GST = Rs259.60, unpaid"
+        return f"{d['invoice_number']} created: Rs{base:,.2f} + Rs{tax:,.2f} GST = Rs{base + tax:,.2f}, unpaid"
     run("INV", M, "Approve a quotation and create its invoice", "INV-xxxxx, unpaid, same amounts as the quotation", t)
 
     def t():

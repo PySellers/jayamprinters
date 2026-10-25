@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.models.delivery_challan import DeliveryChallan
 from app.models.job_card import JobCard
 from app.schemas.delivery_challan import DeliveryChallanCreate, DeliveryChallanSave
+from app.services.company_service import get_company
 from app.services.time_utils import today_ist
 
 
@@ -22,8 +23,10 @@ def financial_year_label(fy: int) -> str:
 
 
 def next_dc_number(db: Session, fy: int) -> int:
+    """Next S.No.: one more than the highest this financial year, but never below the number set under Company Details
+    (so the software can carry on from the printed challan book)."""
     highest = db.query(func.max(DeliveryChallan.dc_number)).filter(DeliveryChallan.financial_year == fy).scalar()
-    return (highest or 0) + 1
+    return max((highest or 0) + 1, get_company(db).next_challan_no or 1)
 
 
 def challan_to_dict(challan: DeliveryChallan) -> Dict[str, Any]:
@@ -113,6 +116,7 @@ def create_challan(db: Session, payload: DeliveryChallanCreate) -> DeliveryChall
         )
         db.add(challan)
         try:
+            get_company(db, lock=True).next_challan_no = challan.dc_number + 1
             db.commit()
             db.refresh(challan)
             return challan

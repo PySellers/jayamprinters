@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import {
@@ -10,6 +10,8 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PaymentIcon from '@mui/icons-material/Payment';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { vendorsApi } from '../api/vendorsApi';
 import { purchasesApi } from '../api/purchasesApi';
 import { inventoryApi } from '../api/inventoryApi';
@@ -136,7 +138,7 @@ function VendorsTab() {
   );
 }
 
-const emptyLine = { inventory_item_id: 0, quantity: 1, unit_price: 0 };
+const emptyLine: { inventory_item_id: number; quantity: number; unit_price: number; new_item_name?: string } = { inventory_item_id: 0, quantity: 1, unit_price: 0 };
 
 function PurchasesTab() {
   const queryClient = useQueryClient();
@@ -148,16 +150,65 @@ function PurchasesTab() {
 
   const vendorName = (id: number) => vendorsQuery.data?.find((v) => v.id === id)?.name ?? `#${id}`;
 
-  const { control, register, handleSubmit, reset } = useForm<PurchaseInput>({
+  const { control, register, handleSubmit, reset, getValues, setValue } = useForm<PurchaseInput>({
     defaultValues: { vendor_id: 0, notes: '', items: [emptyLine] },
   });
-  const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+  const { fields, append, remove, replace } = useFieldArray({ control, name: 'items' });
+
+  // ---- reading a supplier bill (photo / PDF) into a draft ----------------------------------------
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [billFile, setBillFile] = useState<File | null>(null);
+  const [newVendor, setNewVendor] = useState<{ name: string; gstin?: string | null } | null>(null);
+  const [scanNote, setScanNote] = useState<string | null>(null);
+  const scanMutation = useMutation({
+    mutationFn: (file: File) => purchasesApi.scanBill(file),
+    onSuccess: (scan) => {
+      setScanNote(
+        `Read from the bill${scan.bill_number ? ` no. ${scan.bill_number}` : ''}${scan.total_amount != null ? ` (total ₹${scan.total_amount.toFixed(2)})` : ''}. Check every line before saving.`,
+      );
+      setValue('vendor_id', scan.vendor_id ?? 0);
+      setNewVendor(!scan.vendor_id && scan.vendor_name ? { name: scan.vendor_name, gstin: scan.vendor_gstin } : null);
+      if (scan.bill_date) setValue('purchase_date', scan.bill_date);
+      setValue('notes', [scan.bill_number ? `Bill no. ${scan.bill_number}` : '', scan.notes ?? ''].filter(Boolean).join(' - '));
+      replace(
+        scan.lines.length
+          ? scan.lines.map((l) => ({
+              inventory_item_id: l.inventory_item_id ?? 0,
+              quantity: l.quantity,
+              unit_price: l.unit_price,
+              new_item_name: l.inventory_item_id ? undefined : l.description,
+            }))
+          : [emptyLine],
+      );
+    },
+  });
+  const chooseBill = (file: File | undefined) => {
+    if (!file) return;
+    setBillFile(file);
+    setScanNote(null);
+    scanMutation.mutate(file);
+  };
 
   const createMutation = useMutation({
-    mutationFn: (data: PurchaseInput) => purchasesApi.create(data),
+    mutationFn: async (data: PurchaseInput) => {
+      let vendorId = data.vendor_id;
+      if (!vendorId && newVendor) vendorId = (await vendorsApi.create({ name: newVendor.name, gstin: newVendor.gstin ?? undefined })).id;
+      const items = [];
+      for (const item of data.items as (typeof emptyLine)[]) {
+        let itemId = item.inventory_item_id;
+        if (!itemId && item.new_item_name) itemId = (await inventoryApi.create({ name: item.new_item_name, unit: 'pcs', current_qty: 0, reorder_threshold: 0 })).id;
+        items.push({ inventory_item_id: itemId, quantity: item.quantity, unit_price: item.unit_price });
+      }
+      const purchase = await purchasesApi.create({ ...data, vendor_id: vendorId, items });
+      if (billFile) await purchasesApi.attachBill(purchase.id, billFile);
+      return purchase;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchases'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-picker'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-item-picker'] });
       setDialogOpen(false);
       reset({ vendor_id: 0, notes: '', items: [emptyLine] });
     },
@@ -178,6 +229,11 @@ function PurchasesTab() {
 
   const openCreate = () => {
     reset({ vendor_id: 0, notes: '', items: [emptyLine] });
+    setBillFile(null);
+    setNewVendor(null);
+    setScanNote(null);
+    scanMutation.reset();
+    createMutation.reset();
     setDialogOpen(true);
   };
 
@@ -213,6 +269,11 @@ function PurchasesTab() {
                   <TableCell>₹{(p.total_amount - p.paid_amount).toFixed(2)}</TableCell>
                   <TableCell><Chip label={p.status.replace('_', ' ')} color={STATUS_COLORS[p.status]} size="small" /></TableCell>
                   <TableCell align="right">
+                    {p.has_bill && (
+                      <IconButton size="small" aria-label="View supplier bill" onClick={() => purchasesApi.openBill(p.id)}>
+                        <ReceiptLongIcon fontSize="small" />
+                      </IconButton>
+                    )}
                     {p.total_amount - p.paid_amount > 0 && (
                       <IconButton size="small" onClick={() => setPaymentTarget(p)}>
                         <PaymentIcon fontSize="small" />
@@ -235,10 +296,33 @@ function PurchasesTab() {
           <DialogContent>
             {createMutation.isError && <Alert severity="error" sx={{ mb: 2 }}>{getErrorMessage(createMutation.error, 'Failed to save purchase')}</Alert>}
             <Stack spacing={2} sx={{ mt: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  hidden
+                  data-testid="bill-file"
+                  onChange={(e) => {
+                    chooseBill(e.target.files?.[0]);
+                    e.target.value = '';
+                  }}
+                />
+                <Button variant="outlined" startIcon={scanMutation.isPending ? <CircularProgress size={16} /> : <UploadFileIcon />} disabled={scanMutation.isPending} onClick={() => fileInput.current?.click()}>
+                  {billFile ? 'Change bill' : 'Upload supplier bill'}
+                </Button>
+                <Typography variant="body2" color="text.secondary">
+                  {billFile ? billFile.name : 'Upload a photo or PDF and the lines are filled in for you to check.'}
+                </Typography>
+              </Box>
+              {scanMutation.isPending && <Alert severity="info">Reading the bill…</Alert>}
+              {scanMutation.isError && <Alert severity="warning">{getErrorMessage(scanMutation.error, 'Could not read the bill')} The bill will still be kept with the purchase.</Alert>}
+              {scanNote && <Alert severity="success">{scanNote}</Alert>}
+              {newVendor && <Alert severity="info">&quot;{newVendor.name}&quot; is not in the vendor list yet — it will be added when you save, or pick another vendor below.</Alert>}
               <Controller
                 name="vendor_id"
                 control={control}
-                rules={{ validate: (v) => v > 0 || 'Vendor is required' }}
+                rules={{ validate: (v) => v > 0 || Boolean(newVendor) || 'Vendor is required' }}
                 render={({ field }) => (
                   <EntitySelect
                     label="Vendor" required mode="list" queryKey="vendor-picker"
@@ -251,10 +335,15 @@ function PurchasesTab() {
               {fields.map((f, index) => (
                 <Grid container spacing={1} key={f.id} sx={{ alignItems: 'center' }}>
                   <Grid size={{ xs: 5 }}>
+                    {f && (getValues(`items.${index}.new_item_name` as never) as unknown as string | undefined) && !getValues(`items.${index}.inventory_item_id`) && (
+                      <Typography variant="caption" color="info.main" sx={{ display: 'block', mb: 0.25 }}>
+                        New stock item: {String(getValues(`items.${index}.new_item_name` as never))} (added when you save) — or pick an existing item:
+                      </Typography>
+                    )}
                     <Controller
                       name={`items.${index}.inventory_item_id`}
                       control={control}
-                      rules={{ validate: (v) => v > 0 || 'Required' }}
+                      rules={{ validate: (v) => v > 0 || Boolean(getValues(`items.${index}.new_item_name` as never)) || 'Required' }}
                       render={({ field }) => (
                         <EntitySelect
                           label="Inventory Item" required size="small" mode="list" queryKey="inventory-item-picker"

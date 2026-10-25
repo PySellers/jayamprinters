@@ -8,12 +8,14 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 
+from typing import Optional
+
+from app.models.company import CompanySettings
 from app.models.customer import Customer
 from app.models.product import Product
 from app.models.quotation import Quotation
 from app.services.bill_pdf_service import (
-    BRAND_RED, CASH_BILL_ADDRESS, CASH_BILL_MOBILES, COMPANY_EMAIL, COMPANY_NAME,
-    GREY, INK, _draw_logo, _fit, _money,
+    BRAND_RED, GREY, INK, Shop, _draw_logo, _fit, _item_text, _money,
 )
 from app.services.time_utils import utc_naive_to_ist
 
@@ -26,16 +28,8 @@ SIZE = 8.5
 def _particulars(item, product: Product | None) -> str:
     """Product name, then its chosen options / notes in brackets, like
     'Hot Work Permit (1x3 Size_1+2 / 100 set)'."""
-    name = product.name if product else f"Product #{item.product_id}"
-    details = []
-    for selected in item.selected_options or []:
-        attribute = selected.attribute.name if selected.attribute else ""
-        option = selected.attribute_option.value if selected.attribute_option else ""
-        if option:
-            details.append(f"{attribute}: {option}" if attribute else option)
-    if item.spec_notes:
-        details.append(item.spec_notes)
-    return f"{name} ({', '.join(details)})" if details else name
+    description, notes = _item_text(product, item)
+    return f"{description} - {notes}" if notes else description
 
 
 def _tax_rate(quotation: Quotation) -> float:
@@ -44,7 +38,9 @@ def _tax_rate(quotation: Quotation) -> float:
     return (quotation.tax_amount / quotation.total_amount * 100) if quotation.total_amount else 0.0
 
 
-def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by_id: dict[int, Product]) -> bytes:
+def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by_id: dict[int, Product],
+                           company: Optional[CompanySettings] = None) -> bytes:
+    shop = Shop(company)
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     c.setTitle(f"Quotation {quotation.quotation_number}")
@@ -61,11 +57,9 @@ def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by
 
     def letterhead(first_page: bool) -> float:
         """Draws the page header, returns the y where the table starts."""
-        text_x = left
-        if _draw_logo(c, left, H - 33 * mm, 22 * mm, 20 * mm):
-            text_x = left + 25 * mm
-        c.setFillColor(BRAND_RED)
-        _fit(c, COMPANY_NAME, text_x, H - 25 * mm, 100 * mm, "Times-BoldItalic", 28)
+        if not _draw_logo(c, left, H - 36 * mm, 100 * mm, 22 * mm):
+            c.setFillColor(BRAND_RED)
+            _fit(c, shop.name, left, H - 25 * mm, 100 * mm, "Times-BoldItalic", 28)
         c.setFillColor(INK)
         c.setFont("Helvetica", 8)
         c.drawRightString(right, H - 38 * mm, f"Date : {date_text}")
@@ -88,8 +82,8 @@ def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by
     def footer():
         c.setFillColor(colors.HexColor("#b5b5b5"))
         c.setFont("Helvetica", 6.5)
-        c.drawCentredString(W / 2, 14 * mm, f"{CASH_BILL_ADDRESS}   Mob: {', '.join(CASH_BILL_MOBILES)}")
-        c.drawCentredString(W / 2, 10.5 * mm, f"Email: {COMPANY_EMAIL}")
+        c.drawCentredString(W / 2, 14 * mm, f"{shop.address}   Mob: {', '.join(shop.mobiles)}")
+        c.drawCentredString(W / 2, 10.5 * mm, f"Email: {shop.email}   GSTIN: {shop.gstin}")
 
     def table_header(y: float) -> float:
         head_h = 7 * mm
@@ -133,8 +127,13 @@ def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by
     # ---- terms & conditions ----------------------------------------------------
     terms = []
     if quotation.with_gst:
-        terms.append(f"*GST {_tax_rate(quotation):g}% Extra")
-    terms.append("*Delivery As Usual")
+        rates = sorted({float(i.tax_rate) for i in quotation.items if i.tax_rate})
+        if rates:
+            terms.append("*GST " + " / ".join(f"{r:g}%" for r in rates) + " Extra (as per the HSN of each item)")
+        else:
+            terms.append(f"*GST {_tax_rate(quotation):g}% Extra")
+    estimated = (getattr(quotation, "estimated_delivery", None) or "").strip()
+    terms.append(f"*Estimated delivery: {estimated}" if estimated else "*Delivery As Usual")
     if y - (8 + 5 * len(terms)) * mm < bottom_limit - 10 * mm:
         footer()
         c.showPage()

@@ -3,12 +3,12 @@ import { launch, signedIn, loginApi, watch, run, expect, shot, bodyText, BASE } 
 
 const ADMIN = ['admin@srijayam.com', process.env.UAT_ADMIN_PASSWORD || 'Admin@123'];
 const STAFF_PW = process.env.UAT_STAFF_PASSWORD || 'Uat@12345';
-const MAIN_MENU = ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Pricing Setup', 'Purchases', 'Inventory', 'Cash Ledger', 'Reports', 'Users'];
+const MAIN_MENU = ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Pricing Setup', 'Purchases', 'Inventory', 'Outsource', 'Cash Ledger', 'Reports', 'Users'];
 const EXPECTED_MENU = {
   admin: MAIN_MENU,
-  counter: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Reports'],
+  counter: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Outsource', 'Reports'],
   production: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Reports'],
-  accounts: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Purchases', 'Inventory', 'Cash Ledger', 'Reports'],
+  accounts: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Purchases', 'Inventory', 'Outsource', 'Cash Ledger', 'Reports'],
 };
 const LOGINS = { admin: ADMIN, counter: ['counter@srijayam.com', STAFF_PW], production: ['designer@srijayam.com', STAFF_PW], accounts: ['accounts@srijayam.com', STAFF_PW] };
 

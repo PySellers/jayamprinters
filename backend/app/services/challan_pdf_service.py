@@ -1,4 +1,4 @@
-"""Delivery Challan (DC) drawn like Sri Jayam's pre-printed challan book (A5 landscape)."""
+"""Delivery Challan (DC) drawn like Sri Jayam's pre-printed challan book, printed on A4 landscape."""
 from io import BytesIO
 
 from reportlab.lib import colors
@@ -7,29 +7,39 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 
+from typing import Optional
+
+from reportlab.lib.pagesizes import A4
+
+from app.models.company import CompanySettings
 from app.models.delivery_challan import DeliveryChallan
 from app.services.bill_pdf_service import (
-    BAND, BRAND_RED, COMPANY_EMAIL, COMPANY_GSTIN, COMPANY_NAME, CASH_BILL_ADDRESS,
-    CASH_BILL_MOBILES, GREY, INK, LINE, _chunks, _draw_logo, _fit,
+    BAND, BRAND_RED, GREY, INK, LINE, Shop, _chunks, _draw_logo, _fit,
 )
 
 ROWS_PER_PAGE = 10
+# The form is laid out on an A5 landscape sheet (210 x 148 mm) and enlarged to fill A4 landscape.
+_SCALE = landscape(A4)[0] / landscape(A5)[0]
 
 
-def generate_challan_pdf(challan: DeliveryChallan) -> bytes:
+def generate_challan_pdf(challan: DeliveryChallan, company: Optional[CompanySettings] = None) -> bytes:
+    shop = Shop(company)
     items = list(challan.items or [])
     buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=landscape(A5))
+    c = canvas.Canvas(buffer, pagesize=landscape(A4))
     c.setTitle(f"Delivery Challan {challan.dc_number}")
     pages = _chunks(items, ROWS_PER_PAGE)
     for idx, chunk in enumerate(pages):
-        _draw_page(c, challan, chunk, idx * ROWS_PER_PAGE, idx + 1, len(pages))
+        c.saveState()
+        c.scale(_SCALE, _SCALE)
+        _draw_page(c, shop, challan, chunk, idx * ROWS_PER_PAGE, idx + 1, len(pages))
+        c.restoreState()
         c.showPage()
     c.save()
     return buffer.getvalue()
 
 
-def _draw_page(c, challan, chunk, start_index, page_no, page_count):
+def _draw_page(c, shop, challan, chunk, start_index, page_no, page_count):
     W, H = landscape(A5)
     m = 5 * mm
     gap = 1.6 * mm
@@ -92,18 +102,17 @@ def _draw_page(c, challan, chunk, start_index, page_no, page_count):
     panel(right_x, to_bottom, right_w, block_h)
     top = panel_top
     c.setFillColor(INK)
-    _fit(c, f"GSTIN : {COMPANY_GSTIN}", right_x + 2 * mm, top - 5 * mm, right_w - 4 * mm, "Helvetica-Bold", 8, "right")
-    _fit(c, f"Email : {COMPANY_EMAIL}", right_x + 2 * mm, top - 9 * mm, right_w - 4 * mm, "Helvetica", 6.8, "right")
-    text_x = right_x + 3 * mm
-    if _draw_logo(c, right_x + 2 * mm, top - 24 * mm, 18 * mm, 15 * mm):
-        text_x = right_x + 22 * mm
-    c.setFillColor(BRAND_RED)
-    _fit(c, COMPANY_NAME, text_x, top - 19 * mm, right_x + right_w - 3 * mm - text_x, "Times-BoldItalic", 21)
+    _fit(c, f"GSTIN : {shop.gstin}", right_x + 2 * mm, top - 5 * mm, right_w - 4 * mm, "Helvetica-Bold", 8, "right")
+    if shop.email:
+        _fit(c, f"Email : {shop.email}", right_x + 2 * mm, top - 9 * mm, right_w - 4 * mm, "Helvetica", 6.8, "right")
+    if not _draw_logo(c, right_x + 3 * mm, top - 24 * mm, right_w - 6 * mm, 14 * mm):
+        c.setFillColor(BRAND_RED)
+        _fit(c, shop.name, right_x + 3 * mm, top - 19 * mm, right_w - 6 * mm, "Times-BoldItalic", 21)
     c.setFillColor(INK)
-    for i, line in enumerate(simpleSplit(CASH_BILL_ADDRESS, "Helvetica-Bold", 7, right_w - 6 * mm)[:2]):
+    for i, line in enumerate(simpleSplit(shop.address, "Helvetica-Bold", 7, right_w - 6 * mm)[:2]):
         c.setFont("Helvetica-Bold", 7)
         c.drawCentredString(right_x + right_w / 2, top - 27.5 * mm - i * 3 * mm, line)
-    _fit(c, "Mob : " + ", ".join(CASH_BILL_MOBILES), right_x + 3 * mm, top - 37 * mm, right_w - 6 * mm, "Helvetica-Bold", 8.5, "center")
+    _fit(c, "Mob : " + ", ".join(shop.mobiles), right_x + 3 * mm, top - 37 * mm, right_w - 6 * mm, "Helvetica-Bold", 8.5, "center")
 
     # ---- particulars table --------------------------------------------------------
     table_top = to_bottom - gap
@@ -145,10 +154,10 @@ def _draw_page(c, challan, chunk, start_index, page_no, page_count):
 
     # ---- footer ---------------------------------------------------------------------
     base = table_bottom + 3 * mm
-    name_w = c.stringWidth(COMPANY_NAME, "Times-BoldItalic", 12)
+    name_w = c.stringWidth(shop.name, "Times-BoldItalic", 12)
     c.setFillColor(BRAND_RED)
     c.setFont("Times-BoldItalic", 12)
-    c.drawRightString(x1 - 3 * mm, base, COMPANY_NAME)
+    c.drawRightString(x1 - 3 * mm, base, shop.name)
     c.setFillColor(INK)
     c.setFont("Helvetica-Bold", 7.5)
     c.drawRightString(x1 - 3 * mm - name_w - 1.5 * mm, base, "For")

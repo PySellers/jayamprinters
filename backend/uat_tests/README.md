@@ -20,7 +20,7 @@ python uat_tests/run_all.py                 # or: python uat_tests/run_all.py t_
 # 3. browser tests -> uat_tests/ui_results_*.json
 python uat_tests/dump_ui_specs.py           # writes ui_specs.json (expected prices for the screens)
 cd uat_tests && npm i playwright-core && node ui_run.mjs          # all suites
-node ui_run.mjs access crud layout extra orders                   # or pick suites
+node ui_run.mjs access crud layout extra orders                   # or pick suites (access crud layout extra orders enhancements)
 
 # 4. Excel report
 python uat_tests/build_report.py uat_tests/results.json ui_results.json report.xlsx [screenshots-dir]

@@ -65,7 +65,8 @@ def run_all():
             for p in prods:
                 if p["pricing_type"] == "fixed":
                     continue
-                for cell in api("GET", f"/price-matrix-cells/?product_id={p['id']}", token=admin()).data:
+                cells_of = {p["id"]: api("GET", f"/price-matrix-cells/?product_id={p['id']}", token=admin()).data}
+                for cell in cells_of[p["id"]]:
                     if not cell["is_active"]:
                         continue
                     slab = slabs[cell["quantity_slab_id"]]
@@ -74,8 +75,20 @@ def run_all():
                     sel = [dict(attribute_id=o["attribute_id"], attribute_option_id=o["attribute_option_id"]) for o in cell["options"]]
                     d = api("POST", "/quotations/preview", {"items": [dict(product_id=p["id"], quantity=qty, area_sqft=area, selected_options=sel, extra_charge_ids=[], sets=1)]}, admin()).data
                     it = d["items"][0]
-                    unit = cell["unit_price"] * (area or 1) + sum(extras.get(o["attribute_option_id"], 0) for o in cell["options"])
-                    expected = unit * qty
+                    grid = cell["unit_price"] * (area or 1) * qty
+                    key = {(o["attribute_id"], o["attribute_option_id"]) for o in cell["options"]}
+                    if p["pricing_type"] != "per_area" and not slab["is_incremental"]:
+                        # a bigger order never costs less than a smaller one: held at the previous band's top quantity
+                        for other in cells_of[p["id"]]:
+                            prev = slabs[other["quantity_slab_id"]]
+                            if (other["is_active"] and not prev["is_incremental"] and prev["max_quantity"] == slab["min_quantity"] - 1
+                                    and {(o["attribute_id"], o["attribute_option_id"]) for o in other["options"]} == key):
+                                grid = max(grid, other["unit_price"] * prev["max_quantity"])
+                    expected = grid + sum(extras.get(o["attribute_option_id"], 0) for o in cell["options"]) * qty
+                    if c.get("print_charge_mode") == "block" and c.get("print_block_size") and c.get("print_block_rate"):
+                        expected += max(1, -(-qty // c["print_block_size"])) * c["print_block_rate"]
+                    elif c.get("print_charge_mode") == "per_copy" and c.get("print_per_copy_rate"):
+                        expected += c["print_per_copy_rate"] * qty
                     if c.get("min_charge") and expected < c["min_charge"]:
                         expected = c["min_charge"]
                     checked += 1
@@ -113,7 +126,7 @@ def run_all():
             inv = api("POST", f"/invoices/from-quotation/{q.data['id']}", token=admin())
             expect_status(inv, 200, 201)
             d = inv.data
-            tax = round(expected * 0.18, 2) if gst else 0
+            tax = round(expected * demo.expected_tax_rate(cat, prod) / 100, 2) if gst else 0
             expect(abs(d["subtotal"] - expected) < 0.06 and abs(d["tax_amount"] - tax) < 0.06 and abs(d["grand_total"] - (d["subtotal"] + d["tax_amount"])) < 0.02,
                    f"invoice subtotal {d['subtotal']}, tax {d['tax_amount']}, total {d['grand_total']} (expected {expected} + {tax})")
             jobs = [j for j in api("GET", "/job-cards/?limit=2000", token=admin()).data if j["quotation_item_id"] == q.data["items"][0]["id"]]

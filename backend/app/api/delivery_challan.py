@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.models.delivery_challan import DeliveryChallan
 from app.schemas.delivery_challan import DeliveryChallanCreate, DeliveryChallanOut, DeliveryChallanSave
 from app.services.challan_pdf_service import generate_challan_pdf
+from app.services.company_service import get_company
 from app.services.delivery_challan_service import challan_to_dict, create_challan, get_draft, update_challan
 
 router = APIRouter(prefix="/delivery-challans", tags=["delivery-challans"])
@@ -40,7 +41,7 @@ def challan_pdf(challan_id: int, db: Session = Depends(get_db)):
     if not challan:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Delivery challan not found")
     return Response(
-        content=generate_challan_pdf(challan),
+        content=generate_challan_pdf(challan, get_company(db)),
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="DC-{challan.financial_year}-{challan.dc_number}.pdf"'},
     )

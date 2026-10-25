@@ -14,6 +14,9 @@ import Invoices from './pages/Invoices';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Products from './pages/Products';
 import Taxes from './pages/Taxes';
+import HsnCodes from './pages/HsnCodes';
+import Outsource from './pages/Outsource';
+import CompanySettings from './pages/CompanySettings';
 import PricingSetup from './pages/PricingSetup';
 import PriceMatrix from './pages/PriceMatrix';
 import Reports from './pages/Reports';
@@ -76,6 +79,22 @@ export default function App() {
               }
             />
             <Route
+              path="hsn-codes"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <HsnCodes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="company"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <CompanySettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="masters/:slug"
               element={
                 <ProtectedRoute roles={['admin']}>
@@ -100,6 +119,14 @@ export default function App() {
               }
             />
             <Route path="inventory" element={<Inventory />} />
+            <Route
+              path="outsource"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts', 'counter']}>
+                  <Outsource />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="cash-ledger"
               element={
