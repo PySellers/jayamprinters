@@ -77,13 +77,13 @@ def run_all():
                     it = d["items"][0]
                     grid = cell["unit_price"] * (area or 1) * qty
                     key = {(o["attribute_id"], o["attribute_option_id"]) for o in cell["options"]}
-                    if p["pricing_type"] != "per_area" and not slab["is_incremental"]:
+                    if not slab["is_incremental"]:
                         # a bigger order never costs less than a smaller one: held at the previous band's top quantity
                         for other in cells_of[p["id"]]:
                             prev = slabs[other["quantity_slab_id"]]
                             if (other["is_active"] and not prev["is_incremental"] and prev["max_quantity"] == slab["min_quantity"] - 1
                                     and {(o["attribute_id"], o["attribute_option_id"]) for o in other["options"]} == key):
-                                grid = max(grid, other["unit_price"] * prev["max_quantity"])
+                                grid = max(grid, other["unit_price"] * (area or 1) * prev["max_quantity"])
                     expected = grid + sum(extras.get(o["attribute_option_id"], 0) for o in cell["options"]) * qty
                     if c.get("print_charge_mode") == "block" and c.get("print_block_size") and c.get("print_block_rate"):
                         expected += max(1, -(-qty // c["print_block_size"])) * c["print_block_rate"]

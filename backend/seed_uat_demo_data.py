@@ -154,8 +154,11 @@ def expected_line(c, product, qty, options, charge_names, sets=1, area=None):
                         return cell.unit_price, s
             raise LookupError("no cell")
         price, slab = cell_price(qty)
+        previous = None if slab.is_incremental else db.query(QuantitySlab).filter_by(category_id=c.id, is_incremental=False, max_quantity=slab.min_quantity - 1).first()
         if product.pricing_type.value == "per_area":
             base = price * (area or 0)
+            if previous is not None:
+                base = max(base, cell_price(previous.max_quantity)[0] * (area or 0) * previous.max_quantity / qty)
         else:
             if slab.is_incremental:
                 total = 0.0
