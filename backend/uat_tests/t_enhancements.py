@@ -348,6 +348,18 @@ def run_all():
         return f"1 sticker sheet = Rs{it['total_price']:g} (service minimum Rs100)"
     run("NEW", M, "Stickers: the service minimum is applied", "Small orders cost at least Rs100", t)
 
+    def t():
+        last = 0
+        for area in (1, 2, 3.5):
+            last = 0
+            for qty in range(1, 160):
+                it = catalog.item("Stickers", "Sticker - by size (per sq ft)", qty, [("Sticker Material", "Paper Sticker")], area=area)
+                tot = preview([it])["items"][0]["total_price"]
+                expect(tot >= last - 0.005, f"{area} sq ft: {qty} pieces Rs{tot} < {qty - 1} pieces Rs{last}")
+                last = tot
+        return "Per-sq-ft stickers: total never goes down for 1 to 159 pieces (1, 2 and 3.5 sq ft)"
+    run("NEW", M, "Stickers by size: more pieces never cost less", "Total never goes down at the band edges", t)
+
     # ------------------------------------------------------------------ bill numbers and layouts
     M = "Bill Numbers & Layouts"
 

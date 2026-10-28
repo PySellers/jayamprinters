@@ -93,8 +93,9 @@ def _never_cheaper_for_more(
     matrix_options: List[Tuple[int, int]],
     matched_cell: PriceMatrixCell,
     base_unit: float,
+    scale: float = 1.0,
 ) -> float:
-    """A bigger order must never cost less than a smaller one.
+    """A bigger order must never cost less than a smaller one (scale = sq ft per piece for per-area items).
 
     With "whole quantity at the band's rate" bands, 100 pieces at the 100+ rate can come out below 99 pieces
     at the lower band's rate. When the matched band directly follows another band, the total is held at no
@@ -122,7 +123,7 @@ def _never_cheaper_for_more(
             break
     if previous is None or prev_cell is None:
         return base_unit
-    floor_total = prev_cell.unit_price * previous.max_quantity
+    floor_total = prev_cell.unit_price * scale * previous.max_quantity
     if base_unit * quantity < floor_total:
         return floor_total / quantity
     return base_unit
@@ -243,7 +244,7 @@ def price_line(
                 detail="No price matrix entry for this product/attribute combination/quantity",
             )
         if product.pricing_type == ProductPricingType.per_area:
-            base_unit = cell.unit_price * (area_sqft or 0)
+            base_unit = _never_cheaper_for_more(db, product, quantity, matrix_options, cell, cell.unit_price * (area_sqft or 0), area_sqft or 0)
         else:
             gsm_attr = None
             if layers > 1 and category is not None:
