@@ -22,6 +22,7 @@ import { productsApi } from '../api/productsApi';
 import type { PaymentInput } from '../types/invoices';
 import type { PaymentMethod } from '../types/common';
 import ConfirmDialog from '../components/ConfirmDialog';
+import OrderProduction from '../components/workflow/OrderProduction';
 
 const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
   unpaid: 'default',
@@ -194,6 +195,8 @@ export default function InvoiceDetail() {
           </TableBody>
         </Table>
       </Paper>
+
+      <OrderProduction quotationId={invoice.quotation_id} />
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 5 }}>

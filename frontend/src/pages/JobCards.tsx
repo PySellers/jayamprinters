@@ -4,18 +4,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, IconButton, Tooltip, Chip, CircularProgress, Dialog, DialogTitle, DialogContent,
+  Button, IconButton, Tooltip, Chip, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent,
   DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SendIcon from '@mui/icons-material/Send';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { deliveryChallansApi } from '../api/deliveryChallansApi';
 import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
-import { usersApi } from '../api/usersApi';
+import { workflowApi } from '../api/workflowApi';
 import { createMasterApi } from '../api/mastersApi';
 import type { JobCard, JobCardUpdateInput } from '../types/jobCards';
 import type { JobCardStatus, JobCardPriority } from '../types/common';
@@ -53,7 +54,8 @@ export default function JobCards() {
   const jobCardsQuery = useQuery({ queryKey: ['job-cards'], queryFn: jobCardsApi.list });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
-  const usersQuery = useQuery({ queryKey: ['users'], queryFn: usersApi.list });
+  // the staff list is open to every signed-in user (the Users list is admin-only)
+  const usersQuery = useQuery({ queryKey: ['work-staff'], queryFn: workflowApi.staff });
   const machinesQuery = useQuery({ queryKey: ['masters', 'machines', 'list'], queryFn: machinesApi.list });
 
   const challansQuery = useQuery({ queryKey: ['delivery-challans'], queryFn: deliveryChallansApi.list });
@@ -130,6 +132,7 @@ export default function JobCards() {
                 <TableCell>Operator</TableCell>
                 <TableCell>Priority</TableCell>
                 <TableCell>Delivery</TableCell>
+                <TableCell>Now with</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -147,6 +150,20 @@ export default function JobCards() {
                     <Chip label={jc.priority} color={PRIORITY_COLORS[jc.priority]} size="small" />
                   </TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>{jc.delivery_date ?? '-'}</TableCell>
+                  <TableCell sx={{ minWidth: 180 }}>
+                    {jc.steps_total > 0 ? (
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {jc.status === 'delivered' ? 'Delivered' : jc.current_step ?? '-'}
+                        </Typography>
+                        {jc.status !== 'delivered' && (jc.current_assignee || jc.current_work_center) && (
+                          <Typography variant="caption" color="text.secondary">{jc.current_assignee ?? jc.current_work_center}</Typography>
+                        )}
+                        <LinearProgress variant="determinate" value={(jc.steps_done / jc.steps_total) * 100} sx={{ height: 5, borderRadius: 3, mt: 0.5 }} />
+                        <Typography variant="caption" color="text.secondary">{jc.steps_done}/{jc.steps_total} steps{jc.overdue ? ' · overdue' : ''}</Typography>
+                      </Box>
+                    ) : '-'}
+                  </TableCell>
                   <TableCell>
                     <StatusMenu
                       status={jc.status}
@@ -167,6 +184,11 @@ export default function JobCards() {
                         DC{dcNumberOf(jc.id) ? ` ${dcNumberOf(jc.id)}` : ''}
                       </Button>
                     </Tooltip>
+                    <Tooltip title="Track steps - who is working on it">
+                      <IconButton size="small" aria-label="Track job" onClick={() => navigate(`/job-cards/${jc.id}/track`)}>
+                        <AccountTreeIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="Assign machine / designer / operator & update log">
                       <IconButton size="small" onClick={() => openAssign(jc)}>
                         <AssignmentIndIcon fontSize="small" />
@@ -182,7 +204,7 @@ export default function JobCards() {
               ))}
               {(jobCardsQuery.data ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                  <TableCell colSpan={11} align="center" sx={{ color: 'text.secondary', py: 4 }}>
                     No job cards yet. Convert a quotation to create some.
                   </TableCell>
                 </TableRow>
@@ -225,8 +247,8 @@ export default function JobCards() {
                   <EntitySelect
                     label="Designer"
                     mode="list"
-                    queryKey="user-picker"
-                    fetchOptions={usersApi.list}
+                    queryKey="staff-picker"
+                    fetchOptions={workflowApi.staff}
                     getOptionLabel={(o) => o.name}
                     value={field.value}
                     onChange={field.onChange}
@@ -240,8 +262,8 @@ export default function JobCards() {
                   <EntitySelect
                     label="Operator"
                     mode="list"
-                    queryKey="user-picker"
-                    fetchOptions={usersApi.list}
+                    queryKey="staff-picker"
+                    fetchOptions={workflowApi.staff}
                     getOptionLabel={(o) => o.name}
                     value={field.value}
                     onChange={field.onChange}

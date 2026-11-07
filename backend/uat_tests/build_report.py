@@ -52,6 +52,8 @@ DEFECTS = [
     ("Medium", "Purchases - supplier bill upload (new)", "The first build sent the bill photo / PDF to the server in the wrong format, so every upload was refused with 'Field required'.", "Uploads are now sent as proper file uploads; checked with a real upload in the browser."),
     ("Medium", "Pricing - bands that overlap (new)", "Printout and Scanning have overlapping page bands; the 'a bigger order never costs less' rule could pick the wrong neighbouring band, and which one depended on database order.", "The rule now uses the neighbouring band that actually has a rate for that item; tests replay every price cell."),
     ("Low", "Copies per set (new)", "The new '1' choice was listed last instead of first, because options were shown in the order they were created.", "Options are returned in their display order everywhere."),
+    ("Medium", "Job Cards screen for counter staff (new)", "The job card list asked for the admin-only Users list, so counter staff got permission errors and saw employee numbers instead of names.", "The screen now uses the staff list that every signed-in user may read."),
+    ("Medium", "Production workflow (new)", "A step that was on hold could be finished directly, skipping the 'resume' check.", "A held step must be resumed first; covered by a test."),
     ("Low", "Accessibility", "Edit / Delete icon buttons in the tables had no names for screen readers or automated tests.", "Added Edit / Delete labels."),
 ]
 
@@ -90,7 +92,7 @@ ws.append([f"Test cycle: {date.today():%d %B %Y}"])
 ws.append([])
 facts = [
     ("Result", f"{passed} of {len(all_rows)} tests passed" + ("" if passed == len(all_rows) else f" ({len(all_rows) - passed} failed - see the test sheets)")),
-    ("Application", "Sri Jayam ERP billing system (web app: order entry, quotations, invoices & payments, job cards, delivery challans, customers, purchases & vendors, inventory, cash ledger & cheques, reports, pricing setup, users & roles)"),
+    ("Application", "Sri Jayam ERP billing system (web app: order entry, quotations, invoices & payments, job cards with a step-by-step production workflow (My Work, board, monitor, outside work), delivery challans, customers, purchases & vendors, inventory, cash ledger & cheques, reports, pricing setup, users & roles)"),
     ("How it was tested", "Automated tests drive the real application the way staff do: every API action directly, and every screen in a real Chrome browser (typing, clicking, downloading). Each order is also priced independently from the raw rate tables and compared with what the system shows."),
     ("Test data", "14 customers, 33 orders (every one of the 14 services), 4 quotations, invoices that are paid / part-paid / unpaid (GST and cash bills), job cards in every stage, delivery challans, vendors, stock (3 items below reorder level), purchases, cash ledger entries and cheques, plus staff logins for each role."),
     ("Environment", "Identical application code and the same demo data as the UAT site. Tests that create and delete records ran on a separate copy, so the UAT site's data was left untouched."),
@@ -146,7 +148,8 @@ if shots and os.path.isdir(shots):
             "invoice-paid", "dashboard-live-board", "job-card-sheet", "delivery-challan-saved", "quotations-list", "pricing-setup", "price-matrix",
             "purchase-added", "cash-ledger", "reports", "layout-1366x768", "layout-menu-390x844",
             "company-details", "hsn-codes", "printing-and-tax", "order-gst-breakdown", "bill-book-wizard", "bill-book-copies", "outsource-list",
-            "purchase-upload", "financial-statement", "quotation-estimated-delivery"]
+            "purchase-upload", "financial-statement", "quotation-estimated-delivery",
+            "my-work-designer", "my-work-on-hold", "job-tracking-delivered", "job-tracking-outside", "production-board", "production-monitor", "work-centers", "workflows", "my-work-phone"]
     for k in KEEP:
         f = k + ".png"
         if not os.path.exists(os.path.join(shots, f)):

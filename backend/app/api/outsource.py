@@ -4,13 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import require_role
+from app.core.security import get_current_user, require_role
 from app.models.customer import Customer
 from app.models.outsource import OutsourceJob, OutsourceStatus
 from app.models.purchase import Vendor
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 from app.schemas.outsource import OutsourceCreate, OutsourceOut, OutsourcePayment, OutsourceUpdate
 from app.services.numbering import next_number
+from app.services.workflow_service import on_outsource_changed
 
 router = APIRouter(prefix="/outsource", tags=["outsource"])
 write_roles = [Depends(require_role(UserRole.admin, UserRole.accounts, UserRole.counter))]
@@ -60,7 +61,7 @@ def create_job(data: OutsourceCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{job_id}", response_model=OutsourceOut, dependencies=write_roles)
-def update_job(job_id: int, data: OutsourceUpdate, db: Session = Depends(get_db)):
+def update_job(job_id: int, data: OutsourceUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     job = db.query(OutsourceJob).filter(OutsourceJob.id == job_id).first()
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Outsource job not found")
@@ -71,6 +72,8 @@ def update_job(job_id: int, data: OutsourceUpdate, db: Session = Depends(get_db)
     if changes.get("status") == OutsourceStatus.received and not job.received_date:
         from app.services.time_utils import today_ist
         job.received_date = today_ist()
+    if "status" in changes:
+        on_outsource_changed(db, job, user)
     db.commit()
     db.refresh(job)
     return _out(job)
