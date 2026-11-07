@@ -13,6 +13,8 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import TuneIcon from '@mui/icons-material/Tune';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import { mastersConfig } from '../../api/mastersApi';
 import type { UserRole } from '../../types/common';
 
@@ -22,6 +24,8 @@ export interface NavItem {
   icon: React.ComponentType;
   /** Omit for "any logged-in role". Admin can always see everything regardless. */
   roles?: UserRole[];
+  /** show the number of open tasks of the signed-in employee next to the label */
+  badge?: 'myWork';
 }
 
 export const mainNavItems: NavItem[] = [
@@ -29,7 +33,9 @@ export const mainNavItems: NavItem[] = [
   // { label: 'Billing Counter', path: '/billing-counter', icon: PointOfSaleIcon },
   { label: 'Customers', path: '/customers', icon: PeopleIcon },
   { label: 'Quotations', path: '/quotations', icon: DescriptionIcon },
+  { label: 'My Work', path: '/my-work', icon: EngineeringIcon, badge: 'myWork' },
   { label: 'Job Cards', path: '/job-cards', icon: AssignmentIcon },
+  { label: 'Production', path: '/production', icon: ViewKanbanIcon },
   { label: 'Invoices', path: '/invoices', icon: ReceiptIcon },
   { label: 'Products', path: '/products', icon: Inventory2Icon },
   { label: 'Pricing Setup', path: '/pricing-setup', icon: PriceChangeIcon, roles: ['admin'] },
@@ -49,5 +55,7 @@ export const mastersNavItems: NavItem[] = [
   ...mastersConfig.map((c) => ({ label: c.label, path: `/masters/${c.slug}`, icon: TuneIcon, roles: ['admin'] as UserRole[] })),
   { label: 'Tax', path: '/taxes', icon: TuneIcon, roles: ['admin'] },
   { label: 'HSN Codes', path: '/hsn-codes', icon: TuneIcon, roles: ['admin'] },
+  { label: 'Work Centers', path: '/work-centers', icon: TuneIcon, roles: ['admin'] },
+  { label: 'Workflows', path: '/workflows', icon: TuneIcon, roles: ['admin'] },
   { label: 'Company Details', path: '/company', icon: TuneIcon, roles: ['admin'] },
 ];

@@ -159,6 +159,9 @@ export default function JobCardSheet() {
         <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
           Job Card — {meta.job_number}
         </Typography>
+        <Button variant="outlined" onClick={() => navigate(`/job-cards/${id}/track`)}>
+          Track progress
+        </Button>
         <Button
           variant="contained"
           sx={{ bgcolor: INK }}

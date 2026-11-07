@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box, AppBar, Toolbar, Typography, Button, IconButton,
-  Drawer, List, ListItem, ListItemIcon,
+  Badge, Drawer, List, ListItem, ListItemIcon,
   ListItemText, ListItemButton, Collapse, useMediaQuery, useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -13,6 +14,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useAuth } from '../../context/AuthContext';
 import { mainNavItems, mastersNavItems } from './navConfig';
+import { workflowApi } from '../../api/workflowApi';
 
 const SIDEBAR_WIDTH = 260;
 
@@ -26,6 +28,10 @@ export default function Layout() {
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const [menuOpen, setMenuOpen] = useState(false);
   const [mastersOpen, setMastersOpen] = useState(location.pathname.startsWith('/masters') || location.pathname === '/taxes');
+
+  // number of open tasks waiting for this employee (refreshes every 30 s)
+  const myWork = useQuery({ queryKey: ['my-work-count'], queryFn: workflowApi.myWork, refetchInterval: 30000, enabled: Boolean(user) });
+  const badgeCount = myWork.data?.count ?? 0;
 
   const canSee = (roles?: string[]) => !roles || roles.length === 0 || user?.role === 'admin' || roles.includes(user?.role ?? '');
   const visibleMainNav = mainNavItems.filter((item) => canSee(item.roles));
@@ -88,6 +94,7 @@ export default function Layout() {
                   <item.icon />
                 </ListItemIcon>
                 <ListItemText primary={item.label} />
+                {item.badge === 'myWork' && badgeCount > 0 && <Badge badgeContent={badgeCount} color="error" max={99} sx={{ mr: 1.5 }} data-testid="my-work-badge" />}
               </ListItemButton>
             </ListItem>
           ))}

@@ -14,6 +14,15 @@ export interface JobCard {
   status: JobCardStatus;
   notes?: string | null;
   created_at: string;
+  delivered_at?: string | null;
+  // progress through the production workflow (worked out by the server)
+  steps_total: number;
+  steps_done: number;
+  current_step?: string | null;
+  current_step_status?: string | null;
+  current_work_center?: string | null;
+  current_assignee?: string | null;
+  overdue: boolean;
 }
 
 export interface JobCardCreateInput {

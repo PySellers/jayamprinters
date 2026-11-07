@@ -30,6 +30,15 @@ class JobCardOut(JobCardCreate):
     job_number: str
     status: JobCardStatus
     created_at: datetime
+    delivered_at: Optional[datetime] = None
+    # progress through the workflow, worked out by the server
+    steps_total: int = 0
+    steps_done: int = 0
+    current_step: Optional[str] = None
+    current_step_status: Optional[str] = None
+    current_work_center: Optional[str] = None
+    current_assignee: Optional[str] = None
+    overdue: bool = False
 
     class Config:
         from_attributes = True

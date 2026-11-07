@@ -3,15 +3,18 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
-from app.core.security import require_role
+from app.core.security import get_current_user, require_role
 from app.models.job_card import JobCard
 from app.models.job_card_comment import JobCardComment
-from app.models.user import UserRole
+from app.models.outsource import OutsourceJob
+from app.models.user import User, UserRole
 from app.schemas.job_card import (
     JobCardCreate, JobCardUpdate, JobCardOut, JobCardStatusUpdate,
     JobCardCommentCreate, JobCardCommentOut, JobCardSheetUpdate, JobCardSheetOut,
 )
 from app.services.job_card_service import generate_job_number, get_job_card_sheet, save_job_card_sheet
+from app.services import workflow_service as wf
+from sqlalchemy.orm import joinedload
 
 router = APIRouter(prefix="/job-cards", tags=["job-cards"])
 # Everyday job-card work (create, update status/assignment, add comments) stays
@@ -21,9 +24,20 @@ router = APIRouter(prefix="/job-cards", tags=["job-cards"])
 admin_only = [Depends(require_role(UserRole.admin))]
 
 
+def _out(job_card: JobCard) -> JobCardOut:
+    out = JobCardOut.model_validate(job_card)
+    for key, value in wf.job_summary(job_card).items():
+        setattr(out, key, value)
+    return out
+
+
 @router.get("/", response_model=List[JobCardOut])
 def get_job_cards(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
-    return db.query(JobCard).order_by(JobCard.id.desc()).offset(skip).limit(limit).all()
+    rows = (
+        db.query(JobCard).options(joinedload(JobCard.steps))
+        .order_by(JobCard.id.desc()).offset(skip).limit(limit).all()
+    )
+    return [_out(j) for j in rows]
 
 
 @router.get("/{job_card_id}", response_model=JobCardOut)
@@ -31,28 +45,48 @@ def get_job_card(job_card_id: int, db: Session = Depends(get_db)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
-    return job_card
+    return _out(job_card)
 
 
 @router.post("/", response_model=JobCardOut, status_code=status.HTTP_201_CREATED)
-def create_job_card(data: JobCardCreate, db: Session = Depends(get_db)):
+def create_job_card(data: JobCardCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     job_card = JobCard(job_number=generate_job_number(db), **data.model_dump())
     db.add(job_card)
+    db.flush()
+    wf.create_steps_for_job(db, job_card, user)
+    _assign_from_legacy_fields(db, job_card, user, designer=job_card.designer_id, operator=job_card.operator_id)
     db.commit()
     db.refresh(job_card)
-    return job_card
+    return _out(job_card)
+
+
+def _assign_from_legacy_fields(db: Session, job_card: JobCard, user: User, designer=None, operator=None) -> None:
+    """The old 'designer' / 'operator' boxes now also put that person on the design / printing step."""
+    if designer is None and operator is None:
+        return
+    if not job_card.steps:
+        wf.create_steps_for_job(db, job_card, user, log_event=False)
+    for step in sorted(job_card.steps, key=lambda s: s.position):
+        if step.status in ("done", "skipped"):
+            continue
+        wanted = designer if step.stage == "design" else operator if step.stage == "printing" else None
+        if wanted is not None and step.assigned_to != wanted:
+            step.assigned_to = wanted
+            wf.log(db, job_card, step, user, "assigned", f"{step.name} (from the job card's designer / operator)")
 
 
 @router.put("/{job_card_id}", response_model=JobCardOut)
-def update_job_card(job_card_id: int, data: JobCardUpdate, db: Session = Depends(get_db)):
+def update_job_card(job_card_id: int, data: JobCardUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
-    for key, value in data.model_dump(exclude_unset=True).items():
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
         setattr(job_card, key, value)
+    _assign_from_legacy_fields(db, job_card, user, designer=changes.get("designer_id"), operator=changes.get("operator_id"))
     db.commit()
     db.refresh(job_card)
-    return job_card
+    return _out(job_card)
 
 
 @router.get("/{job_card_id}/sheet", response_model=JobCardSheetOut)
@@ -73,14 +107,14 @@ def write_job_card_sheet(job_card_id: int, data: JobCardSheetUpdate, db: Session
 
 
 @router.patch("/{job_card_id}/status", response_model=JobCardOut)
-def update_job_card_status(job_card_id: int, payload: JobCardStatusUpdate, db: Session = Depends(get_db)):
+def update_job_card_status(job_card_id: int, payload: JobCardStatusUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
-    job_card.status = payload.status
+    wf.override_status(db, job_card, payload.status.value, user)
     db.commit()
     db.refresh(job_card)
-    return job_card
+    return _out(job_card)
 
 
 @router.delete("/{job_card_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=admin_only)
@@ -88,6 +122,8 @@ def delete_job_card(job_card_id: int, db: Session = Depends(get_db)):
     job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
     if not job_card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    # work already sent to an outside company stays on record, it just loses its link to this job card
+    db.query(OutsourceJob).filter(OutsourceJob.job_card_id == job_card_id).update({OutsourceJob.job_card_id: None})
     db.delete(job_card)
     db.commit()
     return None

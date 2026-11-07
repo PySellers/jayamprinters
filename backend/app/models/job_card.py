@@ -41,6 +41,7 @@ class JobCard(Base):
     sheet_data = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    delivered_at = Column(DateTime, nullable=True)
 
     quotation_item = relationship("QuotationItem")
     customer = relationship("Customer")
@@ -48,3 +49,5 @@ class JobCard(Base):
     machine = relationship("Machine")
     designer = relationship("User", foreign_keys=[designer_id])
     operator = relationship("User", foreign_keys=[operator_id])
+    steps = relationship("JobStep", cascade="all, delete-orphan", order_by="JobStep.position", back_populates="job_card")
+    events = relationship("JobEvent", cascade="all, delete-orphan", order_by="JobEvent.id")

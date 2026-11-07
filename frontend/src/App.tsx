@@ -16,6 +16,11 @@ import Products from './pages/Products';
 import Taxes from './pages/Taxes';
 import HsnCodes from './pages/HsnCodes';
 import Outsource from './pages/Outsource';
+import MyWork from './pages/MyWork';
+import ProductionBoard from './pages/ProductionBoard';
+import JobWorkflow from './pages/JobWorkflow';
+import WorkCenters from './pages/WorkCenters';
+import Workflows from './pages/Workflows';
 import CompanySettings from './pages/CompanySettings';
 import PricingSetup from './pages/PricingSetup';
 import PriceMatrix from './pages/PriceMatrix';
@@ -57,6 +62,25 @@ export default function App() {
             <Route path="quotations/:id" element={<QuotationDetail />} />
             <Route path="job-cards" element={<JobCards />} />
             <Route path="job-cards/:id" element={<JobCardSheet />} />
+            <Route path="job-cards/:id/track" element={<JobWorkflow />} />
+            <Route path="my-work" element={<MyWork />} />
+            <Route path="production" element={<ProductionBoard />} />
+            <Route
+              path="work-centers"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <WorkCenters />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="workflows"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Workflows />
+                </ProtectedRoute>
+              }
+            />
             <Route path="invoices" element={<Invoices />} />
             <Route path="invoices/:id" element={<InvoiceDetail />} />
             <Route path="products" element={<Products />} />
