@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, BASE, apiCall } from './ui_framework.mjs';
+import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, pickItem, BASE, apiCall } from './ui_framework.mjs';
 
 const ADMIN = ['admin@srijayam.com', process.env.UAT_ADMIN_PASSWORD || 'Admin@123'];
 const U = 'UIENH' + Date.now().toString().slice(-6);
@@ -126,7 +126,7 @@ export async function enhancementTests(browser) {
   const gcust = await mkCustomer('GSTview');
   await run('UI-TAX', M4, 'An order With GST shows CGST / SGST by HSN code before the invoice is generated', 'Tax panel with HSN, CGST, SGST and total GST', async () => {
     await go(orderUrl(gcust, cat('Visiting Card').id, 1));
-    await pick(page, 'Item / Size', 'Visiting Card');
+    await pickItem(page, 'Visiting Card');
     await pick(page, 'Finish/Lamination Type', 'Without Lamination');
     await pick(page, 'Side', 'Single Side');
     await page.getByLabel('Qty', { exact: false }).first().fill('100');
@@ -141,7 +141,7 @@ export async function enhancementTests(browser) {
   const ncust = await mkCustomer('NoGST');
   await run('UI-TAX', M4, 'An order Without GST shows no GST lines', 'No CGST / SGST', async () => {
     await go(orderUrl(ncust, cat('Visiting Card').id, 0));
-    await pick(page, 'Item / Size', 'Visiting Card');
+    await pickItem(page, 'Visiting Card');
     await pick(page, 'Finish/Lamination Type', 'Without Lamination');
     await pick(page, 'Side', 'Single Side');
     await page.getByLabel('Qty', { exact: false }).first().fill('100');
@@ -158,16 +158,16 @@ export async function enhancementTests(browser) {
   const M5 = 'Bill book order (screen)';
   const bb = cat('Bill Books & Stationery');
   const bcust = await mkCustomer('BillBook');
-  await run('UI-BBK', M5, 'Quantity sits right next to the size; Copies per set start at 1', 'Quantity field beside Size; first copy choice is 1', async () => {
+  await run('UI-BBK', M5, 'Quantity sits in the first row with the document type; Copies per set start at 1', 'Quantity beside Document type; first copy choice is 1', async () => {
     await go(orderUrl(bcust, bb.id));
     await pick(page, 'Document type', 'Bill Book');
-    await page.getByLabel('Size', { exact: false }).first().click();
+    await page.getByLabel('Paper size', { exact: false }).first().click();
     await page.getByRole('option').first().click();
     await page.waitForTimeout(400);
-    const sizeBox = await page.getByLabel('Size', { exact: false }).first().boundingBox();
+    const docBox = await page.getByLabel('Document type', { exact: false }).first().boundingBox();
     const qtyBox = await page.getByLabel('Quantity (Nos)').boundingBox();
-    expect(sizeBox && qtyBox, 'size or quantity field not found');
-    expect(Math.abs(sizeBox.y - qtyBox.y) < 20, `quantity is not on the same row as size (y ${sizeBox.y} vs ${qtyBox.y})`);
+    expect(docBox && qtyBox, 'document type or quantity field not found');
+    expect(Math.abs(docBox.y - qtyBox.y) < 20, `quantity is not on the same row as the document type (y ${docBox.y} vs ${qtyBox.y})`);
     await page.getByLabel('Copies per set').click();
     const first = (await page.getByRole('option').first().innerText()).trim();
     await page.keyboard.press('Escape');
@@ -192,11 +192,12 @@ export async function enhancementTests(browser) {
     expect(/nil/i.test(v), `bill type shows "${v}"`);
   }, page, problems);
 
-  await run('UI-BBK', M5, 'Choosing 1+1 copies adds a GSM choice for the second copy', 'A "... GSM" field per extra copy', async () => {
+  await run('UI-BBK', M5, 'Choosing 1+1 copies adds a full paper choice (name, GSM, size, colour) for the second copy', 'A GSM field per copy', async () => {
     await pick(page, 'Copies per set', '1+1');
     await page.waitForTimeout(500);
-    const n = await page.getByLabel(/ GSM$/, { exact: false }).count();
-    expect(n >= 1, 'no GSM field for the extra copy');
+    const n = await page.getByLabel(/^GSM \/ grade/).count();
+    expect(n === 2, `${n} GSM fields for 2 copies`);
+    expect((await page.getByLabel(/^Paper size/).count()) === 2 && (await page.getByLabel(/^Paper name/).count()) === 2, 'paper name / size missing for the extra copy');
     await shot(page, 'bill-book-copies');
   }, page, problems);
 

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box, Paper, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, IconButton, Chip, CircularProgress,
+  Button, IconButton, Chip, CircularProgress, FormControlLabel, Switch, Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { extraChargesApi } from '../../api/extraChargesApi';
+import { productCategoriesApi } from '../../api/productsApi';
 import type { ExtraCharge, ExtraChargeInput } from '../../types/extraCharges';
 import ExtraChargeFormDialog from './ExtraChargeFormDialog';
 import ConfirmDialog from '../ConfirmDialog';
@@ -23,6 +24,15 @@ export default function ExtraChargesPanel({ categoryId }: ExtraChargesPanelProps
   const [deleting, setDeleting] = useState<ExtraCharge | null>(null);
 
   const chargesQuery = useQuery({ queryKey: ['extra-charges', categoryId], queryFn: () => extraChargesApi.list(categoryId) });
+  const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
+  const category = categoriesQuery.data?.find((c) => c.id === categoryId);
+  const requiredMutation = useMutation({
+    mutationFn: (value: boolean) => productCategoriesApi.update(categoryId, { extras_required: value }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['product-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['product-category-picker'] });
+    },
+  });
 
   const saveMutation = useMutation({
     mutationFn: (values: Omit<ExtraChargeInput, 'category_id'> & { global: boolean }) => {
@@ -47,7 +57,16 @@ export default function ExtraChargesPanel({ categoryId }: ExtraChargesPanelProps
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+        <Box>
+          <FormControlLabel
+            control={<Switch checked={Boolean(category?.extras_required)} disabled={requiredMutation.isPending} onChange={(e) => requiredMutation.mutate(e.target.checked)} slotProps={{ input: { 'aria-label': 'Extras must be chosen' } }} />}
+            label="Order screen must ask for every extra: None, one of the options, or Custom"
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 6 }}>
+            Each section (e.g. Corner cutting, Foiling) becomes a dropdown that has to be answered before the order can be generated.
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -70,6 +89,7 @@ export default function ExtraChargesPanel({ categoryId }: ExtraChargesPanelProps
                 <TableCell>Name</TableCell>
                 <TableCell>Type</TableCell>
                 <TableCell>Amount</TableCell>
+                <TableCell>Section</TableCell>
                 <TableCell>Scope</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
@@ -80,7 +100,8 @@ export default function ExtraChargesPanel({ categoryId }: ExtraChargesPanelProps
                 <TableRow key={charge.id}>
                   <TableCell>{charge.name}</TableCell>
                   <TableCell><Chip label={charge.charge_type.replace('_', ' ')} size="small" /></TableCell>
-                  <TableCell>₹{charge.amount.toFixed(2)}</TableCell>
+                  <TableCell>₹{charge.amount.toFixed(2)}{charge.min_amount ? ` (min ₹${charge.min_amount})` : ''}</TableCell>
+                  <TableCell>{charge.group_name ?? '-'}</TableCell>
                   <TableCell>
                     <Chip label={charge.category_id === null ? 'Global' : 'This category'} size="small" color={charge.category_id === null ? 'primary' : 'default'} />
                   </TableCell>
@@ -99,7 +120,7 @@ export default function ExtraChargesPanel({ categoryId }: ExtraChargesPanelProps
               ))}
               {(chargesQuery.data ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                  <TableCell colSpan={7} align="center" sx={{ color: 'text.secondary', py: 4 }}>
                     No extra charges yet.
                   </TableCell>
                 </TableRow>

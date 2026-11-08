@@ -79,8 +79,9 @@ def _money(value: float) -> str:
 
 
 def _rs_p(value: float) -> tuple[str, str]:
-    paise_total = int(round(value * 100))
-    return str(paise_total // 100), f"{paise_total % 100:02d}"
+    paise_total = int(round(abs(value) * 100))
+    sign = "-" if value < 0 else ""
+    return f"{sign}{paise_total // 100}", f"{paise_total % 100:02d}"
 
 
 def _item_text(product: Optional[Product], item) -> tuple[str, str]:
@@ -138,6 +139,13 @@ def _tax_rate(invoice: Invoice) -> float:
     return (invoice.tax_amount / invoice.subtotal * 100) if invoice.subtotal else 0.0
 
 
+def _discount_label(obj) -> str:
+    """'Less: Discount (10%)' / 'Less: Discount' for an invoice or quotation that carries one."""
+    if getattr(obj, "discount_type", None) == "percent" and getattr(obj, "discount_value", 0):
+        return f"Less: Discount ({obj.discount_value:g}%)"
+    return "Less: Discount"
+
+
 def _chunks(seq, size):
     if not seq:
         return [[]]
@@ -190,7 +198,7 @@ def generate_gst_bill_pdf(invoice: Invoice, customer: Customer, products_by_id: 
             "rate": rate,
             "cgst_amt": cgst,
             "sgst_amt": round(tax - cgst, 2),
-            "total": item.total_price + tax,
+            "total": item.total_price - float(getattr(item, "discount_amount", 0.0) or 0.0) + tax,
         })
 
     buffer = BytesIO()
@@ -376,12 +384,14 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
         for k, line in enumerate(shop.bank_lines):
             _fit(c, line, xs[1] + 1.5 * mm, by - (k + 1) * 3.4 * mm, cols[1] + cols[2] - 3 * mm, "Helvetica-Bold" if k == 0 else "Helvetica", 7.5)
 
-    box_h = 8 * mm
+    discount = float(getattr(invoice, "discount_amount", 0.0) or 0.0)
+    box_h = 8 * mm if discount <= 0 else 7 * mm
     rb_w = 85 * mm
     rb_x = x1 - rb_w
     f_top = footer_bottom + footer_h
+    n_rows = 4 if discount <= 0 else 6
     c.setFillColor(colors.white)
-    c.rect(x0, f_top - 4 * box_h, rb_x - x0, 4 * box_h, fill=1)
+    c.rect(x0, f_top - n_rows * box_h, rb_x - x0, n_rows * box_h, fill=1)
     c.setFillColor(INK)
     c.setFont("Helvetica", 8.5)
     c.drawString(x0 + 2 * mm, f_top - 5.5 * mm, "Rupees Inwords :")
@@ -390,12 +400,22 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
         c.setFont("Helvetica-Oblique", 9)
         c.drawString(x0 + 3 * mm, f_top - 11 * mm - k * 4.5 * mm, line)
 
-    totals = [
-        ("Grand TOTAL", invoice.grand_total, True),
-        ("Total Amount Before Tax", invoice.subtotal, False),
-        ("Tax Amount (GST)", invoice.tax_amount, False),
-        ("Total Amount After Tax", invoice.grand_total, True),
-    ]
+    if discount > 0:
+        totals = [
+            ("Grand TOTAL", invoice.grand_total, True),
+            ("Total Amount", invoice.subtotal, False),
+            (_discount_label(invoice), -discount, False),
+            ("Total Amount Before Tax", invoice.subtotal - discount, False),
+            ("Tax Amount (GST)", invoice.tax_amount, False),
+            ("Total Amount After Tax", invoice.grand_total, True),
+        ]
+    else:
+        totals = [
+            ("Grand TOTAL", invoice.grand_total, True),
+            ("Total Amount Before Tax", invoice.subtotal, False),
+            ("Tax Amount (GST)", invoice.tax_amount, False),
+            ("Total Amount After Tax", invoice.grand_total, True),
+        ]
     label_w = 57 * mm
     for i, (label, value, bold) in enumerate(totals):
         y_row = f_top - (i + 1) * box_h
@@ -513,8 +533,9 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
     head_h = 9 * mm
     body_top = table_top - head_h
     bottom_block_h = 15 * mm
-    box_h = 8 * mm
-    totals_h = 3 * box_h
+    discount = float(getattr(invoice, "discount_amount", 0.0) or 0.0)
+    box_h = 8 * mm if discount <= 0 else 6.2 * mm
+    totals_h = (3 if discount <= 0 else 5) * box_h
     body_bottom = m + pad + bottom_block_h + 2 * mm + totals_h
     row_h = (body_top - body_bottom) / CASH_ROWS_PER_PAGE
 
@@ -580,12 +601,15 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
         c.drawRightString(x1 - 2 * mm, body_bottom - 6 * mm, "Continued on next page...")
         return
 
-    total = invoice.subtotal
+    total = invoice.subtotal - discount
     advance = invoice.amount_paid or 0.0
     balance = max(total - advance, 0.0)
     c.setFillColor(colors.white)
     c.rect(x0, body_bottom - totals_h, xs[2] - x0, totals_h, fill=1)
-    for i, (label, value, bold) in enumerate([("Total", total, True), ("Advance", advance, False), ("Balance", balance, True)]):
+    rows = [("Total", total, True), ("Advance", advance, False), ("Balance", balance, True)]
+    if discount > 0:
+        rows = [("Sub Total", invoice.subtotal, False), (_discount_label(invoice).replace("Less: ", "Less "), -discount, False)] + rows
+    for i, (label, value, bold) in enumerate(rows):
         y_row = body_bottom - (i + 1) * box_h
         c.setFillColor(colors.white)
         c.rect(xs[2], y_row, xs[4] - xs[2], box_h, fill=1)

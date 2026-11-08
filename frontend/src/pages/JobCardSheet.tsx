@@ -9,6 +9,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { getErrorMessage } from '../utils/api';
 import type { JobCardSheetData, SheetPaymentKey } from '../types/jobCards';
+import JobDetailPanel from '../components/jobcards/JobDetailPanel';
+import { useAuth } from '../context/AuthContext';
 
 const INK = '#1a237e';
 const border = `1px solid ${INK}`;
@@ -95,6 +97,7 @@ export default function JobCardSheet() {
   const jobCardId = Number(id);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const sheetQuery = useQuery({
     queryKey: ['job-card-sheet', jobCardId],
@@ -180,6 +183,9 @@ export default function JobCardSheet() {
         </Alert>
       )}
 
+      <JobDetailPanel jobCardId={jobCardId} canEdit={user?.role !== 'accounts'} />
+
+      <Typography variant="h6" sx={{ fontWeight: 800, color: INK, mb: 1 }}>Paper job card (fill in by hand if needed)</Typography>
       <Box sx={{ overflowX: 'auto' }}>
         <Paper square sx={{ minWidth: 1020, border: `2px solid ${INK}` }}>
           {/* ---- header ---- */}

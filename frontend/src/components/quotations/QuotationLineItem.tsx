@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFormContext, useWatch, Controller } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Paper, Grid, TextField, IconButton, Typography, FormHelperText } from '@mui/material';
+import { Box, Paper, Grid, TextField, IconButton, Typography, FormHelperText, Chip } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { productsApi, productCategoriesApi } from '../../api/productsApi';
 import { attributesApi } from '../../api/attributesApi';
 import { extraChargesApi } from '../../api/extraChargesApi';
-import type { QuotationCreateInput, SelectedOption } from '../../types/quotations';
+import type { QuotationCreateInput, QuotationPreviewItem, SelectedOption } from '../../types/quotations';
 import EntitySelect from '../pickers/EntitySelect';
-import ChargeGroupPicker, { pruneCharges } from './ChargeGroupPicker';
+import ChargeGroupPicker, { pruneCharges, unansweredSections } from './ChargeGroupPicker';
+import { RateInfo } from './PriceBreakdown';
 
 interface QuotationLineItemProps {
   index: number;
@@ -17,24 +18,40 @@ interface QuotationLineItemProps {
   /** Live-computed rate/amount for this line (from POST /quotations/preview).
    * Omit to render the plain form with no price readout, as on the regular
    * quotation-builder page -- only the billing-counter screen passes this. */
-  previewItem?: { unit_price: number; total_price: number; priceable: boolean };
+  previewItem?: QuotationPreviewItem;
+  /** The service was already chosen on the dashboard: show it as a heading instead of asking again. */
+  lockedServiceId?: number | null;
+  /** Show the "extras need an answer" errors (after a failed submit). */
+  showErrors?: boolean;
 }
 
-export default function QuotationLineItem({ index, onRemove, canRemove, previewItem }: QuotationLineItemProps) {
+const money = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export default function QuotationLineItem({ index, onRemove, canRemove, previewItem, lockedServiceId = null, showErrors }: QuotationLineItemProps) {
   const { control, register, setValue, formState: { errors } } = useFormContext<QuotationCreateInput>();
 
   const productId = useWatch({ control, name: `items.${index}.product_id` });
+  const quantity = useWatch({ control, name: `items.${index}.quantity` });
 
   const productsQuery = useQuery({ queryKey: ['product-picker', 'list'], queryFn: productsApi.list });
+  const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
   const product = productsQuery.data?.find((p) => p.id === productId);
-  const categoryId = product?.category_id ?? null;
+  const categoryId = product?.category_id ?? lockedServiceId ?? null;
+  const category = categoriesQuery.data?.find((c) => c.id === categoryId);
 
   // Two-level pick: Service (category) first, then the exact item within it, so the
   // list never repeats a service once per size/variant.
-  const [serviceId, setServiceId] = useState<number | null>(null);
+  const [serviceId, setServiceId] = useState<number | null>(lockedServiceId);
   useEffect(() => {
     if (serviceId == null && categoryId != null) setServiceId(categoryId);
   }, [categoryId, serviceId]);
+
+  // A service with a single item has nothing to choose between: the item is picked for the counter.
+  const itemsOfService = (productsQuery.data ?? []).filter((p) => p.is_active && p.category_id === serviceId);
+  const singleItem = itemsOfService.length === 1 ? itemsOfService[0] : null;
+  useEffect(() => {
+    if (singleItem && !productId) setValue(`items.${index}.product_id`, singleItem.id);
+  }, [singleItem?.id, productId, index, setValue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const attributesQuery = useQuery({
     queryKey: ['attributes', categoryId],
@@ -50,6 +67,8 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
 
   const selectedOptions = useWatch({ control, name: `items.${index}.selected_options` });
   const chargeIds = useWatch({ control, name: `items.${index}.extra_charge_ids` });
+  const customCharges = useWatch({ control, name: `items.${index}.custom_charges` });
+  const extrasChoices = useWatch({ control, name: `items.${index}.extras_choices` });
   const selectedOptionIds = (selectedOptions ?? []).map((o) => o.attribute_option_id);
 
   // Drop dependent charges (e.g. a binding-set price) once the option they need is deselected.
@@ -65,10 +84,19 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
     if (prevProductId.current !== undefined && prevProductId.current !== productId) {
       setValue(`items.${index}.selected_options`, []);
       setValue(`items.${index}.extra_charge_ids`, []);
+      setValue(`items.${index}.custom_charges`, []);
+      setValue(`items.${index}.extras_choices`, {});
       setValue(`items.${index}.area_sqft`, undefined);
     }
     prevProductId.current = productId;
   }, [productId, index, setValue]);
+
+  // The service's smallest order (e.g. 50 visiting cards): start there and keep the counter informed.
+  const minQty = product?.min_quantity ?? null;
+  useEffect(() => {
+    if (minQty && (Number(quantity) || 0) < minQty && productId) setValue(`items.${index}.quantity`, minQty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [minQty, productId]);
 
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
@@ -97,47 +125,61 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
   }, [usesSets, pagesN, setsN, index, setValue]);
 
   const itemErrors = errors.items?.[index];
+  const required = Boolean(category?.extras_required);
+  const serviceName = category?.name ?? categoriesQuery.data?.find((c) => c.id === lockedServiceId)?.name ?? '';
+  const missingExtras = required ? unansweredSections(extraChargesQuery.data ?? [], selectedOptionIds, extrasChoices) : [];
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2, mb: 2 }}>
+    <Paper sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 2, mb: 2 }}>
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <EntitySelect
-            label="Service"
-            required
-            mode="list"
-            queryKey="service-picker"
-            fetchOptions={async () => (await productCategoriesApi.list()).filter((c) => c.is_active)}
-            getOptionLabel={(c) => c.name}
-            value={serviceId}
-            onChange={(id) => {
-              setServiceId(id);
-              if (id !== categoryId) setValue(`items.${index}.product_id`, 0);
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <Controller
-            name={`items.${index}.product_id`}
-            control={control}
-            rules={{ validate: (v) => Number(v) > 0 || 'Choose an item' }}
-            render={({ field }) => (
-              <EntitySelect
-                label="Item / Size"
-                required
-                mode="list"
-                queryKey={`product-picker-${serviceId ?? 'none'}`}
-                fetchOptions={async () =>
-                  (await productsApi.list()).filter((p) => p.is_active && p.category_id === serviceId)
-                }
-                getOptionLabel={(p) => p.name}
-                value={field.value || null}
-                onChange={(id) => field.onChange(id ?? 0)}
-                disabled={serviceId == null}
-              />
-            )}
-          />
-        </Grid>
+        {lockedServiceId != null ? (
+          <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a237e' }}>{serviceName}</Typography>
+            {singleItem && singleItem.name !== serviceName && <Chip size="small" label={singleItem.name} />}
+            {product?.description && <Typography variant="body2" color="text.secondary">{product.description}</Typography>}
+          </Grid>
+        ) : (
+          <Grid size={{ xs: 12, sm: 4 }}>
+            <EntitySelect
+              label="Service"
+              required
+              mode="list"
+              queryKey="service-picker"
+              fetchOptions={async () => (await productCategoriesApi.list()).filter((c) => c.is_active)}
+              getOptionLabel={(c) => c.name}
+              value={serviceId}
+              onChange={(id) => {
+                setServiceId(id);
+                if (id !== categoryId) setValue(`items.${index}.product_id`, 0);
+              }}
+            />
+          </Grid>
+        )}
+        {/* the item / size is only asked when the service has more than one */}
+        {!singleItem && (
+          <Grid size={{ xs: 12, sm: lockedServiceId != null ? 6 : 4 }}>
+            <Controller
+              name={`items.${index}.product_id`}
+              control={control}
+              rules={{ validate: (v) => Number(v) > 0 || 'Choose an item' }}
+              render={({ field }) => (
+                <EntitySelect
+                  label="Item / Size"
+                  required
+                  mode="list"
+                  queryKey={`product-picker-${serviceId ?? 'none'}`}
+                  fetchOptions={async () =>
+                    (await productsApi.list()).filter((p) => p.is_active && p.category_id === serviceId)
+                  }
+                  getOptionLabel={(p) => p.name}
+                  value={field.value || null}
+                  onChange={(id) => field.onChange(id ?? 0)}
+                  disabled={serviceId == null}
+                />
+              )}
+            />
+          </Grid>
+        )}
         <Grid size={{ xs: 8, sm: 3 }}>
           {usesSets ? (
             <>
@@ -155,31 +197,43 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
               type="number"
               fullWidth
               size="small"
-              error={Boolean(itemErrors?.quantity)}
-              {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
+              error={Boolean(itemErrors?.quantity) || Boolean(previewItem?.message)}
+              helperText={previewItem?.message ?? (minQty ? `Minimum order ${minQty.toLocaleString('en-IN')}` : undefined)}
+              slotProps={{ htmlInput: { min: minQty ?? 1 } }}
+              {...register(`items.${index}.quantity`, {
+                required: true, valueAsNumber: true,
+                min: { value: minQty ?? 1, message: `Minimum order is ${minQty ?? 1}` },
+              })}
             />
           )}
         </Grid>
-        <Grid size={{ xs: 4, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        <Grid size={{ xs: 4, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', ml: 'auto' }}>
           <IconButton aria-label="Remove line" onClick={onRemove} disabled={!canRemove}>
             <DeleteIcon />
           </IconButton>
         </Grid>
 
         {previewItem && (
-          <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3, py: 0.5 }}>
+          <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2, py: 0.5, flexWrap: 'wrap' }}>
             {previewItem.priceable ? (
               <>
                 <Typography variant="body2" color="text.secondary">
-                  Rate: <strong>₹{previewItem.unit_price.toFixed(2)}</strong>
+                  Rate: <strong data-testid="line-rate">₹{money(previewItem.unit_price)}</strong>
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                  Amount: ₹{previewItem.total_price.toFixed(2)}
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }} data-testid="line-amount">
+                  Amount: ₹{money(previewItem.total_price)}
                 </Typography>
+                <RateInfo
+                  rows={previewItem.breakdown}
+                  title={`${serviceName}${product ? ` - ${product.name}` : ''} x ${Number(quantity) || 0}`}
+                  rate={previewItem.unit_price}
+                  amount={previewItem.total_price}
+                  label="Why this rate?"
+                />
               </>
             ) : (
               <Typography variant="body2" color="text.secondary">
-                {product ? 'Select all required options to see the price' : ''}
+                {previewItem.message ? '' : product ? 'Select all required options to see the price' : ''}
               </Typography>
             )}
           </Grid>
@@ -247,16 +301,31 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
 
         {product && (extraChargesQuery.data ?? []).length > 0 && (
           <Grid size={{ xs: 12 }}>
+            {required && (
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1a237e', mb: 1 }}>
+                Extras - choose for each (None if the customer does not want it)
+              </Typography>
+            )}
             <Controller
               name={`items.${index}.extra_charge_ids`}
               control={control}
-              render={({ field }) => (
-                <ChargeGroupPicker
-                  charges={extraChargesQuery.data ?? []}
-                  value={field.value ?? []}
-                  onChange={field.onChange}
-                  selectedOptionIds={selectedOptionIds}
-                />
+              rules={{ validate: () => missingExtras.length === 0 || `Choose an option (or None) for: ${missingExtras.join(', ')}` }}
+              render={({ field, fieldState }) => (
+                <>
+                  <ChargeGroupPicker
+                    charges={extraChargesQuery.data ?? []}
+                    value={field.value ?? []}
+                    onChange={field.onChange}
+                    selectedOptionIds={selectedOptionIds}
+                    required={required}
+                    customCharges={customCharges ?? []}
+                    onCustomChange={(list) => setValue(`items.${index}.custom_charges`, list, { shouldDirty: true })}
+                    choices={extrasChoices ?? {}}
+                    onChoicesChange={(m) => setValue(`items.${index}.extras_choices`, m, { shouldDirty: true })}
+                    showErrors={Boolean(showErrors || fieldState.error)}
+                  />
+                  {fieldState.error && <FormHelperText error>{fieldState.error.message}</FormHelperText>}
+                </>
               )}
             />
           </Grid>

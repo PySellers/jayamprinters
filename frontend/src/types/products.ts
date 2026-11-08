@@ -10,12 +10,24 @@ export interface ProductCategory {
   min_charge?: number | null;
   /** Default HSN / SAC code of the service (sets the GST rate). */
   hsn_id?: number | null;
-  /** Printing charge on top of paper cost: 'block' (rate per block of copies) or 'per_copy'. */
-  print_charge_mode?: 'block' | 'per_copy' | null;
+  /** Printing charge on top of paper cost: 'block' (rate per block of copies), 'per_copy' or 'slab' (a table of bands). */
+  print_charge_mode?: 'block' | 'per_copy' | 'slab' | null;
   print_block_size?: number | null;
   print_block_rate?: number | null;
   print_per_copy_rate?: number | null;
   print_per_layer?: boolean;
+  /** Extra charges are a required choice per group (None / an option / Custom). */
+  extras_required?: boolean;
+}
+
+/** One band of a service's printing-charge table. */
+export interface PrintChargeBand {
+  id?: number;
+  min_quantity: number;
+  max_quantity: number | null;
+  amount: number;
+  per_block: boolean;
+  block_size: number | null;
 }
 
 export interface Product {
@@ -26,6 +38,8 @@ export interface Product {
   pricing_type: ProductPricingType;
   fixed_price?: number | null;
   hsn_id?: number | null;
+  /** Smallest quantity that can be ordered. */
+  min_quantity?: number | null;
   is_active: boolean;
   created_at: string;
 }
@@ -37,5 +51,6 @@ export interface ProductInput {
   pricing_type?: ProductPricingType;
   fixed_price?: number | null;
   hsn_id?: number | null;
+  min_quantity?: number | null;
   is_active?: boolean;
 }

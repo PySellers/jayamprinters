@@ -54,6 +54,11 @@ DEFECTS = [
     ("Low", "Copies per set (new)", "The new '1' choice was listed last instead of first, because options were shown in the order they were created.", "Options are returned in their display order everywhere."),
     ("Medium", "Job Cards screen for counter staff (new)", "The job card list asked for the admin-only Users list, so counter staff got permission errors and saw employee numbers instead of names.", "The screen now uses the staff list that every signed-in user may read."),
     ("Medium", "Production workflow (new)", "A step that was on hold could be finished directly, skipping the 'resume' check.", "A held step must be resumed first; covered by a test."),
+    ("Medium", "Xerox price list (round 3)", "Xerox A4 black & white had bulk-discount estimates (Rs1.50, Rs1.20 ...) although the shop's poster says Rs2 a page.", "Rates replaced by the poster's: A4 B/W Rs2 at every quantity, A3 Rs4 / Rs7, colour Rs12 / Rs23."),
+    ("Medium", "Printout price list (round 3)", "'2-3 prints' was priced Rs5 a page (3 prints = Rs15) but the poster gives Rs10 for the lot.", "2 prints = Rs10, 3 prints = Rs10; a bigger order is never cheaper than a smaller one, so 4-5 prints are held at Rs10."),
+    ("Medium", "Stickers (round 3)", "A made-up Rs100 service minimum meant one sticker sheet cost Rs100 instead of the shop's Rs30, and the rates were test figures.", "Replaced by the shop's sticker, scoring and lamination rates; the minimum was removed."),
+    ("Medium", "Order page extras (round 3)", "On a required extras dropdown the browser's own 'Please fill out this field' bubble appeared instead of the screen's message.", "The dropdowns are marked required without the browser bubble; the screen names every section still to be answered."),
+    ("Low", "Live job board (round 3)", "With hundreds of jobs a job could not be found on the dashboard board.", "Added a search box (job number, customer, product) and filters."),
     ("Low", "Accessibility", "Edit / Delete icon buttons in the tables had no names for screen readers or automated tests.", "Added Edit / Delete labels."),
 ]
 
@@ -92,11 +97,11 @@ ws.append([f"Test cycle: {date.today():%d %B %Y}"])
 ws.append([])
 facts = [
     ("Result", f"{passed} of {len(all_rows)} tests passed" + ("" if passed == len(all_rows) else f" ({len(all_rows) - passed} failed - see the test sheets)")),
-    ("Application", "Sri Jayam ERP billing system (web app: order entry, quotations, invoices & payments, job cards with a step-by-step production workflow (My Work, board, monitor, outside work), delivery challans, customers, purchases & vendors, inventory, cash ledger & cheques, reports, pricing setup, users & roles)"),
+    ("Application", "Sri Jayam ERP billing system (web app: order entry, quotations, invoices & payments, job cards with a step-by-step production workflow (My Work, board, monitor, outside work), delivery challans, customers, purchases & vendors, inventory, cash ledger & cheques, reports, pricing setup, users & roles; order discount, price breakdown with links to Pricing Setup, printing-charge bands, required extras with Custom, paper of every copy, design proofs, urgent jobs, live dashboard board, printable job card with / without price)"),
     ("How it was tested", "Automated tests drive the real application the way staff do: every API action directly, and every screen in a real Chrome browser (typing, clicking, downloading). Each order is also priced independently from the raw rate tables and compared with what the system shows."),
     ("Test data", "14 customers, 33 orders (every one of the 14 services), 4 quotations, invoices that are paid / part-paid / unpaid (GST and cash bills), job cards in every stage, delivery challans, vendors, stock (3 items below reorder level), purchases, cash ledger entries and cheques, plus staff logins for each role."),
     ("Environment", "Identical application code and the same demo data as the UAT site. Tests that create and delete records ran on a separate copy, so the UAT site's data was left untouched."),
-    ("Not covered", "Reading a supplier bill with the real AI service (needs the client's API key; the screen was tested for the case where no key is set), printing on physical printers, performance with many simultaneous users, WhatsApp / e-mail sending (not part of this release), and the correctness of the estimated rates against the client's own rate card."),
+    ("Not covered", "Reading a supplier bill with the real AI service (needs the client's API key; the screen was tested for the case where no key is set), printing on physical printers, performance with many simultaneous users, WhatsApp / e-mail sending (not part of this release), and estimated rates for services the client has not sent a price list for (Xerox, Printout, boards, stickers and lamination now use the client's own lists)."),
     ("Defects", f"{len(DEFECTS)} issues were found during this cycle and all were fixed and re-tested (see 'Issues found & fixed')."),
 ]
 for k, v in facts:
@@ -149,6 +154,7 @@ if shots and os.path.isdir(shots):
             "purchase-added", "cash-ledger", "reports", "layout-1366x768", "layout-menu-390x844",
             "company-details", "hsn-codes", "printing-and-tax", "order-gst-breakdown", "bill-book-wizard", "bill-book-copies", "outsource-list",
             "purchase-upload", "financial-statement", "quotation-estimated-delivery",
+            "r3-dashboard", "r3-live-board-urgent", "r3-order-visiting-card", "r3-extras-required", "r3-extras-custom", "r3-why-this-rate", "r3-discount", "r3-invoice-discount", "r3-bill-book-copies", "r3-job-card-copies", "r3-print-bands", "r3-extras-setup", "r3-product-min-qty", "r3-job-card-detail", "r3-proofs", "r3-job-cards-list", "r3-phone-dashboard",
             "my-work-designer", "my-work-on-hold", "job-tracking-delivered", "job-tracking-outside", "production-board", "production-monitor", "work-centers", "workflows", "my-work-phone"]
     for k in KEEP:
         f = k + ".png"

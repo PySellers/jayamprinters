@@ -343,22 +343,24 @@ def run_all():
     run("NEW", M, "Printout: more pages never cost less", "Total never goes down", t)
 
     def t():
-        it = preview([catalog.item("Stickers", "Sticker Sheet (A4)", 1, [("Sticker Material", "Paper Sticker")])])["items"][0]
-        expect(it["priceable"] and it["total_price"] >= 100, it)
-        return f"1 sticker sheet = Rs{it['total_price']:g} (service minimum Rs100)"
-    run("NEW", M, "Stickers: the service minimum is applied", "Small orders cost at least Rs100", t)
+        one = preview([catalog.item("Stickers", "Sticker Sheet 13x19", 1, [("Sticker Type", "Normal Sticker")])])["items"][0]
+        five = preview([catalog.item("Stickers", "Sticker Sheet 13x19", 5, [("Sticker Type", "Normal Sticker")])])["items"][0]
+        expect(one["priceable"] and abs(one["total_price"] - 30.0) < 0.01, one)
+        expect(five["priceable"] and abs(five["total_price"] - (30.0 + 4 * 21.0)) < 0.01, five)
+        return "Normal sticker 13x19: 1 sheet Rs30 (Master), 5 sheets Rs30 + 4 x Rs21 = Rs114 (Additional)"
+    run("NEW", M, "Stickers: Master rate for the 1st sheet, Additional for the rest", "Client's rate sheet: Rs30 then Rs21 each", t)
 
     def t():
         last = 0
         for area in (1, 2, 3.5):
             last = 0
             for qty in range(1, 160):
-                it = catalog.item("Stickers", "Sticker - by size (per sq ft)", qty, [("Sticker Material", "Paper Sticker")], area=area)
+                it = catalog.item("Digital Banner", "Digital Banner", qty, [("Media Type", "Flex")], area=area)
                 tot = preview([it])["items"][0]["total_price"]
                 expect(tot >= last - 0.005, f"{area} sq ft: {qty} pieces Rs{tot} < {qty - 1} pieces Rs{last}")
                 last = tot
-        return "Per-sq-ft stickers: total never goes down for 1 to 159 pieces (1, 2 and 3.5 sq ft)"
-    run("NEW", M, "Stickers by size: more pieces never cost less", "Total never goes down at the band edges", t)
+        return "Per-sq-ft items: total never goes down for 1 to 159 pieces (1, 2 and 3.5 sq ft)"
+    run("NEW", M, "Per-sq-ft items: more pieces never cost less", "Total never goes down at the band edges", t)
 
     # ------------------------------------------------------------------ bill numbers and layouts
     M = "Bill Numbers & Layouts"

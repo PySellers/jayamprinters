@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Box, Typography, Paper, Tabs, Tab, Alert, TextField, Button, InputAdornment } from '@mui/material';
 import EntitySelect from '../components/pickers/EntitySelect';
@@ -9,8 +10,12 @@ import ExtraChargesPanel from '../components/pricingSetup/ExtraChargesPanel';
 import PrintingTaxPanel from '../components/pricingSetup/PrintingTaxPanel';
 
 export default function PricingSetup() {
-  const [categoryId, setCategoryId] = useState<number | null>(null);
-  const [tab, setTab] = useState(0);
+  // A link from the order screen opens straight on the service and tab that holds a rate:
+  // /pricing-setup?category=9&tab=printing  (attributes | slabs | charges | printing)
+  const [searchParams] = useSearchParams();
+  const TABS = ['attributes', 'slabs', 'charges', 'printing'];
+  const [categoryId, setCategoryId] = useState<number | null>(searchParams.get('category') ? Number(searchParams.get('category')) : null);
+  const [tab, setTab] = useState(Math.max(0, TABS.indexOf(searchParams.get('tab') ?? '')));
 
   // Minimum amount billed for one line of this service (small runs cost more per unit).
   const queryClient = useQueryClient();

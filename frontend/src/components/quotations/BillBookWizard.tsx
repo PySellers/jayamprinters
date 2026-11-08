@@ -5,12 +5,14 @@ import { Alert, Box, Divider, Grid, Paper, TextField, Typography } from '@mui/ma
 import { productsApi } from '../../api/productsApi';
 import { attributesApi } from '../../api/attributesApi';
 import { extraChargesApi } from '../../api/extraChargesApi';
-import { quotationsApi } from '../../api/quotationsApi';
 import type { Attribute, AttributeOption } from '../../types/attributes';
 import type { ExtraCharge } from '../../types/extraCharges';
-import type { QuotationCreateInput, SelectedOption } from '../../types/quotations';
+import type { LayerSpec, QuotationCreateInput, SelectedOption } from '../../types/quotations';
 import SearchSelect from './SearchSelect';
 import { applicableCharges, chargeLabel, pruneCharges, setChargeInGroup } from './ChargeGroupPicker';
+import { RateInfo } from './PriceBreakdown';
+import { quotationsApi } from '../../api/quotationsApi';
+import type { QuotationPreviewItem } from '../../types/quotations';
 
 const PRINT_COLOURS = ['Black', 'Navy Blue', 'Custom'];
 const LAYER_NAMES = ['Original', 'Duplicate', 'Triplicate', 'Quadruplicate', 'Quintuplicate', 'Sextuplicate', 'Septuplicate'];
@@ -31,14 +33,24 @@ interface BillBookWizardProps {
   categoryId: number;
 }
 
+interface CopyState {
+  paper: number | null;   // paper name option (null = same as the Original copy)
+  gsm: number | null;     // GSM option (null = same as the Original copy)
+  size: number | null;    // size item (null = same as the Original copy)
+  colour: string;
+  colourCustom: string;
+  paperCustom: string;
+}
+const blankCopy = (): CopyState => ({ paper: null, gsm: null, size: null, colour: '', colourCustom: '', paperCustom: '' });
+
 /**
  * Guided order entry for Bill Books & Stationery, kept compact: every choice is a
- * searchable dropdown in a grid, grouped in production order (document -> paper &
- * printing -> numbering -> binding -> quantity). Later groups unlock once the
- * required choices are made. Everything priced is written into the normal
- * quotation item (product, selected options, extra charges); free-form details
- * (colour per copy, numbering) go into spec_notes, which already flows to the
- * invoice, job card and challan.
+ * searchable dropdown in a grid, grouped in production order (document -> paper of
+ * each copy -> printing -> numbering -> binding). Every copy of the set (Original,
+ * Duplicate ...) gets the same four choices - paper name, GSM, paper size, colour -
+ * with the Original copy first. Everything priced is written into the normal quotation
+ * item; the paper of every copy goes in layer_specs and into spec_notes, which flows to
+ * the invoice, job card and challan.
  */
 export default function BillBookWizard({ index, categoryId }: BillBookWizardProps) {
   const { control, setValue, register, formState: { errors } } = useFormContext<QuotationCreateInput>();
@@ -104,39 +116,62 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
   const chargeIn = (group: string) => chargeGroup(group).find((c) => chargeIds.includes(c.id));
   const chargeChoices = (group: string) => chargeGroup(group).map((c) => ({ id: c.id, label: chargeLabel(c) }));
 
-  // ---- free-form details (kept in spec_notes) ---------------------------------
+  // ---- the paper of every copy ------------------------------------------------
   const copiesValue = optionValue(copiesAttr); // e.g. "1+3"
   const layerCount = copiesValue ? 1 + (parseInt(copiesValue.split('+')[1], 10) || 0) : 0;
-  const colourOptions = optionsOf(colourAttr);
-  const [layerColours, setLayerColours] = useState<string[]>([]);
-  const [layerCustom, setLayerCustom] = useState<string[]>([]);
-  const [paperCustom, setPaperCustom] = useState('');
+  const copiesN = Math.max(layerCount, 1); // a plain sheet is still one copy
+  const [copies, setCopies] = useState<CopyState[]>([blankCopy()]);
   const [printColour, setPrintColour] = useState('Black');
   const [printColourCustom, setPrintColourCustom] = useState('');
-  const [layerGsm, setLayerGsm] = useState<(number | null)[]>([]);
   const [slFrom, setSlFrom] = useState('');
   const [slTo, setSlTo] = useState('');
   const [bookNo, setBookNo] = useState('');
   const [bindingCustom, setBindingCustom] = useState('');
 
   useEffect(() => {
-    setLayerColours((prev) => Array.from({ length: layerCount }, (_, i) => prev[i] ?? ''));
-    setLayerCustom((prev) => Array.from({ length: layerCount }, (_, i) => prev[i] ?? ''));
-    // One GSM choice per extra copy (copy 2, 3 ...); empty = same paper as the top copy.
-    setLayerGsm((prev) => Array.from({ length: Math.max(layerCount - 1, 0) }, (_, i) => prev[i] ?? null));
-  }, [layerCount]);
+    setCopies((prev) => Array.from({ length: copiesN }, (_, i) => prev[i] ?? blankCopy()));
+  }, [copiesN]);
+  const patchCopy = (i: number, patch: Partial<CopyState>) =>
+    setCopies((prev) => prev.map((c, k) => (k === i ? { ...c, ...patch } : c)));
 
+  const colourOptions = optionsOf(colourAttr);
+  const topPaperId = optionOf(paperNameAttr);
   const topGsmId = optionOf(gsmAttr);
-  useEffect(() => {
-    // Sent to the price calculation so every copy is priced in its own GSM.
-    const effective = layerGsm.map((id) => (id && id !== topGsmId ? id : 0));
-    setValue(`items.${index}.layer_gsm_option_ids`, effective.some(Boolean) ? effective : [], { shouldDirty: true });
+  const topSizeId = item?.product_id || null;
+  const paperOptions = optionsOf(paperNameAttr);
+  const gsmOptions = optionsOf(gsmAttr);
+  const sizeLabel = (name: string) => name.replace(/^Sheet Printing - /, '');
+
+  const paperIdOf = (i: number) => (i === 0 ? topPaperId : copies[i]?.paper ?? topPaperId);
+  const gsmIdOf = (i: number) => (i === 0 ? topGsmId : copies[i]?.gsm ?? topGsmId);
+  const sizeIdOf = (i: number) => (i === 0 ? topSizeId : copies[i]?.size ?? topSizeId);
+  const colourOf = (i: number) => {
+    const c = copies[i];
+    if (!c) return '';
+    return c.colour === 'Custom' ? c.colourCustom.trim() || 'Custom' : c.colour;
+  };
+  const layerName = (i: number) => (copiesN === 1 ? 'Paper' : LAYER_NAMES[i] ?? `Copy ${i + 1}`);
+
+  // Sent to the price calculation (every copy is priced in its own GSM / size) and kept on the order for the job card.
+  const layerSpecs: LayerSpec[] = useMemo(
+    () => Array.from({ length: copiesN }, (_, i) => ({
+      paper_option_id: paperIdOf(i),
+      gsm_option_id: gsmIdOf(i),
+      size_product_id: sizeIdOf(i),
+      colour: colourOf(i) || null,
+      paper_custom: (paperOptions.find((o) => o.id === paperIdOf(i))?.value === 'Custom' ? (i === 0 ? copies[0]?.paperCustom : copies[i]?.paperCustom) : '')?.trim() || null,
+    })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(layerGsm), topGsmId]);
+    [copiesN, JSON.stringify(copies), topPaperId, topGsmId, topSizeId, paperOptions.length],
+  );
+  useEffect(() => {
+    setValue(`items.${index}.layer_specs`, topGsmId && topSizeId ? layerSpecs : [], { shouldDirty: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(layerSpecs), topGsmId, topSizeId]);
 
   // Coloured paper costs more: pick the matching "Coloured Layers" charge automatically
   // from the colours chosen per copy (white / rough paper carry no surcharge).
-  const colouredCount = layerColours.filter((c, i) => i < layerCount && c && c !== 'White' && c !== 'Rough').length;
+  const colouredCount = copies.filter((c, i) => i < layerCount && c.colour && c.colour !== 'White' && c.colour !== 'Rough').length;
   const colouredCharge = charges.find(
     (c) => c.is_active && c.group_name === 'Coloured Layers' && new RegExp(`- ${colouredCount} Layers?$`).test(c.name),
   );
@@ -159,24 +194,23 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nilBillType?.id, hasBillType]);
 
-  const paperNameValue = optionValue(paperNameAttr);
   const bindingType = chargeIn('Binding Type');
   const bindingIsCustom = Boolean(bindingType && /custom/i.test(bindingType.name));
 
+  // The written specification (shown on the invoice, job card and challan): the paper of EVERY copy, then the rest.
   const notes = useMemo(() => {
     const parts: string[] = [];
-    if (layerCount > 0) {
-      const perLayer = Array.from({ length: layerCount }, (_, i) => {
-        const colour = layerColours[i] === 'Custom' ? layerCustom[i]?.trim() || 'Custom' : layerColours[i];
-        return colour ? `${LAYER_NAMES[i] ?? `Copy ${i + 1}`}: ${colour}` : '';
+    if (topGsmId || topPaperId) {
+      const perCopy = Array.from({ length: copiesN }, (_, i) => {
+        const paperValue = paperOptions.find((o) => o.id === paperIdOf(i))?.value ?? '';
+        const paper = paperValue === 'Custom' ? copies[i]?.paperCustom.trim() || 'Custom paper' : paperValue;
+        const gsm = gsmOptions.find((o) => o.id === gsmIdOf(i))?.value ?? '';
+        const size = sizeLabel(sizes.find((p) => p.id === sizeIdOf(i))?.name ?? '');
+        const text = [paper, gsm, size, colourOf(i)].filter(Boolean).join(', ');
+        return text ? `${layerName(i)}: ${text}` : '';
       }).filter(Boolean);
-      parts.push(`Copies ${copiesValue}${perLayer.length ? ` (${perLayer.join(', ')})` : ''}`);
-      const gsmByCopy = layerGsm
-        .map((id, i) => (id && id !== topGsmId ? `${LAYER_NAMES[i + 1] ?? `Copy ${i + 2}`}: ${optionsOf(gsmAttr).find((o) => o.id === id)?.value ?? ''}` : ''))
-        .filter(Boolean);
-      if (gsmByCopy.length) parts.push(`GSM ${gsmByCopy.join(', ')}`);
+      parts.push(`${copiesValue ? `Copies ${copiesValue} - ` : ''}${perCopy.join('; ')}`);
     }
-    if (paperNameValue === 'Custom' && paperCustom.trim()) parts.push(`Paper: ${paperCustom.trim()}`);
     const printColourText = printColour === 'Custom' ? printColourCustom.trim() : printColour;
     if (printColourText) parts.push(`Printing colour: ${printColourText}`);
     const numbering = [
@@ -186,7 +220,8 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
     if (numbering.length) parts.push(numbering.join(', '));
     if (bindingIsCustom && bindingCustom.trim()) parts.push(`Binding: ${bindingCustom.trim()}`);
     return parts.join(' | ');
-  }, [layerCount, copiesValue, layerColours, layerCustom, layerGsm, topGsmId, paperNameValue, paperCustom, printColour, printColourCustom, slFrom, slTo, bookNo, bindingIsCustom, bindingCustom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copiesN, copiesValue, JSON.stringify(copies), topPaperId, topGsmId, topSizeId, sizes.length, paperOptions.length, gsmOptions.length, printColour, printColourCustom, slFrom, slTo, bookNo, bindingIsCustom, bindingCustom]);
 
   useEffect(() => {
     setValue(`items.${index}.spec_notes`, notes || undefined);
@@ -194,8 +229,8 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
 
   // ---- live price ---------------------------------------------------------------
   const withGst = useWatch({ control, name: 'with_gst' });
-  const [price, setPrice] = useState<{ rate: number; amount: number; priceable: boolean; paper: number; printing: number; tax: number } | null>(null);
-  const priceKey = JSON.stringify([item?.product_id, item?.quantity, selected, chargeIds, item?.layer_gsm_option_ids, withGst]);
+  const [price, setPrice] = useState<QuotationPreviewItem | null>(null);
+  const priceKey = JSON.stringify([item?.product_id, item?.quantity, selected, chargeIds, item?.layer_specs, withGst]);
   useEffect(() => {
     if (!item?.product_id) {
       setPrice(null);
@@ -211,13 +246,10 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
             quantity: Number(item.quantity) || 1,
             selected_options: selected,
             extra_charge_ids: chargeIds,
-            layer_gsm_option_ids: item.layer_gsm_option_ids ?? [],
+            layer_specs: item.layer_specs ?? [],
           }],
         })
-        .then((r) => setPrice({
-          rate: r.items[0].unit_price, amount: r.items[0].total_price, priceable: r.items[0].priceable,
-          paper: r.items[0].paper_total ?? 0, printing: r.items[0].print_charge ?? 0, tax: r.items[0].tax_amount ?? 0,
-        }))
+        .then((r) => setPrice(r.items[0]))
         .catch(() => setPrice(null));
     }, 400);
     return () => clearTimeout(timer);
@@ -225,16 +257,13 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
   }, [priceKey]);
 
   // ---- unlock rules ---------------------------------------------------------------
-  const sizeProduct = sizes.find((s) => s.id === item?.product_id);
   const s1 = docAttr ? optionOf(docAttr) != null : true;
-  const s2 = Boolean(sizeProduct);
+  const s2 = Boolean(sizes.find((s) => s.id === item?.product_id));
   const sGsm = gsmAttr ? optionOf(gsmAttr) != null : true;
-  const early = s1 && s2; // copies, paper
-  const late = early && sGsm; // printing .. quantity
+  const late = s1 && s2 && sGsm; // quantity .. binding
   const showBindingDetails = Boolean(bindingType) && !/loose/i.test(bindingType?.name ?? '');
-  const sizeLabel = (name: string) => name.replace(/^Sheet Printing - /, '');
   const itemErrors = errors.items?.[index];
-  const nextHint = !s1 ? 'Start with the document type.' : !s2 ? 'Next: choose the size.' : !sGsm ? 'Choose the paper GSM / grade to unlock printing, numbering and binding.' : '';
+  const nextHint = !s1 ? 'Start with the document type.' : !s2 ? 'Next: choose the paper size of the Original copy.' : !sGsm ? 'Choose the GSM / grade of the Original copy to unlock printing, numbering and binding.' : '';
 
   return (
     <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, mb: 2 }}>
@@ -250,7 +279,7 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
       <Controller
         name={`items.${index}.product_id`}
         control={control}
-        rules={{ validate: (v) => Number(v) > 0 || 'Choose the size' }}
+        rules={{ validate: (v) => Number(v) > 0 || 'Choose the paper size' }}
         render={() => <></>}
       />
       <Controller
@@ -275,7 +304,7 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
       {/* Document ------------------------------------------------------ */}
       <GroupHeading>Document</GroupHeading>
       <Grid container spacing={1.5}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <SearchSelect
             required
             label="Document type"
@@ -284,17 +313,16 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
             onChange={(id) => setOption(docAttr, id)}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <SearchSelect
-            required
-            label="Size"
+            label="Copies per set"
             disabled={!s1}
-            options={sizes.map((p) => ({ id: p.id, label: sizeLabel(p.name) }))}
-            value={item?.product_id || null}
-            onChange={(id) => setValue(`items.${index}.product_id`, id ?? 0, { shouldDirty: true })}
+            options={optionsOf(copiesAttr).map((o) => ({ id: o.id, label: o.value === '1' ? '1 (no extra copy)' : o.value }))}
+            value={optionOf(copiesAttr)}
+            onChange={(id) => setOption(copiesAttr, id)}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 2 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <TextField
             fullWidth
             required
@@ -305,78 +333,79 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
             {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <SearchSelect
-            label="Copies per set"
-            disabled={!early}
-            options={optionsOf(copiesAttr).map((o) => ({ id: o.id, label: o.value === '1' ? '1 (no extra copy)' : o.value }))}
-            value={optionOf(copiesAttr)}
-            onChange={(id) => setOption(copiesAttr, id)}
-          />
-        </Grid>
-        {Array.from({ length: layerCount }, (_, i) => (
-          <Grid key={i} size={{ xs: 12, sm: 6, md: i === 0 ? 3 : 3 }}>
-            <SearchSelect
-              label={`${LAYER_NAMES[i] ?? `Copy ${i + 1}`} colour`}
-              options={toChoices(colourOptions)}
-              value={colourOptions.find((o) => o.value === layerColours[i])?.id ?? null}
-              onChange={(id) => {
-                const value = colourOptions.find((o) => o.id === id)?.value ?? '';
-                setLayerColours((prev) => prev.map((c, k) => (k === i ? value : c)));
-              }}
-            />
-            {layerColours[i] === 'Custom' && (
-              <TextField
-                fullWidth
-                size="small"
-                sx={{ mt: 0.75 }}
-                placeholder="Colour name"
-                value={layerCustom[i] ?? ''}
-                onChange={(e) => setLayerCustom((prev) => prev.map((c, k) => (k === i ? e.target.value : c)))}
-              />
-            )}
-            {i > 0 && (
-              <Box sx={{ mt: 0.75 }}>
-                <SearchSelect
-                  label={`${LAYER_NAMES[i] ?? `Copy ${i + 1}`} GSM`}
-                  disabled={!sGsm}
-                  helperText={layerGsm[i - 1] ? undefined : 'Same as the top copy'}
-                  options={toChoices(optionsOf(gsmAttr))}
-                  value={layerGsm[i - 1] ?? topGsmId}
-                  onChange={(id) => setLayerGsm((prev) => prev.map((g, k) => (k === i - 1 ? id : g)))}
-                />
-              </Box>
-            )}
-          </Grid>
-        ))}
       </Grid>
 
-      {/* Paper & printing ---------------------------------------------- */}
-      <GroupHeading>Paper &amp; printing</GroupHeading>
+      {/* Paper of each copy: the Original copy first, then Duplicate ... -------------------- */}
+      <GroupHeading>Paper of each copy</GroupHeading>
+      <Box sx={{ display: 'grid', gap: 1.25 }}>
+        {Array.from({ length: copiesN }, (_, i) => {
+          const copy = copies[i] ?? blankCopy();
+          const enabled = i === 0 ? s1 : s2 && sGsm;
+          const sameHint = i === 0 ? undefined : 'Same as the Original copy';
+          const paperId = paperIdOf(i);
+          const paperValue = paperOptions.find((o) => o.id === paperId)?.value;
+          return (
+            <Paper key={i} variant="outlined" sx={{ p: 1.5, borderRadius: 2, borderColor: i === 0 ? '#1a237e' : undefined }} data-testid={`copy-card-${i}`}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1a237e', mb: 1 }}>
+                {i + 1}. {layerName(i)} copy
+              </Typography>
+              <Grid container spacing={1.5}>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <SearchSelect
+                    label="Paper name"
+                    disabled={!enabled}
+                    helperText={sameHint}
+                    options={toChoices(paperOptions)}
+                    value={paperId}
+                    onChange={(id) => (i === 0 ? setOption(paperNameAttr, id) : patchCopy(i, { paper: id }))}
+                  />
+                  {paperValue === 'Custom' && (
+                    <TextField fullWidth size="small" sx={{ mt: 0.75 }} placeholder="Custom paper name" value={copy.paperCustom} onChange={(e) => patchCopy(i, { paperCustom: e.target.value })} />
+                  )}
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <SearchSelect
+                    required={i === 0}
+                    label="GSM / grade"
+                    disabled={!enabled}
+                    helperText={i === 0 ? 'Sets the rate' : sameHint}
+                    options={toChoices(gsmOptions)}
+                    value={gsmIdOf(i)}
+                    onChange={(id) => (i === 0 ? setOption(gsmAttr, id) : patchCopy(i, { gsm: id }))}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <SearchSelect
+                    required={i === 0}
+                    label="Paper size"
+                    disabled={!enabled}
+                    helperText={sameHint}
+                    options={sizes.map((p) => ({ id: p.id, label: sizeLabel(p.name) }))}
+                    value={sizeIdOf(i)}
+                    onChange={(id) => (i === 0 ? setValue(`items.${index}.product_id`, id ?? 0, { shouldDirty: true }) : patchCopy(i, { size: id }))}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <SearchSelect
+                    label="Colour"
+                    disabled={!enabled}
+                    options={toChoices(colourOptions)}
+                    value={colourOptions.find((o) => o.value === copy.colour)?.id ?? null}
+                    onChange={(id) => patchCopy(i, { colour: colourOptions.find((o) => o.id === id)?.value ?? '' })}
+                  />
+                  {copy.colour === 'Custom' && (
+                    <TextField fullWidth size="small" sx={{ mt: 0.75 }} placeholder="Colour name" value={copy.colourCustom} onChange={(e) => patchCopy(i, { colourCustom: e.target.value })} />
+                  )}
+                </Grid>
+              </Grid>
+            </Paper>
+          );
+        })}
+      </Box>
+
+      {/* Printing --------------------------------------------------------- */}
+      <GroupHeading>Printing</GroupHeading>
       <Grid container spacing={1.5}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <SearchSelect
-            label="Paper name"
-            disabled={!early}
-            options={toChoices(optionsOf(paperNameAttr))}
-            value={optionOf(paperNameAttr)}
-            onChange={(id) => setOption(paperNameAttr, id)}
-          />
-          {paperNameValue === 'Custom' && (
-            <TextField fullWidth size="small" sx={{ mt: 0.75 }} placeholder="Custom paper name" value={paperCustom} onChange={(e) => setPaperCustom(e.target.value)} />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <SearchSelect
-            required
-            label="GSM / grade"
-            disabled={!early}
-            helperText="Sets the rate"
-            options={toChoices(optionsOf(gsmAttr))}
-            value={optionOf(gsmAttr)}
-            onChange={(id) => setOption(gsmAttr, id)}
-          />
-        </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SearchSelect
             label="Print side"
@@ -464,24 +493,31 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
         )}
       </Grid>
 
-      {/* Quantity & price ------------------------------------------------ */}
+      {/* Rate & price ------------------------------------------------------ */}
       <Divider sx={{ mt: 2.5, mb: 1.5 }} />
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
         {price &&
           (price.priceable ? (
             <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 3, flexWrap: 'wrap' }}>
               <Typography variant="body2" color="text.secondary">
-                Rate: <strong>₹{price.rate.toFixed(2)}</strong>
+                Rate: <strong data-testid="line-rate">₹{price.unit_price.toFixed(2)}</strong>
               </Typography>
-              {price.printing > 0 && (
+              {(price.print_charge ?? 0) > 0 && (
                 <Typography variant="body2" color="text.secondary">
-                  Paper &amp; extras ₹{(price.amount - price.printing).toFixed(2)} + printing <strong>₹{price.printing.toFixed(2)}</strong>
+                  Paper &amp; extras ₹{(price.total_price - (price.print_charge ?? 0)).toFixed(2)} + printing <strong>₹{(price.print_charge ?? 0).toFixed(2)}</strong>
                 </Typography>
               )}
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a237e' }}>
-                Amount: ₹{price.amount.toFixed(2)}
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a237e' }} data-testid="line-amount">
+                Amount: ₹{price.total_price.toFixed(2)}
               </Typography>
-              {price.amount === 0 && (
+              <RateInfo
+                rows={price.breakdown}
+                title={`Bill Books & Stationery x ${Number(item?.quantity) || 0}`}
+                rate={price.unit_price}
+                amount={price.total_price}
+                label="Why this rate?"
+              />
+              {price.total_price === 0 && (
                 <Typography variant="caption" color="warning.main">
                   Rates for this combination are not entered yet (Pricing Setup) — showing ₹0.
                 </Typography>

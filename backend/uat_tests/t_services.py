@@ -89,6 +89,8 @@ def run_all():
                         expected += max(1, -(-qty // c["print_block_size"])) * c["print_block_rate"]
                     elif c.get("print_charge_mode") == "per_copy" and c.get("print_per_copy_rate"):
                         expected += c["print_per_copy_rate"] * qty
+                    elif c.get("print_charge_mode") == "slab":
+                        expected += demo.slab_print_charge(demo.cat(c["name"]), qty)
                     if c.get("min_charge") and expected < c["min_charge"]:
                         expected = c["min_charge"]
                     checked += 1

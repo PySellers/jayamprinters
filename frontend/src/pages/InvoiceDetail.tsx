@@ -23,6 +23,7 @@ import type { PaymentInput } from '../types/invoices';
 import type { PaymentMethod } from '../types/common';
 import ConfirmDialog from '../components/ConfirmDialog';
 import OrderProduction from '../components/workflow/OrderProduction';
+import { RateInfo } from '../components/quotations/PriceBreakdown';
 
 const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
   unpaid: 'default',
@@ -179,16 +180,22 @@ export default function InvoiceDetail() {
             <TableRow>
               <TableCell>Product</TableCell>
               <TableCell>Quantity</TableCell>
-              <TableCell>Unit Price</TableCell>
+              <TableCell>Rate</TableCell>
               <TableCell>Total</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {invoice.items.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{productName(item.product_id)}</TableCell>
+                <TableCell>
+                  {productName(item.product_id)}
+                  {item.spec_notes && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{item.spec_notes}</Typography>}
+                </TableCell>
                 <TableCell>{item.quantity}</TableCell>
-                <TableCell>₹{item.unit_price.toFixed(2)}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  ₹{item.unit_price.toFixed(2)}
+                  <RateInfo rows={item.price_breakdown} title={`${productName(item.product_id)} x ${item.quantity}`} rate={item.unit_price} amount={item.total_price} />
+                </TableCell>
                 <TableCell>₹{item.total_price.toFixed(2)}</TableCell>
               </TableRow>
             ))}
@@ -209,6 +216,14 @@ export default function InvoiceDetail() {
                 <Typography color="text.secondary">Subtotal</Typography>
                 <Typography>₹{invoice.subtotal.toFixed(2)}</Typography>
               </Box>
+              {(invoice.discount_amount ?? 0) > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }} data-testid="invoice-discount">
+                  <Typography color="success.main" sx={{ fontWeight: 600 }}>
+                    Discount{invoice.discount_type === 'percent' ? ` (${invoice.discount_value}%)` : ''}
+                  </Typography>
+                  <Typography color="success.main" sx={{ fontWeight: 600 }}>- ₹{(invoice.discount_amount ?? 0).toFixed(2)}</Typography>
+                </Box>
+              )}
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography color="text.secondary">Tax</Typography>
                 <Typography>₹{invoice.tax_amount.toFixed(2)}</Typography>

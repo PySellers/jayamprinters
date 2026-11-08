@@ -7,11 +7,12 @@ from datetime import date
 from typing import Any, Dict
 
 from app.models.quotation import Quotation, QuotationStatus
-from app.models.job_card import JobCard
+from app.models.job_card import JobCard, JobCardPriority
 from app.models.invoice import Invoice
 from app.models.delivery_challan import DeliveryChallan
 from app.services.time_utils import utc_naive_to_ist
 from app.services.workflow_service import create_steps_for_job
+from app.services.proof_service import create_proofs_from_order
 
 
 def generate_job_number(db: Session) -> str:
@@ -34,10 +35,12 @@ def convert_quotation_to_job_cards(db: Session, quotation_id: int) -> List[JobCa
             product_id=item.product_id,
             notes=item.spec_notes,
             delivery_date=quotation.delivery_date,
+            priority=JobCardPriority(quotation.priority) if quotation.priority in [p.value for p in JobCardPriority] else JobCardPriority.medium,
         )
         db.add(job_card)
         db.flush()
         create_steps_for_job(db, job_card, log_event=True)
+        create_proofs_from_order(db, job_card, quotation)
         job_cards.append(job_card)
 
     quotation.status = QuotationStatus.converted

@@ -9,6 +9,7 @@ import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
 import { invoicesApi } from '../api/invoicesApi';
 import StatusMenu from '../components/StatusMenu';
+import { RateInfo } from '../components/quotations/PriceBreakdown';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { getErrorMessage } from '../utils/api';
 import { useState } from 'react';
@@ -112,7 +113,7 @@ export default function QuotationDetail() {
             <TableRow>
               <TableCell>Product</TableCell>
               <TableCell>Quantity</TableCell>
-              <TableCell>Unit Price</TableCell>
+              <TableCell>Rate</TableCell>
               <TableCell>Total</TableCell>
             </TableRow>
           </TableHead>
@@ -121,7 +122,10 @@ export default function QuotationDetail() {
               <TableRow key={item.id}>
                 <TableCell>{productName(item.product_id)}</TableCell>
                 <TableCell>{item.quantity}</TableCell>
-                <TableCell>₹{item.unit_price.toFixed(2)}</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  ₹{item.unit_price.toFixed(2)}
+                  <RateInfo rows={item.price_breakdown} title={`${productName(item.product_id)} x ${item.quantity}`} rate={item.unit_price} amount={item.total_price} />
+                </TableCell>
                 <TableCell>₹{item.total_price.toFixed(2)}</TableCell>
               </TableRow>
             ))}
@@ -140,6 +144,14 @@ export default function QuotationDetail() {
                 <Typography color="text.secondary">Subtotal</Typography>
                 <Typography>₹{quotation.total_amount.toFixed(2)}</Typography>
               </Box>
+              {(quotation.discount_amount ?? 0) > 0 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography color="success.main" sx={{ fontWeight: 600 }}>
+                    Discount{quotation.discount_type === 'percent' ? ` (${quotation.discount_value}%)` : ''}
+                  </Typography>
+                  <Typography color="success.main" sx={{ fontWeight: 600 }}>- ₹{(quotation.discount_amount ?? 0).toFixed(2)}</Typography>
+                </Box>
+              )}
               {quotation.with_gst !== false && (
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography color="text.secondary">GST</Typography>

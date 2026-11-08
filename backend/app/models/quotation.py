@@ -34,6 +34,12 @@ class Quotation(Base):
     delivery_time = Column(String, nullable=True)
     # Free text for a quotation, e.g. "5 working days" or "by 12 Nov" (a quotation has no proof or delivery dates).
     estimated_delivery = Column(String, nullable=True)
+    # Discount on the whole order: type is "percent" or "amount"; discount_amount is the rupee value taken off the total.
+    discount_type = Column(String, nullable=True)
+    discount_value = Column(Float, nullable=False, default=0.0, server_default="0")
+    discount_amount = Column(Float, nullable=False, default=0.0, server_default="0")
+    # low / medium / high / urgent: handed to the job cards made from this order.
+    priority = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -62,11 +68,32 @@ class QuotationItem(Base):
     hsn_code = Column(String, nullable=True)
     tax_rate = Column(Float, nullable=False, default=0.0, server_default="0")
     tax_amount = Column(Float, nullable=False, default=0.0, server_default="0")
+    # Every copy of a set: [{"paper_option_id", "gsm_option_id", "size_product_id", "colour"}] (copy 1 first).
+    layer_specs = Column(JSON, nullable=True)
+    # Charges typed in by hand: [{"label", "amount", "group"}].
+    custom_charges = Column(JSON, nullable=True)
+    # How the price was made up, frozen when the order was saved: [{"kind", "label", "detail", "amount", ...}].
+    price_breakdown = Column(JSON, nullable=True)
+    # This line's share of the order discount (the discount is spread over the lines by value).
+    discount_amount = Column(Float, nullable=False, default=0.0, server_default="0")
 
     quotation = relationship("Quotation", back_populates="items")
     product = relationship("Product")
     selected_options = relationship("QuotationItemAttributeOption", cascade="all, delete-orphan")
     extra_charges = relationship("QuotationItemExtraCharge", cascade="all, delete-orphan")
+
+    @property
+    def charge_lines(self):
+        """The extra charges on this line, named, for the order screens and the job card."""
+        return [
+            {
+                "extra_charge_id": c.extra_charge_id,
+                "name": c.extra_charge.name if c.extra_charge else "",
+                "group_name": c.extra_charge.group_name if c.extra_charge else None,
+                "amount": c.computed_amount or 0.0,
+            }
+            for c in self.extra_charges
+        ]
 
 
 class QuotationItemAttributeOption(Base):

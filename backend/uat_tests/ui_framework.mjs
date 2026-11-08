@@ -91,6 +91,23 @@ export async function pick(page, label, option) {
   await page.waitForTimeout(250);
 }
 
+/** Picks the item of a service on the order page; a service with one item does not ask (it is chosen for the counter). */
+export async function pickItem(page, product) {
+  if (await page.getByLabel(/^Item \/ Size/).count()) await pick(page, 'Item / Size', product);
+}
+
+/** Answers the required extras (visiting cards): every section gets `chosen[section]`, or None. */
+export async function answerExtras(page, chosen = {}) {
+  const box = page.getByTestId('required-extras');
+  if (!(await box.count())) return;
+  const groups = (await box.locator('.MuiInputLabel-root').allInnerTexts()).map((t) => t.replace(/\s*\*$/, '').trim()).filter(Boolean);
+  for (const g of groups) {
+    await box.getByLabel(new RegExp('^' + g.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), { exact: false }).first().click();
+    await page.getByRole('option', { name: chosen[g] ?? 'None', exact: true }).first().click();
+    await page.waitForTimeout(200);
+  }
+}
+
 export async function bodyText(page) {
   return (await page.locator('body').innerText()).replace(/\s+/g, ' ');
 }

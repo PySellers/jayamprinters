@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from datetime import date, datetime
 from app.models.invoice import InvoiceStatus, PaymentMethod
 from app.schemas.quotation import SelectedOptionOut
@@ -16,6 +16,8 @@ class InvoiceItemOut(BaseModel):
     hsn_code: Optional[str] = None
     tax_rate: float = 0.0
     tax_amount: float = 0.0
+    discount_amount: float = 0.0
+    price_breakdown: Optional[List[Dict[str, Any]]] = None
     selected_options: List[SelectedOptionOut] = []
 
     class Config:
@@ -50,6 +52,9 @@ class InvoiceOut(BaseModel):
     customer_id: int
     tax_id: Optional[int]
     subtotal: float
+    discount_type: Optional[str] = None
+    discount_value: float = 0.0
+    discount_amount: float = 0.0
     tax_amount: float
     grand_total: float
     amount_paid: float

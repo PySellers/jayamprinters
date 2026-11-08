@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
-  Alert, Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, FormControlLabel, Grid,
+  Alert, Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, FormControlLabel, Grid,
   InputAdornment, Paper, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { customersApi } from '../../api/customersApi';
 import { taxesApi } from '../../api/taxesApi';
 import { productCategoriesApi } from '../../api/productsApi';
@@ -79,17 +81,17 @@ const FIELD_ID: Record<FieldKey, string> = {
 
 function Section({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
-    <Box sx={{ mb: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.75 }}>
+    <Box sx={{ mb: 1.75 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
         <Box
           sx={{
-            width: 26, height: 26, borderRadius: '50%', bgcolor: '#1a237e', color: '#fff',
-            fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 22, height: 22, borderRadius: '50%', bgcolor: '#1a237e', color: '#fff',
+            fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
         >
           {n}
         </Box>
-        <Typography sx={{ fontWeight: 800, color: '#1a237e', fontSize: '1.05rem' }}>{title}</Typography>
+        <Typography sx={{ fontWeight: 800, color: '#1a237e', fontSize: '0.95rem' }}>{title}</Typography>
       </Box>
       {children}
     </Box>
@@ -131,6 +133,9 @@ export default function QuickOrderForm() {
   const [deliveryDate, setDeliveryDate] = useState(proofSlot.date);
   const [deliveryTime, setDeliveryTime] = useState('');
   const [service, setService] = useState<ProductCategory | null>(null);
+  const [serviceFilter, setServiceFilter] = useState('');
+  const [urgent, setUrgent] = useState(false);
+  const [moreDetails, setMoreDetails] = useState(false);
 
   const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -281,6 +286,7 @@ export default function QuickOrderForm() {
         proof2Time,
         deliveryDate,
         deliveryTime,
+        ...(urgent ? { priority: 'urgent' } : {}),
       });
       navigate(`/quotations/new?${params.toString()}`);
     },
@@ -298,44 +304,106 @@ export default function QuickOrderForm() {
     createOrderMutation.mutate();
   }
 
+  const shownServices = services.filter((c) => c.name.toLowerCase().includes(serviceFilter.trim().toLowerCase()));
+  const small = { size: 'small' as const, fullWidth: true };
+
   return (
     <Paper
       elevation={0}
-      sx={{ p: { xs: 2.5, md: 3.5 }, borderRadius: 3, border: '1px solid #dfe4f1', bgcolor: '#fff', boxShadow: '0 4px 24px rgba(26,35,126,0.06)' }}
+      sx={{ p: { xs: 1.75, md: 2.25 }, borderRadius: 3, border: '1px solid #dfe4f1', bgcolor: '#fff', boxShadow: '0 4px 24px rgba(26,35,126,0.06)' }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#1a237e', lineHeight: 1.15 }}>
-            Start New Order
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Fields marked * are required
-          </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1.25, flexWrap: 'wrap' }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a237e', lineHeight: 1.15 }}>
+          Start New Order
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip
+            data-testid="urgent-toggle"
+            clickable
+            color={urgent ? 'error' : 'default'}
+            variant={urgent ? 'filled' : 'outlined'}
+            icon={<PriorityHighIcon />}
+            label={urgent ? 'URGENT job' : 'Mark urgent'}
+            onClick={() => setUrgent((u) => !u)}
+            sx={{ fontWeight: urgent ? 900 : 600 }}
+          />
+          <Chip size="small" label={`${todayDateString()}  ·  ${orderTime}`} variant="outlined" sx={{ fontWeight: 600 }} />
         </Box>
-        <Chip label={`${todayDateString()}  ·  ${orderTime}`} variant="outlined" sx={{ fontWeight: 600 }} />
       </Box>
 
       {createOrderMutation.isError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 1.5 }}>
           {getErrorMessage(createOrderMutation.error, 'Could not start the order. Please try again.')}
         </Alert>
       )}
 
-      {/* 1 ── Customer ─────────────────────────────────────────────── */}
-      <Section n={1} title="Customer">
+      {/* 1 ── Service (first, and with room to choose) ───────────────────── */}
+      <Section n={1} title="Service">
+        <TextField
+          id={FIELD_ID.service}
+          {...small}
+          placeholder="Search a service..."
+          value={serviceFilter}
+          onChange={(e) => setServiceFilter(e.target.value)}
+          sx={{ mb: 1 }}
+          error={showError('service')}
+          helperText={helper('service')}
+          slotProps={{ htmlInput: { ...noAutofill, name: 'qo-service-filter', 'aria-label': 'Service' } }}
+        />
+        <Box
+          data-testid="service-tiles"
+          sx={{
+            display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 0.75,
+            maxHeight: 214, overflowY: 'auto', pr: 0.5,
+          }}
+        >
+          {categoriesQuery.isLoading && <CircularProgress size={20} />}
+          {shownServices.map((c) => {
+            const on = service?.id === c.id;
+            return (
+              <Button
+                key={c.id}
+                data-testid="service-tile"
+                aria-pressed={on}
+                onClick={() => { setService(c); setTouched((t) => ({ ...t, service: true })); }}
+                variant={on ? 'contained' : 'outlined'}
+                sx={{
+                  textTransform: 'none', fontWeight: 700, fontSize: 13, lineHeight: 1.2, py: 0.75, px: 1, minHeight: 40,
+                  justifyContent: 'center', textAlign: 'center',
+                  ...(on ? { bgcolor: '#1a237e', '&:hover': { bgcolor: '#0d145e' } } : { borderColor: '#c5cae9', color: '#1a237e' }),
+                }}
+              >
+                {c.name}
+              </Button>
+            );
+          })}
+          {!categoriesQuery.isLoading && shownServices.length === 0 && (
+            <Typography variant="body2" color="text.secondary" sx={{ gridColumn: '1 / -1' }}>No service matches.</Typography>
+          )}
+        </Box>
+        {service && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+            Selected: <strong>{service.name}</strong> - next you choose the exact item and options.
+          </Typography>
+        )}
+      </Section>
+
+      {/* 2 ── Customer ─────────────────────────────────────────────── */}
+      <Section n={2} title="Customer">
         {linked && (
           <Alert
             severity="success"
-            sx={{ mb: 2 }}
+            sx={{ mb: 1, py: 0 }}
             action={<Button color="inherit" size="small" onClick={clearLinked}>New customer</Button>}
           >
-            {lookupNotice || 'Existing customer selected — saved details were loaded.'} Editing a field updates their record.
+            {lookupNotice || 'Existing customer selected.'} Editing a field updates their record.
           </Alert>
         )}
-        <Grid container spacing={2}>
+        <Grid container spacing={1.25}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <Autocomplete
               id={FIELD_ID.billing}
+              size="small"
               freeSolo
               openOnFocus
               options={nameOptions}
@@ -371,10 +439,7 @@ export default function QuickOrderForm() {
                   required
                   onBlur={touch('billing')}
                   error={showError('billing')}
-                  helperText={helper(
-                    'billing',
-                    billingEdited ? 'Pick a saved customer or keep typing a new name' : 'Auto-numbered for walk-ins — click to pick a saved customer, or type a name',
-                  )}
+                  helperText={helper('billing')}
                   slotProps={{ ...params.slotProps, htmlInput: { ...params.slotProps.htmlInput, ...noAutofill, name: 'qo-billing-person' } }}
                 />
               )}
@@ -382,24 +447,14 @@ export default function QuickOrderForm() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
-              label="Company Name"
-              fullWidth
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              helperText="Optional — company or party name printed on the bill. Blank = billing person."
-              slotProps={{ htmlInput: { ...noAutofill, name: 'qo-company' } }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
               id={FIELD_ID.phone}
+              {...small}
               label="Phone Number"
-              fullWidth
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               onBlur={lookupByPhone}
               error={showError('phone')}
-              helperText={helper('phone', 'Returning customers are found by phone')}
+              helperText={helper('phone')}
               slotProps={{
                 input: { startAdornment: <InputAdornment position="start">+91</InputAdornment> },
                 htmlInput: { ...noAutofill, name: 'qo-phone', inputMode: 'numeric', maxLength: 16 },
@@ -409,198 +464,131 @@ export default function QuickOrderForm() {
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               id={FIELD_ID.whatsapp}
+              {...small}
               label="WhatsApp Number"
-              fullWidth
               value={whatsapp}
               disabled={sameWhatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
               onBlur={touch('whatsapp')}
               error={showError('whatsapp')}
-              helperText={
-                helper('whatsapp') ?? (
-                  <FormControlLabel
-                    sx={{ m: 0 }}
-                    control={<Checkbox size="small" checked={sameWhatsapp} onChange={(e) => setSameWhatsapp(e.target.checked)} />}
-                    label={<Typography variant="caption">Same as phone</Typography>}
-                  />
-                )
-              }
+              helperText={helper('whatsapp')}
               slotProps={{
                 input: { startAdornment: <InputAdornment position="start">+91</InputAdornment> },
                 htmlInput: { ...noAutofill, name: 'qo-whatsapp', inputMode: 'numeric', maxLength: 16 },
               }}
             />
           </Grid>
-          <Grid size={{ xs: 12 }}>
-            <TextField
-              id={FIELD_ID.email}
-              label="Email"
-              type="email"
-              fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={touch('email')}
-              error={showError('email')}
-              helperText={helper('email')}
-              slotProps={{ htmlInput: { ...noAutofill, name: 'qo-email' } }}
+          <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <FormControlLabel
+              sx={{ m: 0 }}
+              control={<Checkbox size="small" checked={sameWhatsapp} onChange={(e) => setSameWhatsapp(e.target.checked)} />}
+              label={<Typography variant="caption">WhatsApp same as phone</Typography>}
             />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <TextField
-              label="Address"
-              fullWidth
-              multiline
-              minRows={2}
-              maxRows={5}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              slotProps={{ htmlInput: { ...noAutofill, name: 'qo-address' } }}
-            />
+            <Button size="small" onClick={() => setMoreDetails((v) => !v)} endIcon={<ExpandMoreIcon sx={{ transform: moreDetails ? 'rotate(180deg)' : 'none' }} />}>
+              More details
+            </Button>
           </Grid>
         </Grid>
+        <Collapse in={moreDetails || Boolean(errors.email)} unmountOnExit={false}>
+          <Grid container spacing={1.25} sx={{ mt: 0 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField {...small} label="Company Name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} helperText="Printed on the bill; blank = billing person." slotProps={{ htmlInput: { ...noAutofill, name: 'qo-company' } }} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                id={FIELD_ID.email}
+                {...small}
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={touch('email')}
+                error={showError('email')}
+                helperText={helper('email')}
+                slotProps={{ htmlInput: { ...noAutofill, name: 'qo-email' } }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <TextField {...small} label="Address" multiline minRows={1} maxRows={3} value={address} onChange={(e) => setAddress(e.target.value)} slotProps={{ htmlInput: { ...noAutofill, name: 'qo-address' } }} />
+            </Grid>
+          </Grid>
+        </Collapse>
       </Section>
 
-      {/* 2 ── Bill type ─────────────────────────────────────────────── */}
-      <Section n={2} title="Bill type">
+      {/* 3 ── Bill type ─────────────────────────────────────────────── */}
+      <Section n={3} title="Bill type">
         <ToggleButtonGroup
           exclusive
           fullWidth
+          size="small"
           color="primary"
           value={withGst ? 'gst' : 'cash'}
           onChange={(_, value: 'gst' | 'cash' | null) => value && setWithGst(value === 'gst')}
         >
-          <ToggleButton value="gst" sx={{ fontWeight: 700, py: 1.25 }}>With GST</ToggleButton>
-          <ToggleButton value="cash" sx={{ fontWeight: 700, py: 1.25 }}>Without GST</ToggleButton>
+          <ToggleButton value="gst" sx={{ fontWeight: 700 }}>With GST</ToggleButton>
+          <ToggleButton value="cash" sx={{ fontWeight: 700 }}>Without GST</ToggleButton>
         </ToggleButtonGroup>
-        <Alert severity="info" icon={false} sx={{ mt: 1.5, bgcolor: '#f3f6ff' }}>
-          {withGst ? (
-            <>
-              <strong>Tax Invoice (A4).</strong> {gstRate}% GST is added to the total and shown as CGST {gstRate / 2}% + SGST {gstRate / 2}%.
-              The shop's GSTIN is printed. Add the customer's GSTIN below if they are a registered business.
-            </>
-          ) : (
-            <>
-              <strong>Cash Bill (A5).</strong> No tax is added — the total is just the item prices.
-            </>
-          )}
-        </Alert>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+          {withGst
+            ? `Tax Invoice (A4): ${gstRate}% GST added as CGST ${gstRate / 2}% + SGST ${gstRate / 2}%.`
+            : 'Cash Bill (A5): no tax - the total is just the item prices.'}
+        </Typography>
         {withGst && (
           <TextField
             id={FIELD_ID.gstin}
-            label="Customer GSTIN"
-            fullWidth
-            sx={{ mt: 2 }}
+            {...small}
+            label="Customer GSTIN (optional)"
+            sx={{ mt: 1 }}
             value={gstin}
             onChange={(e) => setGstin(e.target.value.toUpperCase())}
             onBlur={touch('gstin')}
             error={showError('gstin')}
-            helperText={helper('gstin', 'Optional — printed as "Party GSTIN". Leave blank for walk-in customers.')}
+            helperText={helper('gstin')}
             slotProps={{ htmlInput: { ...noAutofill, name: 'qo-gstin', maxLength: 15 } }}
           />
         )}
       </Section>
 
-      {/* 3 ── Schedule ──────────────────────────────────────────────── */}
-      <Section n={3} title="Proof & delivery">
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 6 }}>
-            <TextField
-              id={FIELD_ID.proof1Date}
-              label="Proof 1 Date"
-              type="date"
-              required
-              fullWidth
-              value={proof1Date}
-              onChange={(e) => setProof1Date(e.target.value)}
-              onBlur={touch('proof1Date')}
-              error={showError('proof1Date')}
-              helperText={helper('proof1Date')}
-              {...dateProps}
-            />
+      {/* 4 ── Schedule ──────────────────────────────────────────────── */}
+      <Section n={4} title="Proof & delivery">
+        <Grid container spacing={1.25}>
+          <Grid size={{ xs: 6, sm: 4 }}>
+            <TextField id={FIELD_ID.proof1Date} {...small} label="Proof 1 Date" type="date" required value={proof1Date} onChange={(e) => setProof1Date(e.target.value)} onBlur={touch('proof1Date')} error={showError('proof1Date')} helperText={helper('proof1Date')} {...dateProps} />
           </Grid>
-          <Grid size={{ xs: 6 }}>
-            <TextField
-              id={FIELD_ID.proof1Time}
-              label="Proof 1 Time"
-              type="time"
-              required
-              fullWidth
-              value={proof1Time}
-              onChange={(e) => setProof1Time(e.target.value)}
-              onBlur={touch('proof1Time')}
-              error={showError('proof1Time')}
-              helperText={helper('proof1Time', 'First design proof for the customer — suggested slot, change if needed')}
-              {...dateProps}
-            />
+          <Grid size={{ xs: 6, sm: 2 }}>
+            <TextField id={FIELD_ID.proof1Time} {...small} label="Proof 1 Time" type="time" required value={proof1Time} onChange={(e) => setProof1Time(e.target.value)} onBlur={touch('proof1Time')} error={showError('proof1Time')} helperText={helper('proof1Time')} {...dateProps} />
           </Grid>
-          <Grid size={{ xs: 6 }}>
-            <TextField label="Proof 2 Date" type="date" fullWidth value={proof2Date} onChange={(e) => setProof2Date(e.target.value)} helperText="Optional" {...dateProps} />
+          <Grid size={{ xs: 6, sm: 4 }}>
+            <TextField {...small} label="Proof 2 Date" type="date" value={proof2Date} onChange={(e) => setProof2Date(e.target.value)} {...dateProps} />
           </Grid>
-          <Grid size={{ xs: 6 }}>
-            <TextField label="Proof 2 Time" type="time" fullWidth value={proof2Time} onChange={(e) => setProof2Time(e.target.value)} helperText="Optional" {...dateProps} />
+          <Grid size={{ xs: 6, sm: 2 }}>
+            <TextField {...small} label="Proof 2 Time" type="time" value={proof2Time} onChange={(e) => setProof2Time(e.target.value)} {...dateProps} />
           </Grid>
-          <Grid size={{ xs: 6 }}>
-            <TextField
-              id={FIELD_ID.deliveryDate}
-              label="Delivery Date"
-              type="date"
-              required
-              fullWidth
-              value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)}
-              onBlur={touch('deliveryDate')}
-              error={showError('deliveryDate')}
-              helperText={helper('deliveryDate')}
-              {...dateProps}
-            />
+          <Grid size={{ xs: 6, sm: 4 }}>
+            <TextField id={FIELD_ID.deliveryDate} {...small} label="Delivery Date" type="date" required value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} onBlur={touch('deliveryDate')} error={showError('deliveryDate')} helperText={helper('deliveryDate')} {...dateProps} />
           </Grid>
-          <Grid size={{ xs: 6 }}>
-            <TextField label="Delivery Time" type="time" fullWidth value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)} helperText="Optional" {...dateProps} />
+          <Grid size={{ xs: 6, sm: 2 }}>
+            <TextField {...small} label="Delivery Time" type="time" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)} {...dateProps} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 4 }} sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="caption" color="text.secondary">More proofs can be added on the job card later.</Typography>
           </Grid>
         </Grid>
       </Section>
 
-      {/* 4 ── Service ───────────────────────────────────────────────── */}
-      <Section n={4} title="Service">
-        <Autocomplete
-          id={FIELD_ID.service}
-          options={services}
-          value={service}
-          onChange={(_, v) => {
-            setService(v);
-            setTouched((t) => ({ ...t, service: true }));
-          }}
-          getOptionLabel={(c) => c.name}
-          isOptionEqualToValue={(a, b) => a.id === b.id}
-          loading={categoriesQuery.isLoading}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Service"
-              required
-              error={showError('service')}
-              helperText={helper('service', 'Next you will choose the exact item and options')}
-              slotProps={{ ...params.slotProps, htmlInput: { ...params.slotProps.htmlInput, ...noAutofill, name: 'qo-service' } }}
-            />
-          )}
-        />
-      </Section>
-
       {submitted && errorKeys.length > 0 && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          Please complete {errorKeys.length === 1 ? 'this field' : `these ${errorKeys.length} fields`} (highlighted in red):{' '}
-          <strong>{errorKeys.map((k) => FIELD_LABEL[k]).join(', ')}</strong>
+        <Alert severity="error" sx={{ mb: 1.5, py: 0 }}>
+          Please complete: <strong>{errorKeys.map((k) => FIELD_LABEL[k]).join(', ')}</strong>
         </Alert>
       )}
 
       <Button
         variant="contained"
         fullWidth
-        size="large"
-        sx={{ bgcolor: '#1a237e', py: 1.6, fontSize: '1.1rem', fontWeight: 700, borderRadius: 2, '&:hover': { bgcolor: '#0d145e' } }}
+        sx={{ bgcolor: urgent ? '#c62828' : '#1a237e', py: 1.1, fontSize: '1rem', fontWeight: 700, borderRadius: 2, '&:hover': { bgcolor: urgent ? '#8e0000' : '#0d145e' } }}
         disabled={createOrderMutation.isPending}
         onClick={handleStart}
-        startIcon={createOrderMutation.isPending ? <CircularProgress size={20} color="inherit" /> : undefined}
+        startIcon={createOrderMutation.isPending ? <CircularProgress size={18} color="inherit" /> : undefined}
       >
         {createOrderMutation.isPending ? 'Starting…' : 'Start Order'}
       </Button>

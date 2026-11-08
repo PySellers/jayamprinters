@@ -17,6 +17,7 @@ import { getErrorMessage } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { AssignDialog, PRIORITY_COLOR, StatusChip, StepActionBar, fmtDateTime, fmtMinutes } from '../components/workflow/workflowUi';
 import type { JobStep } from '../types/workflow';
+import ProofsPanel from '../components/jobcards/ProofsPanel';
 
 const ACTION_TEXT: Record<string, string> = {
   created: 'Workflow planned',
@@ -36,6 +37,11 @@ const ACTION_TEXT: Record<string, string> = {
   step_removed: 'Step removed',
   sent_out: 'Sent to outside company',
   status_set: 'Status changed',
+  proof_added: 'Proof planned',
+  proof_sent: 'Proof shown to the customer',
+  proof_approved: 'Proof approved',
+  proof_changes: 'Customer asked for changes',
+  proof_scheduled: 'Proof reset',
 };
 
 function StepRow({ step, isLast, isManager, onChanged }: { step: JobStep; isLast: boolean; isManager: boolean; onChanged: () => void }) {
@@ -187,7 +193,7 @@ export default function JobWorkflow() {
             <Typography color="text.secondary">{customerName} · {productName}</Typography>
             <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 1 }}>
               <Chip size="small" label={j.status} color={j.status === 'delivered' ? 'success' : 'primary'} />
-              <Chip size="small" label={j.priority} color={PRIORITY_COLOR[j.priority]} />
+              <Chip size="small" label={j.priority === 'urgent' ? 'URGENT' : j.priority} color={PRIORITY_COLOR[j.priority]} sx={j.priority === 'urgent' ? { fontWeight: 900, letterSpacing: 1 } : undefined} />
               {j.delivery_date && <Chip size="small" color={j.overdue ? 'error' : 'default'} variant={j.overdue ? 'filled' : 'outlined'} label={`${j.overdue ? 'Overdue · ' : 'Due '}${j.delivery_date}`} />}
             </Stack>
           </Box>
@@ -203,6 +209,7 @@ export default function JobWorkflow() {
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, lg: 8 }}>
+          <Box sx={{ mb: 3 }}><ProofsPanel jobCardId={jobId} canEdit={user?.role !== 'accounts'} /></Box>
           <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>Steps</Typography>
             {isManager && j.status !== 'delivered' && (

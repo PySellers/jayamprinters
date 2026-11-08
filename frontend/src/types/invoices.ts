@@ -1,11 +1,19 @@
 import type { InvoiceStatus, PaymentMethod } from './common';
 
+import type { BreakdownRow } from './quotations';
+
 export interface InvoiceItem {
   id: number;
   product_id: number;
   quantity: number;
   unit_price: number;
   total_price: number;
+  spec_notes?: string | null;
+  hsn_code?: string | null;
+  tax_rate?: number;
+  tax_amount?: number;
+  discount_amount?: number;
+  price_breakdown?: BreakdownRow[] | null;
 }
 
 export interface Payment {
@@ -25,6 +33,9 @@ export interface Invoice {
   customer_id: number;
   tax_id?: number | null;
   subtotal: number;
+  discount_type?: 'percent' | 'amount' | null;
+  discount_value?: number;
+  discount_amount?: number;
   tax_amount: number;
   grand_total: number;
   amount_paid: number;

@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, customer, quotation, masters, tax, product, job_card, invoice, user
 from app.api import attribute, quantity_slab, price_matrix, extra_charge, reports
 from app.api import vendor, purchase, inventory, cash_ledger, delivery_challan, company, outsource, workflow
+from app.api import job_proof, print_charge
 from app.core.security import get_current_user, require_role
 from app.models.user import UserRole
 
@@ -59,6 +60,9 @@ app.include_router(cash_ledger.router, prefix="/api/v1", dependencies=accounts_a
 app.include_router(company.company_router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(outsource.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(company.hsn_router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(job_proof.job_router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(job_proof.proof_router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(print_charge.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(workflow.work_center_router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(workflow.template_router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(workflow.steps_router, prefix="/api/v1", dependencies=authenticated)

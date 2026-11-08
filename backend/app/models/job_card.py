@@ -51,3 +51,4 @@ class JobCard(Base):
     operator = relationship("User", foreign_keys=[operator_id])
     steps = relationship("JobStep", cascade="all, delete-orphan", order_by="JobStep.position", back_populates="job_card")
     events = relationship("JobEvent", cascade="all, delete-orphan", order_by="JobEvent.id")
+    proofs = relationship("JobProof", cascade="all, delete-orphan", order_by="JobProof.number")

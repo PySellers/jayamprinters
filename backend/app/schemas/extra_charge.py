@@ -11,6 +11,7 @@ class ExtraChargeCreate(BaseModel):
     is_active: bool = True
     group_name: Optional[str] = None
     requires_option_id: Optional[int] = None
+    min_amount: Optional[float] = None
 
 
 class ExtraChargeUpdate(BaseModel):
@@ -21,6 +22,7 @@ class ExtraChargeUpdate(BaseModel):
     is_active: Optional[bool] = None
     group_name: Optional[str] = None
     requires_option_id: Optional[int] = None
+    min_amount: Optional[float] = None
 
 
 class ExtraChargeOut(ExtraChargeCreate):
