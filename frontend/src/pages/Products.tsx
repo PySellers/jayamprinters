@@ -82,7 +82,7 @@ export default function Products() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: '', category_id: null, description: '', pricing_type: 'matrix', fixed_price: null, hsn_id: null, is_active: true });
+    reset({ name: '', category_id: null, description: '', pricing_type: 'matrix', fixed_price: null, hsn_id: null, min_quantity: null, is_active: true });
     setDialogOpen(true);
   };
 
@@ -95,6 +95,7 @@ export default function Products() {
       pricing_type: product.pricing_type,
       fixed_price: product.fixed_price,
       hsn_id: product.hsn_id ?? null,
+      min_quantity: product.min_quantity ?? null,
       is_active: product.is_active,
     });
     setDialogOpen(true);
@@ -124,6 +125,7 @@ export default function Products() {
                 <TableCell>Category</TableCell>
                 <TableCell>Pricing Type</TableCell>
                 <TableCell>Price (Amount)</TableCell>
+                <TableCell>Min qty</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
@@ -137,6 +139,7 @@ export default function Products() {
                     <Chip label={product.pricing_type} size="small" />
                   </TableCell>
                   <TableCell>{priceLabel(product)}</TableCell>
+                  <TableCell>{product.min_quantity ?? '-'}</TableCell>
                   <TableCell>
                     <Chip label={product.is_active ? 'Active' : 'Inactive'} color={product.is_active ? 'success' : 'default'} size="small" />
                   </TableCell>
@@ -157,7 +160,7 @@ export default function Products() {
               ))}
               {(productsQuery.data ?? []).length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                  <TableCell colSpan={7} align="center" sx={{ color: 'text.secondary', py: 4 }}>
                     No products yet.
                   </TableCell>
                 </TableRow>
@@ -202,6 +205,14 @@ export default function Products() {
                   {...register('fixed_price', { valueAsNumber: true })}
                 />
               )}
+              <TextField
+                label="Minimum order quantity (optional)"
+                type="number"
+                fullWidth
+                helperText="The order screen will not take less than this, e.g. 50 for visiting cards. Blank = no minimum."
+                slotProps={{ htmlInput: { min: 1, step: 1, 'data-testid': 'min-quantity' } }}
+                {...register('min_quantity', { setValueAs: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? null : Math.max(1, Math.round(Number(v)))) })}
+              />
               <Controller
                 name="hsn_id"
                 control={control}

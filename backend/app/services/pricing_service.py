@@ -11,6 +11,7 @@ from app.models.attribute import Attribute, AttributeOption
 from app.models.price_matrix import PriceMatrixCell, PriceMatrixCellOption
 from app.models.quantity_slab import QuantitySlab
 from app.models.extra_charge import ExtraCharge, ChargeType
+from app.models.print_charge import PrintChargeBand
 
 COPIES_ATTRIBUTE = "Copies per Set"
 GSM_ATTRIBUTE = "Paper/GSM Type"
@@ -159,6 +160,7 @@ class LinePrice:
     layers: int = 1
     hsn_code: Optional[str] = None
     tax_rate: float = 0.0
+    breakdown: List[dict] = field(default_factory=list)
 
 
 def layer_count(db: Session, selected_options: List[Tuple[int, int]]) -> int:
@@ -196,7 +198,8 @@ def line_tax(db: Session, product: Product, tax_id: Optional[int] = None) -> Tup
 
 
 def printing_charge(category: Optional[ProductCategory], quantity: int, layers: int) -> float:
-    """Printing charge on top of the paper: a rate per block of copies (minimum one block) or per copy."""
+    """Printing charge on top of the paper: a rate per block of copies (minimum one block) or per copy.
+    (The 'slab' table mode needs the database: see printing_charge_detail.)"""
     if not category or not category.print_charge_mode or quantity <= 0:
         return 0.0
     if category.print_charge_mode == "block" and category.print_block_size and category.print_block_rate:
@@ -206,6 +209,88 @@ def printing_charge(category: Optional[ProductCategory], quantity: int, layers: 
     else:
         return 0.0
     return amount * (layers if category.print_per_layer else 1)
+
+
+def _band_label(band: PrintChargeBand) -> str:
+    return f"{band.min_quantity:,} to {band.max_quantity:,}" if band.max_quantity else f"{band.min_quantity:,} and above"
+
+
+def _band_charge(bands: List[PrintChargeBand], index: int, pages: int) -> float:
+    """Charge for `pages` printed pages when they fall in bands[index] (bands are sorted by their start)."""
+    band = bands[index]
+    if not band.per_block:
+        return float(band.amount)
+    base = _band_charge(bands, index - 1, bands[index - 1].max_quantity or band.min_quantity - 1) if index > 0 else 0.0
+    block = band.block_size or 1000
+    started = max(1, math.ceil((pages - band.min_quantity + 1) / block))
+    return base + band.amount * started
+
+
+def printing_charge_detail(db: Session, category: Optional[ProductCategory], quantity: int, layers: int) -> Tuple[float, str]:
+    """(printing charge, how it was worked out) for one line, for every charging mode."""
+    if not category or not category.print_charge_mode or quantity <= 0:
+        return 0.0, ""
+    mode = category.print_charge_mode
+    if mode == "slab":
+        pages = quantity * layers if category.print_per_layer else quantity
+        bands = (
+            db.query(PrintChargeBand).filter(PrintChargeBand.category_id == category.id)
+            .order_by(PrintChargeBand.min_quantity).all()
+        )
+        if not bands:
+            return 0.0, ""
+        index = next(
+            (i for i, b in enumerate(bands) if b.min_quantity <= pages and (b.max_quantity is None or pages <= b.max_quantity)),
+            None,
+        )
+        if index is None:
+            index = len(bands) - 1 if pages > bands[0].min_quantity else 0
+        amount = _band_charge(bands, index, pages)
+        band = bands[index]
+        how = f"{pages:,} pages printed" + (f" ({quantity:,} x {layers} copies)" if layers > 1 and category.print_per_layer else "")
+        if band.per_block:
+            how += f" - above {band.min_quantity - 1:,}, Rs.{band.amount:,.0f} is added for each {band.block_size or 1000:,}"
+        else:
+            how += f" - band {_band_label(band)}: Rs.{band.amount:,.0f}"
+        return amount, how
+    amount = printing_charge(category, quantity, layers)
+    if mode == "block" and category.print_block_size:
+        blocks = max(1, math.ceil(quantity / category.print_block_size))
+        how = f"{blocks} block{'s' if blocks > 1 else ''} of {category.print_block_size:,} copies x Rs.{category.print_block_rate:,.0f}"
+        if category.print_per_layer and layers > 1:
+            how += f" x {layers} copies in the set"
+    else:
+        how = f"{quantity:,} copies x Rs.{category.print_per_copy_rate or 0:,.2f}"
+    return amount, how
+
+
+def _slab_text(db: Session, cell: PriceMatrixCell) -> str:
+    slab = db.query(QuantitySlab).filter(QuantitySlab.id == cell.quantity_slab_id).first()
+    if not slab:
+        return ""
+    if slab.label:
+        return slab.label
+    return f"{slab.min_quantity:,} to {slab.max_quantity:,}" if slab.max_quantity else f"{slab.min_quantity:,} and above"
+
+
+def _option_text(db: Session, option_id: int) -> str:
+    row = db.query(AttributeOption.value).filter(AttributeOption.id == option_id).first()
+    return row[0] if row else ""
+
+
+COPY_NAMES = ["Original", "Duplicate", "Triplicate", "Quadruplicate", "Quintuplicate", "Sextuplicate", "Septuplicate"]
+
+
+def _charge_how(charge: ExtraCharge, quantity: int, sets: int, area_sqft: Optional[float], base_total: float) -> str:
+    if charge.charge_type == ChargeType.per_unit:
+        return f"Rs.{charge.amount:,.2f} x {quantity:,}"
+    if charge.charge_type == ChargeType.per_sqft:
+        return f"Rs.{charge.amount:,.2f} per sq ft x {(area_sqft or 0):g} sq ft x {quantity:,}"
+    if charge.charge_type == ChargeType.per_set:
+        return f"Rs.{charge.amount:,.2f} x {max(sets, 1)} set{'s' if sets > 1 else ''}"
+    if charge.charge_type == ChargeType.percentage:
+        return f"{charge.amount:g}% of the paper cost Rs.{base_total:,.2f}"
+    return "Fixed charge"
 
 
 def price_line(
@@ -218,15 +303,35 @@ def price_line(
     sets: int = 1,
     layer_gsm_option_ids: Optional[List[int]] = None,
     tax_id: Optional[int] = None,
+    layer_specs: Optional[List[dict]] = None,
+    custom_charges: Optional[List[dict]] = None,
 ) -> LinePrice:
-    """Prices one order line: paper (per layer) + extra charges + printing charge, with the service minimum applied."""
+    """Prices one order line: paper (per layer) + extra charges + printing charge, with the service minimum applied.
+    Also returns `breakdown`: every part of the price with where it comes from, shown beside the rate."""
     category = db.query(ProductCategory).filter(ProductCategory.id == product.category_id).first() if product.category_id else None
+    if product.min_quantity and quantity < product.min_quantity:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The minimum order for {product.name} is {product.min_quantity:,}",
+        )
     layers = layer_count(db, selected_options)
+    cat_id = product.category_id
+    breakdown: List[dict] = []
+
+    def add(kind: str, label: str, detail: str, amount: float, area: str, **extra):
+        breakdown.append({"kind": kind, "label": label, "detail": detail, "amount": round(amount, 2),
+                          "area": area, "category_id": cat_id, "product_id": product.id, **extra})
+
+    # Per-copy specs: copy 1 is the top copy; the others may use their own GSM / size (every copy is priced on its own).
+    specs = [s for s in (layer_specs or [])]
+    if layer_gsm_option_ids and not specs:
+        specs = [{}] + [{"gsm_option_id": g or None} for g in layer_gsm_option_ids]
 
     if product.pricing_type == ProductPricingType.fixed:
         if product.fixed_price is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product has no fixed price configured")
         base_unit = product.fixed_price
+        add("paper", "Fixed price", f"Rs.{product.fixed_price:,.2f} each (set on the item in Products)", base_unit * quantity, "products")
     else:
         # Only attributes flagged in_price_matrix form the price-cell key; the rest
         # (document type, paper brand, copies...) are descriptive or surcharge-only.
@@ -243,40 +348,64 @@ def price_line(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No price matrix entry for this product/attribute combination/quantity",
             )
+        choice_text = ", ".join(t for t in (_option_text(db, o) for _, o in matrix_options) if t)
+        prefix = f"{choice_text} - " if choice_text else ""
         if product.pricing_type == ProductPricingType.per_area:
             base_unit = _never_cheaper_for_more(db, product, quantity, matrix_options, cell, cell.unit_price * (area_sqft or 0), area_sqft or 0)
+            add("paper", "Rate per sq ft",
+                f"{prefix}{_slab_text(db, cell)}: Rs.{cell.unit_price:,.2f} per sq ft x {(area_sqft or 0):g} sq ft each",
+                base_unit * quantity, "matrix")
         else:
             gsm_attr = None
             if layers > 1 and category is not None:
                 gsm_attr = db.query(Attribute).filter(Attribute.category_id == category.id, Attribute.name == GSM_ATTRIBUTE).first()
             gsm_in_key = next(((a, o) for a, o in matrix_options if gsm_attr and a == gsm_attr.id), None)
 
-            def paper_unit(options: List[Tuple[int, int]], matched: PriceMatrixCell) -> float:
-                unit = _incremental_base_unit(db, product, quantity, options, matched)
-                return _never_cheaper_for_more(db, product, quantity, options, matched, unit)
+            def paper_unit(prod: Product, options: List[Tuple[int, int]], matched: PriceMatrixCell) -> float:
+                unit = _incremental_base_unit(db, prod, quantity, options, matched)
+                return _never_cheaper_for_more(db, prod, quantity, options, matched, unit)
 
-            base_unit = paper_unit(matrix_options, cell)
+            base_unit = paper_unit(product, matrix_options, cell)
+            slab_row = db.query(QuantitySlab).filter(QuantitySlab.id == cell.quantity_slab_id).first()
+            if slab_row is not None and slab_row.is_incremental:
+                how = f"{prefix}first-piece and additional-piece rates over {quantity:,} pieces: average Rs.{base_unit:,.2f} each"
+            else:
+                how = f"{prefix}{_slab_text(db, cell)}: Rs.{cell.unit_price:,.2f} each"
+            add("paper", "Paper rate" if layers == 1 else f"Paper rate - copy 1 of {layers}", how, base_unit * quantity, "matrix")
             layer_options: List[Tuple[int, int]] = []
             if gsm_in_key:
-                # Each further copy of the set is its own paper, in the GSM chosen for that copy (default: the top copy's).
-                wanted = list(layer_gsm_option_ids or [])
                 for i in range(layers - 1):
-                    layer_option = wanted[i] if i < len(wanted) and wanted[i] else gsm_in_key[1]
+                    spec = specs[i + 1] if i + 1 < len(specs) and isinstance(specs[i + 1], dict) else {}
+                    layer_option = spec.get("gsm_option_id") or gsm_in_key[1]
+                    layer_product = product
+                    size_id = spec.get("size_product_id")
+                    if size_id and size_id != product.id:
+                        other = db.query(Product).filter(Product.id == size_id).first()
+                        if other is not None and other.category_id == product.category_id:
+                            layer_product = other
                     layer_options.append((gsm_in_key[0], layer_option))
-                    if layer_option == gsm_in_key[1]:
-                        base_unit += paper_unit(matrix_options, cell)
-                        continue
                     options = [(a, layer_option) if a == gsm_in_key[0] else (a, o) for a, o in matrix_options]
-                    layer_cell = find_price_matrix_cell(db, product.id, quantity, options)
+                    if layer_option == gsm_in_key[1] and layer_product.id == product.id:
+                        layer_cell = cell
+                    else:
+                        layer_cell = find_price_matrix_cell(db, layer_product.id, quantity, options)
                     if not layer_cell:
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="No price entered for the GSM chosen for one of the copies at this quantity",
+                            detail="No price entered for the GSM / size chosen for one of the copies at this quantity",
                         )
-                    base_unit += paper_unit(options, layer_cell)
+                    layer_unit = paper_unit(layer_product, options, layer_cell)
+                    base_unit += layer_unit
+                    copy_name = COPY_NAMES[i + 1] if i + 1 < len(COPY_NAMES) else f"Copy {i + 2}"
+                    on_size = f" on {layer_product.name}" if layer_product.id != product.id else ""
+                    add("paper", f"Paper rate - copy {i + 2} of {layers} ({copy_name})",
+                        f"{_option_text(db, layer_option)}{on_size}: Rs.{layer_unit:,.2f} each", layer_unit * quantity, "matrix")
             if selected_options:
                 option_ids = [opt_id for _, opt_id in selected_options]
                 options = db.query(AttributeOption).filter(AttributeOption.id.in_(option_ids)).all()
+                for o in options:
+                    if o.extra_price:
+                        add("option", f"{o.value} (extra)", f"Rs.{o.extra_price:,.2f} extra on every piece", o.extra_price * quantity, "attributes")
                 base_unit += sum(o.extra_price for o in options)
                 if layer_options:
                     extras = {o.id: o.extra_price for o in db.query(AttributeOption).filter(AttributeOption.id.in_([o for _, o in layer_options])).all()}
@@ -307,14 +436,31 @@ def price_line(
                 total_amount = base_unit * quantity * (charge.amount / 100)
             else:
                 total_amount = 0.0
+            how = _charge_how(charge, quantity, sets, area_sqft, base_unit * quantity)
+            if charge.min_amount and total_amount < charge.min_amount:
+                how += f"; minimum Rs.{charge.min_amount:,.2f} applies"
+                total_amount = charge.min_amount
             charges_total += total_amount
             computed_charges.append((charge.id, total_amount))
+            add("charge", charge.name, how, total_amount, "charges", charge_id=charge.id)
 
-    print_amount = printing_charge(category, quantity, layers)
+    for custom in custom_charges or []:
+        amount = float(custom.get("amount") or 0)
+        if amount < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A custom charge cannot be negative")
+        label = str(custom.get("label") or "Custom charge").strip() or "Custom charge"
+        charges_total += amount
+        add("custom", label, "Entered by hand at the counter", amount, "none")
+
+    print_amount, print_how = printing_charge_detail(db, category, quantity, layers)
+    if print_amount:
+        add("printing", "Printing charge", print_how, print_amount, "printing")
     total = paper_total + charges_total + print_amount
 
     # Minimum charge per line for this service: tiny runs cost more per unit.
     if category and category.min_charge and quantity > 0 and total < category.min_charge:
+        add("minimum", f"Minimum charge for {category.name}",
+            f"Orders of this service are billed at least Rs.{category.min_charge:,.2f}", category.min_charge - total, "minimum")
         total = category.min_charge
 
     hsn_code, tax_rate = line_tax(db, product, tax_id)
@@ -327,6 +473,7 @@ def price_line(
         layers=layers,
         hsn_code=hsn_code,
         tax_rate=tax_rate,
+        breakdown=breakdown,
     )
 
 

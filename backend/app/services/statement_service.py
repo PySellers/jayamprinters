@@ -71,7 +71,7 @@ def financial_statement(db: Session, start: date, end: date, group: str = "day")
     for inv in db.query(Invoice).filter(Invoice.invoice_date >= start, Invoice.invoice_date <= end).all():
         b = bucket(inv.invoice_date)
         b["invoices"] += 1
-        b["sales"] += inv.subtotal or 0.0
+        b["sales"] += (inv.subtotal or 0.0) - (inv.discount_amount or 0.0)
         b["gst_collected"] += inv.tax_amount or 0.0
         b["sales_incl_gst"] += inv.grand_total or 0.0
 

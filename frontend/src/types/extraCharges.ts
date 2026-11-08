@@ -11,6 +11,8 @@ export interface ExtraCharge {
   group_name?: string | null;
   /** Only applies when this attribute option is selected. */
   requires_option_id?: number | null;
+  /** The least this charge can come to once applied. */
+  min_amount?: number | null;
 }
 
 export interface ExtraChargeInput {
@@ -21,4 +23,5 @@ export interface ExtraChargeInput {
   is_active?: boolean;
   group_name?: string | null;
   requires_option_id?: number | null;
+  min_amount?: number | null;
 }

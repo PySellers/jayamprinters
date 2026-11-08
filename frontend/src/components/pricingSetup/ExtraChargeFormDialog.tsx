@@ -19,6 +19,8 @@ export default function ExtraChargeFormDialog({ open, title, initialValues, onSa
   const [amount, setAmount] = useState('0');
   const [isActive, setIsActive] = useState(true);
   const [global, setGlobal] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [minAmount, setMinAmount] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -27,6 +29,8 @@ export default function ExtraChargeFormDialog({ open, title, initialValues, onSa
       setAmount(String(initialValues?.amount ?? 0));
       setIsActive(initialValues?.is_active ?? true);
       setGlobal(initialValues ? initialValues.category_id === null : false);
+      setGroupName(initialValues?.group_name ?? '');
+      setMinAmount(initialValues?.min_amount != null ? String(initialValues.min_amount) : '');
     }
   }, [open, initialValues]);
 
@@ -36,6 +40,8 @@ export default function ExtraChargeFormDialog({ open, title, initialValues, onSa
       charge_type: chargeType,
       amount: parseFloat(amount) || 0,
       is_active: isActive,
+      group_name: groupName.trim() || null,
+      min_amount: minAmount.trim() === '' ? null : Math.max(0, parseFloat(minAmount) || 0),
       global,
     });
   };
@@ -52,6 +58,8 @@ export default function ExtraChargeFormDialog({ open, title, initialValues, onSa
             ))}
           </TextField>
           <TextField label="Amount" type="number" slotProps={{ htmlInput: { step: 'any' } }} value={amount} onChange={(e) => setAmount(e.target.value)} fullWidth />
+          <TextField label="Never less than (optional)" type="number" slotProps={{ htmlInput: { step: 'any', min: 0 } }} value={minAmount} onChange={(e) => setMinAmount(e.target.value)} fullWidth helperText="The least this charge comes to once chosen, e.g. thermal lamination at least 150." />
+          <TextField label="Section (optional)" value={groupName} onChange={(e) => setGroupName(e.target.value)} fullWidth helperText="Charges with the same section name become one dropdown (pick one), e.g. Lamination." />
           <FormControlLabel
             control={<Checkbox checked={global} onChange={(e) => setGlobal(e.target.checked)} />}
             label="Apply to all categories (global)"

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -14,6 +14,10 @@ from app.schemas.job_card import (
 )
 from app.services.job_card_service import generate_job_number, get_job_card_sheet, save_job_card_sheet
 from app.services import workflow_service as wf
+from app.services import proof_service
+from app.services.company_service import get_company
+from app.services.job_card_detail_service import job_card_detail
+from app.services.job_card_pdf_service import generate_job_card_pdf
 from sqlalchemy.orm import joinedload
 
 router = APIRouter(prefix="/job-cards", tags=["job-cards"])
@@ -28,13 +32,16 @@ def _out(job_card: JobCard) -> JobCardOut:
     out = JobCardOut.model_validate(job_card)
     for key, value in wf.job_summary(job_card).items():
         setattr(out, key, value)
+    for key, value in proof_service.proofs_summary(job_card).items():
+        setattr(out, key, value)
+    out.quantity = job_card.quotation_item.quantity if job_card.quotation_item is not None else None
     return out
 
 
 @router.get("/", response_model=List[JobCardOut])
 def get_job_cards(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     rows = (
-        db.query(JobCard).options(joinedload(JobCard.steps))
+        db.query(JobCard).options(joinedload(JobCard.steps), joinedload(JobCard.proofs), joinedload(JobCard.quotation_item))
         .order_by(JobCard.id.desc()).offset(skip).limit(limit).all()
     )
     return [_out(j) for j in rows]
@@ -87,6 +94,27 @@ def update_job_card(job_card_id: int, data: JobCardUpdate, db: Session = Depends
     db.commit()
     db.refresh(job_card)
     return _out(job_card)
+
+
+@router.get("/{job_card_id}/detail")
+def read_job_card_detail(job_card_id: int, with_price: bool = True, db: Session = Depends(get_db)):
+    """The job card built from the order: every choice made for the job, live status, proofs and production steps."""
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    return job_card_detail(db, job_card, with_price)
+
+
+@router.get("/{job_card_id}/pdf")
+def job_card_pdf(job_card_id: int, with_price: bool = False, db: Session = Depends(get_db)):
+    """Printable job card with the status as it is right now, with or without prices."""
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    pdf = generate_job_card_pdf(job_card_detail(db, job_card, with_price), get_company(db))
+    suffix = "with-price" if with_price else "no-price"
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{job_card.job_number}-{suffix}.pdf"'})
 
 
 @router.get("/{job_card_id}/sheet", response_model=JobCardSheetOut)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Enum, Boolean, text
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Enum, Boolean, JSON, text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
@@ -38,6 +38,10 @@ class Invoice(Base):
     with_gst = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     invoice_date = Column(Date, default=lambda: datetime.utcnow().date())
     notes = Column(String, nullable=True)
+    # Discount taken off the order total (subtotal stays the gross amount before discount).
+    discount_type = Column(String, nullable=True)
+    discount_value = Column(Float, nullable=False, default=0.0, server_default="0")
+    discount_amount = Column(Float, nullable=False, default=0.0, server_default="0")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     customer = relationship("Customer")
@@ -60,6 +64,8 @@ class InvoiceItem(Base):
     hsn_code = Column(String, nullable=True)
     tax_rate = Column(Float, nullable=False, default=0.0, server_default="0")
     tax_amount = Column(Float, nullable=False, default=0.0, server_default="0")
+    price_breakdown = Column(JSON, nullable=True)
+    discount_amount = Column(Float, nullable=False, default=0.0, server_default="0")
 
     invoice = relationship("Invoice", back_populates="items")
     selected_options = relationship("InvoiceItemAttributeOption", cascade="all, delete-orphan")

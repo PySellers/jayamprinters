@@ -199,9 +199,34 @@ def expected_line(c, product, qty, options, charge_names, sets=1, area=None):
         total += max(1, -(-qty // c.print_block_size)) * c.print_block_rate * (layers if c.print_per_layer else 1)
     elif c.print_charge_mode == "per_copy" and c.print_per_copy_rate:
         total += c.print_per_copy_rate * qty * (layers if c.print_per_layer else 1)
+    elif c.print_charge_mode == "slab":
+        total += slab_print_charge(c, qty * layers if c.print_per_layer else qty)
     if c.min_charge and total < c.min_charge:
         total = c.min_charge
     return round(total, 2)
+
+
+def slab_print_charge(c, pages):
+    """Printing charge from the category's band table (written separately from the engine, as a cross-check)."""
+    from app.models.print_charge import PrintChargeBand
+    bands = db.query(PrintChargeBand).filter_by(category_id=c.id).order_by(PrintChargeBand.min_quantity).all()
+    carried = 0.0  # what the bands before this one add up to at their top
+    for b in bands:
+        inside = pages >= b.min_quantity and (b.max_quantity is None or pages <= b.max_quantity)
+        if not b.per_block:
+            if inside:
+                return b.amount
+            carried = b.amount
+            continue
+        if inside or b.max_quantity is None:
+            if pages >= b.min_quantity:
+                return carried + b.amount * -(-(pages - b.min_quantity + 1) // (b.block_size or 1000))
+        elif pages > b.max_quantity:
+            carried = carried + b.amount * -(-(b.max_quantity - b.min_quantity + 1) // (b.block_size or 1000))
+            continue
+        else:
+            break
+    return carried if bands and pages > bands[0].min_quantity else (bands[0].amount if bands else 0.0)
 
 
 def expected_tax_rate(c, product):

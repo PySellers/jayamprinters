@@ -13,7 +13,7 @@ from app.models.product import Product
 from app.models.invoice import Invoice
 from app.models.quotation import Quotation
 from app.services import pricing_service
-from app.services.quotation_service import create_quotation
+from app.services.quotation_service import create_quotation, split_discount
 from app.services.job_card_service import convert_quotation_to_job_cards
 from app.services.quotation_pdf_service import generate_quotation_pdf
 from app.services.company_service import get_company
@@ -29,9 +29,8 @@ def preview(payload: QuotationPreviewRequest, db: Session = Depends(get_db)):
     """Computes line/grand totals without persisting anything -- lets the
     billing-counter screen show a live running total as staff add items,
     the same way a retail POS shows the amount before the sale is finalized."""
-    subtotal = 0.0
     items_out: List[QuotationPreviewItemOut] = []
-    breakdown: dict = {}
+    priced = []  # (index into items_out, line)
     for item in payload.items:
         product = db.query(Product).filter(Product.id == item.product_id).first()
         if not product:
@@ -41,30 +40,42 @@ def preview(payload: QuotationPreviewRequest, db: Session = Depends(get_db)):
             line = pricing_service.price_line(
                 db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets,
                 item.layer_gsm_option_ids, payload.tax_id,
+                [spec.model_dump() for spec in item.layer_specs] or None,
+                [c.model_dump() for c in item.custom_charges] or None,
             )
-        except HTTPException:
-            # Required attribute not picked yet, or no matrix cell for this
-            # combination -- not an error at preview time, just not priceable yet.
-            items_out.append(QuotationPreviewItemOut(unit_price=0, total_price=0, priceable=False))
+        except HTTPException as exc:
+            # Required attribute not picked yet, or no matrix cell for this combination -- not an error at
+            # preview time, just not priceable yet. A minimum-quantity problem is worth telling the counter about.
+            message = exc.detail if isinstance(exc.detail, str) and "minimum order" in exc.detail else None
+            items_out.append(QuotationPreviewItemOut(unit_price=0, total_price=0, priceable=False, message=message))
             continue
-        total_price = round(line.total, 2)
-        line_tax = round(total_price * line.tax_rate / 100, 2) if payload.with_gst else 0.0
-        subtotal += total_price
+        priced.append((len(items_out), line))
         items_out.append(QuotationPreviewItemOut(
-            unit_price=line.unit_price, total_price=total_price, priceable=True,
+            unit_price=line.unit_price, total_price=round(line.total, 2), priceable=True,
             paper_total=round(line.paper_total, 2), print_charge=round(line.print_charge, 2),
-            hsn_code=line.hsn_code, tax_rate=line.tax_rate if payload.with_gst else 0.0, tax_amount=line_tax,
+            hsn_code=line.hsn_code, breakdown=line.breakdown,
         ))
-        if payload.with_gst:
-            key = (line.hsn_code, line.tax_rate)
-            row = breakdown.setdefault(key, {"taxable": 0.0, "tax": 0.0})
-            row["taxable"] += total_price
-            row["tax"] += line_tax
 
+    totals = [round(line.total, 2) for _, line in priced]
+    discount, shares, taxes = split_discount(
+        totals, [line.tax_rate for _, line in priced], payload.with_gst, payload.discount_type, payload.discount_value,
+    )
+    breakdown: dict = {}
+    for (idx, line), total, share, tax in zip(priced, totals, shares, taxes):
+        out = items_out[idx]
+        out.discount_amount = share
+        out.tax_rate = line.tax_rate if payload.with_gst else 0.0
+        out.tax_amount = tax
+        if payload.with_gst:
+            row = breakdown.setdefault((line.hsn_code, line.tax_rate), {"taxable": 0.0, "tax": 0.0})
+            row["taxable"] += total - share
+            row["tax"] += tax
+
+    subtotal = round(sum(totals), 2)
     tax_amount = round(sum(r["tax"] for r in breakdown.values()), 2)
-    subtotal = round(subtotal, 2)
     return QuotationPreviewOut(
-        items=items_out, subtotal=subtotal, tax_amount=tax_amount, grand_total=round(subtotal + tax_amount, 2),
+        items=items_out, subtotal=subtotal, discount_amount=discount, taxable_amount=round(subtotal - discount, 2),
+        tax_amount=tax_amount, grand_total=round(subtotal - discount + tax_amount, 2),
         tax_breakdown=[TaxBreakdownRow(hsn_code=k[0], rate=k[1], taxable=round(v["taxable"], 2), tax=round(v["tax"], 2)) for k, v in breakdown.items()],
     )
 

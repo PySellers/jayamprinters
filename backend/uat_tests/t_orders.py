@@ -21,6 +21,9 @@ def vc_money():
         print_charge = -(-100 // block) * (cat.get("print_block_rate") or 0)
     elif cat.get("print_charge_mode") == "per_copy":
         print_charge = 100 * (cat.get("print_per_copy_rate") or 0)
+    elif cat.get("print_charge_mode") == "slab":
+        bands = api("GET", f"/print-charge-bands/?category_id={cat['id']}", token=admin()).data
+        print_charge = next(b["amount"] for b in bands if b["min_quantity"] <= 100 and (b["max_quantity"] is None or 100 <= b["max_quantity"]))
     rate = 18.0
     if cat.get("hsn_id"):
         rate = next(h for h in api("GET", "/hsn-codes/", token=admin()).data if h["id"] == cat["hsn_id"])["gst_rate"]

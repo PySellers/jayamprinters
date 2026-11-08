@@ -39,6 +39,13 @@ class JobCardOut(JobCardCreate):
     current_work_center: Optional[str] = None
     current_assignee: Optional[str] = None
     overdue: bool = False
+    # design proofs (Proof 1, Proof 2 ...): how many, how many approved, and the one to watch
+    proofs_total: int = 0
+    proofs_approved: int = 0
+    proof_status: Optional[str] = None
+    proof_text: Optional[str] = None
+    proof_overdue: bool = False
+    quantity: Optional[int] = None
 
     class Config:
         from_attributes = True

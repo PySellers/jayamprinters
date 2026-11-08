@@ -18,244 +18,52 @@ import LiveJobStatusBoard from '../components/dashboard/LiveJobStatusBoard';
 export default function Dashboard() {
   const navigate = useNavigate();
 
-  const customers = useQuery({
-    queryKey: ['customers'],
-    queryFn: customersApi.list,
-  });
-
-  const quotations = useQuery({
-    queryKey: ['quotations'],
-    queryFn: quotationsApi.list,
-  });
-
-  const jobCards = useQuery({
-    queryKey: ['job-cards'],
-    queryFn: jobCardsApi.list,
-  });
-
-  const invoices = useQuery({
-    queryKey: ['invoices'],
-    queryFn: invoicesApi.list,
-  });
+  const customers = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
+  const quotations = useQuery({ queryKey: ['quotations'], queryFn: quotationsApi.list });
+  const jobCards = useQuery({ queryKey: ['job-cards'], queryFn: jobCardsApi.list, refetchInterval: 20000 });
+  const invoices = useQuery({ queryKey: ['invoices'], queryFn: invoicesApi.list });
 
   const cards = [
-    {
-      label: 'Customers',
-      value: customers.data?.length ?? 0,
-      color: '#1a237e',
-      path: '/customers',
-      icon: PeopleIcon,
-    },
-    {
-      label: 'Quotations',
-      value: quotations.data?.length ?? 0,
-      color: '#1565c0',
-      path: '/quotations',
-      icon: DescriptionIcon,
-    },
-    {
-      label: 'Job Cards',
-      value: jobCards.data?.length ?? 0,
-      color: '#0277bd',
-      path: '/job-cards',
-      icon: WorkIcon,
-    },
-    {
-      label: 'Invoices',
-      value: invoices.data?.length ?? 0,
-      color: '#00695c',
-      path: '/invoices',
-      icon: ReceiptIcon,
-    },
+    { label: 'Customers', value: customers.data?.length ?? 0, color: '#1a237e', path: '/customers', icon: PeopleIcon },
+    { label: 'Quotations', value: quotations.data?.length ?? 0, color: '#1565c0', path: '/quotations', icon: DescriptionIcon },
+    { label: 'Job Cards', value: jobCards.data?.length ?? 0, color: '#0277bd', path: '/job-cards', icon: WorkIcon },
+    { label: 'Invoices', value: invoices.data?.length ?? 0, color: '#00695c', path: '/invoices', icon: ReceiptIcon },
   ];
 
   return (
-    <Box
-      sx={{
-        width: '100%',
-        minHeight: '100vh',
-        backgroundColor: '#f6f8fc',
-        boxSizing: 'border-box',
-        p: {
-          xs: 2,
-          sm: 2.5,
-          md: 3,
-          lg: 4,
-        },
-      }}
-    >
-      {/* Page Header */}
-      <Box
-        sx={{
-          mb: 3,
-          px: {
-            xs: 0,
-            md: 0.5,
-          },
-        }}
-      >
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 800,
-            color: '#1a237e',
-            letterSpacing: '-0.3px',
-          }}
-        >
-          Overview
-        </Typography>
-
-        <Typography
-          variant="body2"
-          sx={{
-            color: '#6b7280',
-            mt: 0.5,
-          }}
-        >
-          Manage your orders, customers, quotations and invoices
-        </Typography>
-      </Box>
-
-      {/* Main Dashboard Layout */}
-      <Grid
-        container
-        spacing={{
-          xs: 2,
-          md: 3,
-          lg: 4,
-        }}
-        sx={{
-          width: '100%',
-          m: 0,
-          '& > .MuiGrid-root': {
-            minWidth: 0,
-          },
-        }}
-      >
-        {/* =========================
-            LEFT - START NEW ORDER
-           ========================= */}
-        <Grid size={{ xs: 12, lg: 7 }}>
-          <Box
-            sx={{
-              width: '100%',
-              height: '100%',
-              minWidth: 0,
-            }}
-          >
-            <QuickOrderForm />
-          </Box>
-        </Grid>
-
-        {/* =========================
-            RIGHT - DASHBOARD
-           ========================= */}
-        <Grid size={{ xs: 12, lg: 5 }}>
-          <Box
-            sx={{
-              width: '100%',
-              minWidth: 0,
-            }}
-          >
-            {/* Statistics Cards */}
-            <Grid
-              container
-              spacing={2.5}
-              sx={{
-                mb: 3,
-              }}
-            >
-              {cards.map((card) => {
-                const Icon = card.icon;
-
-                return (
-                  <Grid
-                    size={{ xs: 12, sm: 6 }}
-                    key={card.label}
-                  >
-                    <Paper
-                      sx={{
-                        p: {
-                          xs: 2.5,
-                          md: 3,
-                        },
-                        minHeight: 135,
-                        borderRadius: 3,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        boxSizing: 'border-box',
-
-                        backgroundColor: '#ffffff',
-
-                        boxShadow:
-                          '0 4px 20px rgba(15, 23, 42, 0.05)',
-
-                        border: '1px solid #e5e7eb',
-
-                        cursor: 'pointer',
-
-                        transition:
-                          'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
-
-                        '&:hover': {
-                          boxShadow:
-                            '0 10px 30px rgba(15, 23, 42, 0.10)',
-                          transform: 'translateY(-3px)',
-                          borderColor: card.color,
-                        },
-                      }}
-                      onClick={() => navigate(card.path)}
-                    >
-                      <Box sx={{ minWidth: 0, pr: 1 }}>
-                        <Typography
-                          color="text.secondary"
-                          variant="body2"
-                          sx={{
-                            fontWeight: 600,
-                            mb: 0.75,
-                            color: '#6b7280',
-                          }}
-                        >
-                          {card.label}
-                        </Typography>
-
-                        <Typography
-                          variant="h4"
-                          sx={{
-                            fontWeight: 800,
-                            color: card.color,
-                            lineHeight: 1.1,
-                          }}
-                        >
-                          {card.value}
-                        </Typography>
-                      </Box>
-
-                      <Box
-                        sx={{
-                          width: { xs: 44, xl: 52 },
-                          height: { xs: 44, xl: 52 },
-                          flexShrink: 0,
-                          backgroundColor: `${card.color}15`,
-                          color: card.color,
-                          borderRadius: 2.5,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Icon sx={{ fontSize: { xs: 24, xl: 28 } }} />
-                      </Box>
-                    </Paper>
-                  </Grid>
-                );
-              })}
+    <Box sx={{ width: '100%', backgroundColor: '#f6f8fc', boxSizing: 'border-box', p: { xs: 1.5, sm: 2, md: 2.5 } }}>
+      {/* the headline numbers: one slim strip, so the jobs below get the room */}
+      <Grid container spacing={1.25} sx={{ mb: 1.75 }} data-testid="stat-strip">
+        {cards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Grid size={{ xs: 6, sm: 3 }} key={card.label}>
+              <Paper
+                onClick={() => navigate(card.path)}
+                sx={{
+                  px: 1.5, py: 0.75, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer',
+                  border: '1px solid #e5e7eb', boxShadow: 'none', transition: 'border-color .2s, box-shadow .2s',
+                  '&:hover': { borderColor: card.color, boxShadow: '0 3px 12px rgba(15,23,42,0.08)' },
+                }}
+              >
+                <Box sx={{ width: 30, height: 30, borderRadius: 1.5, bgcolor: `${card.color}15`, color: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon sx={{ fontSize: 18 }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: card.color, lineHeight: 1 }}>{card.value}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#6b7280' }} noWrap>{card.label}</Typography>
+              </Paper>
             </Grid>
+          );
+        })}
+      </Grid>
 
-            {/* Live Job Status */}
-            <LiveJobStatusBoard />
-          </Box>
+      <Grid container spacing={{ xs: 1.5, md: 2 }} sx={{ width: '100%', m: 0, '& > .MuiGrid-root': { minWidth: 0 } }}>
+        {/* the running jobs and their status come first on the page */}
+        <Grid size={{ xs: 12, lg: 7 }} sx={{ order: { xs: 1, lg: 2 } }}>
+          <LiveJobStatusBoard />
+        </Grid>
+        <Grid size={{ xs: 12, lg: 5 }} sx={{ order: { xs: 2, lg: 1 } }}>
+          <QuickOrderForm />
         </Grid>
       </Grid>
     </Box>

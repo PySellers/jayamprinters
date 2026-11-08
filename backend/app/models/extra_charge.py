@@ -26,5 +26,7 @@ class ExtraCharge(Base):
     # If set, this charge only applies when that attribute option is selected
     # (e.g. binding-set price that depends on the copies-per-set choice).
     requires_option_id = Column(Integer, ForeignKey("attribute_options.id"), nullable=True)
+    # The least this charge can come to once applied (e.g. thermal lamination: at least Rs.150).
+    min_amount = Column(Float, nullable=True)
 
     category = relationship("ProductCategory")

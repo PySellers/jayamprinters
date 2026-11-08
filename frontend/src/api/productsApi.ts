@@ -1,5 +1,5 @@
 import api from '../utils/api';
-import type { Product, ProductInput, ProductCategory } from '../types/products';
+import type { Product, ProductInput, ProductCategory, PrintChargeBand } from '../types/products';
 
 export const productsApi = {
   list: async (): Promise<Product[]> => (await api.get('/products/')).data,
@@ -10,6 +10,15 @@ export const productsApi = {
   remove: async (id: number): Promise<void> => {
     await api.delete(`/products/${id}`);
   },
+};
+
+export const printBandsApi = {
+  list: async (categoryId: number): Promise<PrintChargeBand[]> =>
+    (await api.get('/print-charge-bands/', { params: { category_id: categoryId } })).data,
+  save: async (categoryId: number, bands: PrintChargeBand[]): Promise<PrintChargeBand[]> =>
+    (await api.put(`/print-charge-bands/${categoryId}`, bands.map(({ min_quantity, max_quantity, amount, per_block, block_size }) => ({
+      min_quantity, max_quantity, amount, per_block, block_size: per_block ? block_size : null,
+    })))).data,
 };
 
 export const productCategoriesApi = {

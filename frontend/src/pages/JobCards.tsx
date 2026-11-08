@@ -138,8 +138,12 @@ export default function JobCards() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(jobCardsQuery.data ?? []).map((jc) => (
-                <TableRow key={jc.id}>
+              {[...(jobCardsQuery.data ?? [])].sort((a, b) => Number(b.priority === 'urgent' && b.status !== 'delivered') - Number(a.priority === 'urgent' && a.status !== 'delivered') || b.id - a.id).map((jc) => (
+                <TableRow
+                  key={jc.id}
+                  data-urgent={jc.priority === 'urgent' && jc.status !== 'delivered' ? 'true' : 'false'}
+                  sx={jc.priority === 'urgent' && jc.status !== 'delivered' ? { bgcolor: '#fff4f4', '& td': { fontWeight: 700 }, borderLeft: '6px solid #c62828' } : undefined}
+                >
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>{jc.job_number}</TableCell>
                   <TableCell>{customerName(jc.customer_id)}</TableCell>
                   <TableCell>{productName(jc.product_id)}</TableCell>
@@ -147,7 +151,7 @@ export default function JobCards() {
                   <TableCell>{userName(jc.designer_id)}</TableCell>
                   <TableCell>{userName(jc.operator_id)}</TableCell>
                   <TableCell>
-                    <Chip label={jc.priority} color={PRIORITY_COLORS[jc.priority]} size="small" />
+                    <Chip label={jc.priority === 'urgent' ? 'URGENT' : jc.priority} color={PRIORITY_COLORS[jc.priority]} size="small" sx={jc.priority === 'urgent' ? { fontWeight: 900, letterSpacing: 0.8 } : undefined} />
                   </TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>{jc.delivery_date ?? '-'}</TableCell>
                   <TableCell sx={{ minWidth: 180 }}>
@@ -161,6 +165,9 @@ export default function JobCards() {
                         )}
                         <LinearProgress variant="determinate" value={(jc.steps_done / jc.steps_total) * 100} sx={{ height: 5, borderRadius: 3, mt: 0.5 }} />
                         <Typography variant="caption" color="text.secondary">{jc.steps_done}/{jc.steps_total} steps{jc.overdue ? ' · overdue' : ''}</Typography>
+                        {jc.proof_text && jc.status !== 'delivered' && (
+                          <Typography variant="caption" sx={{ display: 'block', color: jc.proof_overdue ? 'error.main' : 'text.secondary', fontWeight: jc.proof_overdue ? 700 : 400 }}>{jc.proof_text}</Typography>
+                        )}
                       </Box>
                     ) : '-'}
                   </TableCell>

@@ -124,6 +124,25 @@ def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by
         _fit(c, _money(item.total_price), xs[4], base, cols[4] - 2 * mm, FONT, SIZE, "right")
         y -= row_h
 
+    # ---- discount -------------------------------------------------------------
+    discount = float(getattr(quotation, "discount_amount", 0.0) or 0.0)
+    if discount > 0:
+        label = f"Less: Discount ({quotation.discount_value:g}%)" if quotation.discount_type == "percent" else "Less: Discount"
+        for text, value, bold in (("Sub Total", quotation.total_amount, False), (label, -discount, False),
+                                  ("Total", quotation.total_amount - discount, True)):
+            if y - 7 * mm < bottom_limit:
+                footer()
+                c.showPage()
+                y = table_header(letterhead(False))
+            c.setStrokeColor(INK)
+            c.setLineWidth(0.6)
+            c.rect(left, y - 6.5 * mm, right - left, 6.5 * mm)
+            c.line(xs[4], y - 6.5 * mm, xs[4], y)
+            c.setFillColor(INK)
+            _fit(c, text, xs[1], y - 4.6 * mm, cols[1] - 3 * mm + cols[2] + cols[3], FONT + ("-Bold" if bold else ""), SIZE, "right")
+            _fit(c, _money(value), xs[4], y - 4.6 * mm, cols[4] - 2 * mm, FONT + ("-Bold" if bold else ""), SIZE, "right")
+            y -= 6.5 * mm
+
     # ---- terms & conditions ----------------------------------------------------
     terms = []
     if quotation.with_gst:

@@ -4,15 +4,18 @@ import { useForm, useFieldArray, useWatch, Controller, FormProvider } from 'reac
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Autocomplete, Box, Typography, Paper, Button, TextField, Stack, Grid, Alert, ToggleButton, ToggleButtonGroup,
-  Chip, Collapse,
+  Chip, Collapse, InputAdornment, Link, Tooltip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import { useAuth } from '../context/AuthContext';
 import { quotationsApi } from '../api/quotationsApi';
 import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
-import type { QuotationCreateInput, QuotationItemInput, QuotationPreview } from '../types/quotations';
+import type { DiscountType, QuotationCreateInput, QuotationItemInput, QuotationPreview } from '../types/quotations';
 import type { Customer, CustomerInput } from '../types/customers';
 import EntitySelect from '../components/pickers/EntitySelect';
 import QuotationLineItem from '../components/quotations/QuotationLineItem';
@@ -31,6 +34,9 @@ const emptyContact = { phone: '', email: '', address: '' };
 
 const formatDay = (d?: string | null) =>
   d ? new Date(`${d}T00:00`).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+
+// Screen-only fields (the answers of the required-extras dropdowns) are never sent to the server.
+const sendable = ({ extras_choices: _choices, ...item }: QuotationItemInput): QuotationItemInput => item;
 
 // Errors thrown by our own code carry a message; server errors carry response.data.detail.
 const errorText = (err: unknown, fallback: string) =>
@@ -52,6 +58,8 @@ export default function QuotationCreate() {
   const initialProof1Time = searchParams.get('proof1Time');
   const initialProof2Date = searchParams.get('proof2Date');
   const initialProof2Time = searchParams.get('proof2Time');
+  const isUrgent = searchParams.get('priority') === 'urgent';
+  const { user } = useAuth();
   const withGstParam = searchParams.get('withGst');
   const initialWithGst = withGstParam === null ? true : withGstParam === '1';
   const initialDeliveryDate = searchParams.get('deliveryDate');
@@ -76,6 +84,15 @@ export default function QuotationCreate() {
   const { fields, append, remove } = useFieldArray({ control, name: 'items' });
   const withGst = methods.watch('with_gst');
 
+  // ---- discount on the whole order (taken off before GST) ----------------------------------------
+  const [discountType, setDiscountType] = useState<DiscountType | 'none'>('none');
+  const [discountValue, setDiscountValue] = useState('');
+  const discountNumber = Math.max(0, Number(discountValue) || 0);
+  const activeDiscount: { discount_type: DiscountType | null; discount_value: number } =
+    discountType !== 'none' && discountNumber > 0
+      ? { discount_type: discountType, discount_value: discountNumber }
+      : { discount_type: null, discount_value: 0 };
+
   // ---- live price: the same calculation the saved order will use ----------------
   const watchedItems = useWatch({ control, name: 'items' });
   const watchedTaxId = useWatch({ control, name: 'tax_id' });
@@ -92,7 +109,7 @@ export default function QuotationCreate() {
       // Keep line positions: an unpicked line is sent as nothing and shown as "not priced yet".
       const picked = lines.filter((l): l is QuotationItemInput => l !== null);
       quotationsApi
-        .preview({ tax_id: watchedTaxId, with_gst: Boolean(withGst), items: picked })
+        .preview({ tax_id: watchedTaxId, with_gst: Boolean(withGst), ...activeDiscount, items: picked.map(sendable) })
         .then((result) => {
           let k = 0;
           const items = lines.map((l) => (l ? result.items[k++] : { unit_price: 0, total_price: 0, priceable: false }));
@@ -104,9 +121,10 @@ export default function QuotationCreate() {
       if (previewTimer.current) clearTimeout(previewTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(watchedItems), watchedTaxId, withGst]);
+  }, [JSON.stringify(watchedItems), watchedTaxId, withGst, activeDiscount.discount_type, activeDiscount.discount_value]);
   const allPriced = Boolean(preview) && (preview?.items ?? []).every((i) => i.priceable);
   const gstAmount = withGst ? preview?.tax_amount ?? 0 : 0;
+  const discountAmount = preview?.discount_amount ?? 0;
   const printingTotal = (preview?.items ?? []).reduce((sum, i) => sum + (i.print_charge ?? 0), 0);
 
   // ---- service -> item (step 2 of Start New Order) ----------------------------
@@ -199,7 +217,10 @@ export default function QuotationCreate() {
         customerId = created.id;
       }
       queryClient.invalidateQueries({ queryKey: ['customers'] });
-      return quotationsApi.create({ ...data, customer_id: customerId, is_order: isQuick });
+      return quotationsApi.create({
+        ...data, customer_id: customerId, is_order: isQuick, ...activeDiscount,
+        priority: isUrgent ? 'urgent' : undefined,
+      });
     },
     onSuccess: async (quotation) => {
       queryClient.invalidateQueries({ queryKey: ['quotations'] });
@@ -229,14 +250,24 @@ export default function QuotationCreate() {
       delivery_date: data.delivery_date || undefined,
       delivery_time: data.delivery_time || undefined,
       estimated_delivery: data.estimated_delivery?.trim() || undefined,
-      items: data.items.map((item) => ({ ...item, product_id: Number(item.product_id) })),
+      items: data.items.map((item) => sendable({ ...item, product_id: Number(item.product_id) })),
     });
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-        {isQuick ? 'Complete Order' : 'New Quotation'}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 0.5 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          {isQuick ? 'New Order: Invoice & Job Card' : 'New Quotation'}
+        </Typography>
+        {isQuick && isUrgent && (
+          <Chip color="error" icon={<PriorityHighIcon />} label="URGENT" sx={{ fontWeight: 900, letterSpacing: 1 }} data-testid="urgent-chip" />
+        )}
+      </Box>
+      <Typography color="text.secondary" sx={{ mb: 2.5 }}>
+        {isQuick
+          ? 'Choose the items below. Generating the order creates the invoice and the job card for production together.'
+          : 'Prepare a price quote for the customer. It becomes an order when the customer approves.'}
       </Typography>
       {isQuick && (
         <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, mb: 2.5 }}>
@@ -462,9 +493,24 @@ export default function QuotationCreate() {
           </Paper>
           </Collapse>
 
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-            Line Items
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              {serviceCategory ? `${serviceCategory.name} - items` : 'Line Items'}
+            </Typography>
+            {user?.role === 'admin' ? (
+              <Link
+                href={serviceCategoryId ? `/pricing-setup?category=${serviceCategoryId}` : '/pricing-setup'}
+                target="_blank" rel="noopener" underline="hover" data-testid="pricing-setup-link"
+                sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontWeight: 600 }}
+              >
+                Check / change the prices in Pricing Setup <OpenInNewIcon sx={{ fontSize: 16 }} />
+              </Link>
+            ) : (
+              <Tooltip title="Only the owner can change prices">
+                <Typography variant="body2" color="text.secondary">Prices come from Pricing Setup</Typography>
+              </Tooltip>
+            )}
+          </Box>
 
           {fields.map((field, index) => {
             if (index === 0 && serviceCategoryId != null) {
@@ -490,6 +536,8 @@ export default function QuotationCreate() {
                 onRemove={() => remove(index)}
                 canRemove={fields.length > 1}
                 previewItem={preview?.items[index]}
+                lockedServiceId={index === 0 ? serviceCategoryId : null}
+                showErrors={methods.formState.submitCount > 0}
               />
             );
           })}
@@ -497,6 +545,32 @@ export default function QuotationCreate() {
           <Button startIcon={<AddIcon />} onClick={() => append(emptyItem)} sx={{ mb: 3 }}>
             Add Line Item
           </Button>
+
+          {/* discount on the whole order */}
+          <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 560, ml: 'auto' }} data-testid="discount-box">
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1a237e', mb: 1 }}>Discount (optional)</Typography>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
+              <ToggleButtonGroup
+                exclusive size="small" color="primary" value={discountType}
+                onChange={(_, v: DiscountType | 'none' | null) => { if (v) { setDiscountType(v); if (v === 'none') setDiscountValue(''); } }}
+              >
+                <ToggleButton value="none" data-testid="discount-none">No discount</ToggleButton>
+                <ToggleButton value="percent" data-testid="discount-percent">Percentage %</ToggleButton>
+                <ToggleButton value="amount" data-testid="discount-amount">Amount ₹</ToggleButton>
+              </ToggleButtonGroup>
+              {discountType !== 'none' && (
+                <TextField
+                  size="small" type="number" label={discountType === 'percent' ? 'Discount %' : 'Discount amount'}
+                  value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} sx={{ width: 170 }}
+                  slotProps={{
+                    input: { endAdornment: <InputAdornment position="end">{discountType === 'percent' ? '%' : '₹'}</InputAdornment> },
+                    htmlInput: { min: 0, step: 'any', 'data-testid': 'discount-value' },
+                  }}
+                />
+              )}
+              <Typography variant="caption" color="text.secondary">Taken off the total before GST and shown on the bill.</Typography>
+            </Stack>
+          </Paper>
 
           {preview && (
             <Paper variant="outlined" sx={{ p: 2, mb: 3, maxWidth: 360, ml: 'auto' }} data-testid="order-total">
@@ -509,6 +583,14 @@ export default function QuotationCreate() {
                   <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right' }}>
                     includes printing charge ₹{printingTotal.toFixed(2)}
                   </Typography>
+                )}
+                {discountAmount > 0 && (
+                  <Stack direction="row" sx={{ justifyContent: 'space-between' }} data-testid="discount-row">
+                    <Typography color="success.main" sx={{ fontWeight: 600 }}>
+                      Discount{activeDiscount.discount_type === 'percent' ? ` (${activeDiscount.discount_value}%)` : ''}
+                    </Typography>
+                    <Typography color="success.main" sx={{ fontWeight: 600 }}>- ₹{discountAmount.toFixed(2)}</Typography>
+                  </Stack>
                 )}
                 {withGst &&
                   (preview.tax_breakdown ?? []).map((row) => (
@@ -532,7 +614,7 @@ export default function QuotationCreate() {
                 <Stack direction="row" sx={{ justifyContent: 'space-between', pt: 0.5, borderTop: '1px solid', borderColor: 'divider' }}>
                   <Typography sx={{ fontWeight: 'bold' }}>Total</Typography>
                   <Typography sx={{ fontWeight: 'bold' }}>
-                    ₹{(preview.subtotal + gstAmount).toFixed(2)}
+                    ₹{(preview.subtotal - discountAmount + gstAmount).toFixed(2)}
                   </Typography>
                 </Stack>
                 {!allPriced && (
@@ -551,7 +633,7 @@ export default function QuotationCreate() {
               sx={{ bgcolor: '#1a237e' }}
               disabled={createMutation.isPending}
             >
-              {isQuick ? 'Generate Invoice' : 'Create Quotation'}
+              {isQuick ? 'Generate Invoice & Job Card' : 'Create Quotation'}
             </Button>
             <Button onClick={() => navigate(isQuick ? '/dashboard' : '/quotations')} disabled={createMutation.isPending}>
               Cancel

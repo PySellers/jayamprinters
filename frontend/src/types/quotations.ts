@@ -5,6 +5,42 @@ export interface SelectedOption {
   attribute_option_id: number;
 }
 
+/** Paper of one copy of a set (copy 1 = the top copy). */
+export interface LayerSpec {
+  paper_option_id?: number | null;
+  gsm_option_id?: number | null;
+  size_product_id?: number | null;
+  colour?: string | null;
+  /** The paper's name when "Custom" was chosen. */
+  paper_custom?: string | null;
+}
+
+/** A charge typed in by hand (the "Custom" choice of an extra-charge dropdown). */
+export interface CustomCharge {
+  label: string;
+  amount: number;
+  group?: string | null;
+}
+
+/** One part of a price and where it comes from. `area` says which Pricing Setup tab holds the rate. */
+export interface BreakdownRow {
+  kind: 'paper' | 'option' | 'charge' | 'custom' | 'printing' | 'minimum';
+  label: string;
+  detail: string;
+  amount: number;
+  area: 'matrix' | 'products' | 'attributes' | 'charges' | 'printing' | 'minimum' | 'none';
+  category_id?: number | null;
+  product_id?: number | null;
+  charge_id?: number;
+}
+
+export interface ChargeLine {
+  extra_charge_id?: number | null;
+  name: string;
+  group_name?: string | null;
+  amount: number;
+}
+
 export interface QuotationItem {
   id: number;
   product_id: number;
@@ -12,12 +48,21 @@ export interface QuotationItem {
   area_sqft?: number | null;
   unit_price: number;
   total_price: number;
+  spec_notes?: string | null;
+  sets?: number;
   hsn_code?: string | null;
   tax_rate?: number;
   tax_amount?: number;
   print_charge?: number;
+  discount_amount?: number;
+  layer_specs?: LayerSpec[] | null;
+  custom_charges?: CustomCharge[] | null;
+  price_breakdown?: BreakdownRow[] | null;
+  charge_lines?: ChargeLine[];
   selected_options: SelectedOption[];
 }
+
+export type DiscountType = 'percent' | 'amount';
 
 export interface Quotation {
   id: number;
@@ -28,6 +73,10 @@ export interface Quotation {
   total_amount: number;
   tax_amount: number;
   grand_total: number;
+  discount_type?: DiscountType | null;
+  discount_value?: number;
+  discount_amount?: number;
+  priority?: string | null;
   notes?: string | null;
   with_gst?: boolean;
   is_order?: boolean;
@@ -52,6 +101,11 @@ export interface QuotationItemInput {
   sets?: number;
   /** GSM option of the 2nd, 3rd... copy of a bill-book set (blank = same as the top copy). */
   layer_gsm_option_ids?: number[];
+  /** Paper name / GSM / size / colour of every copy of the set. */
+  layer_specs?: LayerSpec[];
+  custom_charges?: CustomCharge[];
+  /** Screen only (never sent): the answer given for each required extras section - 'none', 'custom' or a charge id. */
+  extras_choices?: Record<string, string>;
 }
 
 export interface QuotationCreateInput {
@@ -67,12 +121,17 @@ export interface QuotationCreateInput {
   delivery_date?: string | null;
   delivery_time?: string | null;
   estimated_delivery?: string | null;
+  discount_type?: DiscountType | null;
+  discount_value?: number;
+  priority?: 'low' | 'medium' | 'high' | 'urgent' | null;
   items: QuotationItemInput[];
 }
 
 export interface QuotationPreviewRequest {
   tax_id?: number | null;
   with_gst?: boolean;
+  discount_type?: DiscountType | null;
+  discount_value?: number;
   items: QuotationItemInput[];
 }
 
@@ -80,11 +139,14 @@ export interface QuotationPreviewItem {
   unit_price: number;
   total_price: number;
   priceable: boolean;
+  message?: string | null;
   paper_total?: number;
   print_charge?: number;
+  discount_amount?: number;
   hsn_code?: string | null;
   tax_rate?: number;
   tax_amount?: number;
+  breakdown?: BreakdownRow[];
 }
 
 export interface TaxBreakdownRow {
@@ -97,6 +159,8 @@ export interface TaxBreakdownRow {
 export interface QuotationPreview {
   items: QuotationPreviewItem[];
   subtotal: number;
+  discount_amount?: number;
+  taxable_amount?: number;
   tax_amount: number;
   grand_total: number;
   tax_breakdown?: TaxBreakdownRow[];

@@ -23,6 +23,8 @@ class ProductCategory(Base):
     print_block_rate = Column(Float, nullable=True)
     print_per_copy_rate = Column(Float, nullable=True)
     print_per_layer = Column(Boolean, nullable=False, default=False, server_default="false")
+    # Extra charges of this service are a required choice per group (None / an option / Custom), not tick boxes.
+    extras_required = Column(Boolean, nullable=False, default=False, server_default="false")
 
 
 class ProductPricingType(str, enum.Enum):
@@ -41,5 +43,7 @@ class Product(Base):
     pricing_type = Column(Enum(ProductPricingType), default=ProductPricingType.matrix)
     fixed_price = Column(Float, nullable=True)
     hsn_id = Column(Integer, ForeignKey("hsn_codes.id"), nullable=True)  # overrides the service's HSN
+    # Smallest quantity that can be ordered (e.g. 50 visiting cards). Blank = no minimum.
+    min_quantity = Column(Integer, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)

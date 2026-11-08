@@ -38,7 +38,7 @@ export async function extraTests(browser) {
   await run('UI-PST', M1, 'Edit an extra charge amount (Designing Charge Rs300 -> Rs310)', 'New amount stored and used in prices', async () => {
     await page.getByRole('tab', { name: 'Extra Charges' }).click();
     await page.waitForTimeout(500);
-    await row(page, 'Designing Charge').getByRole('button', { name: 'Edit' }).click();
+    await page.locator('tbody tr').filter({ has: page.getByRole('cell', { name: 'Designing Charge', exact: true }) }).getByRole('button', { name: 'Edit' }).click();
     await dialog(page).getByLabel('Amount').fill('310');
     await dialog(page).getByRole('button', { name: /^save$/i }).click();
     await dialog(page).waitFor({ state: 'detached', timeout: 8000 });
@@ -50,7 +50,7 @@ export async function extraTests(browser) {
   }, page, problems);
 
   await run('UI-PST', M1, 'Put the charge back to Rs300', 'Amount is Rs300 again', async () => {
-    await row(page, 'Designing Charge').getByRole('button', { name: 'Edit' }).click();
+    await page.locator('tbody tr').filter({ has: page.getByRole('cell', { name: 'Designing Charge', exact: true }) }).getByRole('button', { name: 'Edit' }).click();
     await dialog(page).getByLabel('Amount').fill('300');
     await dialog(page).getByRole('button', { name: /^save$/i }).click();
     await dialog(page).waitFor({ state: 'detached', timeout: 8000 });
@@ -255,7 +255,8 @@ export async function extraTests(browser) {
     await page.keyboard.press('Tab'); // the lookup runs when the phone box loses focus
     await page.waitForTimeout(1800);
     const t = await bodyText(page);
-    expect(t.includes(cust.name), 'existing customer not found by phone: ' + t.slice(t.indexOf('Start New Order'), t.indexOf('Start New Order') + 200));
+    const filled = await page.getByLabel('Billing Person Name', { exact: false }).first().inputValue();
+    expect(filled.includes(cust.name) && /existing customer/i.test(t), 'existing customer not found by phone: billing name "' + filled + '"');
     await shot(page, 'dashboard-existing-customer');
   }, page, problems);
 
@@ -269,8 +270,8 @@ export async function extraTests(browser) {
   await run('UI-DSH', M6, 'The dashboard shows summary cards and the Live Job Status board', 'Cards with numbers and job chips', async () => {
     await go('/dashboard');
     const t = await bodyText(page);
-    expect(/live job status/i.test(t), 'no live job board');
-    expect(/overview/i.test(t), 'no overview');
+    expect(/live jobs/i.test(t), 'no live job board');
+    expect(/customers/i.test(t) && /job cards/i.test(t) && /invoices/i.test(t), 'no summary numbers');
   }, page, problems);
 
   await ctx.close();

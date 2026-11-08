@@ -23,6 +23,67 @@ export interface JobCard {
   current_work_center?: string | null;
   current_assignee?: string | null;
   overdue: boolean;
+  quantity?: number | null;
+  // design proofs: how many, how many approved, and the one to watch
+  proofs_total?: number;
+  proofs_approved?: number;
+  proof_status?: ProofStatus | null;
+  proof_text?: string | null;
+  proof_overdue?: boolean;
+}
+
+export type ProofStatus = 'scheduled' | 'sent' | 'approved' | 'changes';
+
+export interface JobProof {
+  id: number;
+  job_card_id: number;
+  number: number;
+  label: string;
+  due_date?: string | null;
+  due_time?: string | null;
+  status: ProofStatus;
+  status_label: string;
+  handled_by?: number | null;
+  handled_by_name?: string | null;
+  notes?: string | null;
+  sent_at?: string | null;
+  decided_at?: string | null;
+  overdue: boolean;
+}
+
+export interface JobCardDetail {
+  job_card_id: number;
+  job_number: string;
+  status: JobCardStatus;
+  status_label: string;
+  stages: { key: JobCardStatus; label: string }[];
+  priority: JobCardPriority;
+  urgent: boolean;
+  created_at: string;
+  delivered_at?: string | null;
+  delivery_date?: string | null;
+  delivery_time?: string | null;
+  overdue: boolean;
+  invoice_number?: string | null;
+  bill_no?: number | null;
+  invoice_date?: string | null;
+  order_number?: string | null;
+  dc_number?: number | null;
+  customer: { name: string; billing_person?: string | null; phone?: string | null; whatsapp?: string | null; address?: string | null };
+  job: { service?: string | null; item: string; quantity?: number | null; sets?: number | null; area_sqft?: number | null };
+  specs: { label: string; value: string }[];
+  copies: { copy: number; name: string; paper: string; gsm: string; size: string; colour: string }[];
+  extras: { group: string; name: string; full_name: string; amount?: number; custom?: boolean }[];
+  notes: string[];
+  proofs: JobProof[];
+  steps: {
+    id: number; position: number; name: string; kind: string; status: string; work_center_name?: string | null;
+    assigned_to_name?: string | null; completed_at?: string | null;
+  }[];
+  progress: { done: number; total: number };
+  now_with: { step?: string | null; work_center?: string | null; person?: string | null; status?: string | null };
+  with_price: boolean;
+  price?: { rate: number; amount: number; discount: number; tax: number; breakdown: import('./quotations').BreakdownRow[]; with_gst: boolean };
 }
 
 export interface JobCardCreateInput {

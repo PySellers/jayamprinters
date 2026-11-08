@@ -138,6 +138,8 @@ def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: d
 
     totals_data = [
         ["Subtotal", f"Rs. {invoice.subtotal:.2f}"],
+        *([[f"Discount{' (' + format(invoice.discount_value, 'g') + '%)' if getattr(invoice, 'discount_type', None) == 'percent' else ''}",
+            f"- Rs. {invoice.discount_amount:.2f}"]] if getattr(invoice, "discount_amount", 0) else []),
         ["Tax", f"Rs. {invoice.tax_amount:.2f}"],
         ["Paid", f"Rs. {invoice.amount_paid:.2f}"],
         ["Balance", f"Rs. {invoice.grand_total - invoice.amount_paid:.2f}"],
@@ -296,6 +298,7 @@ def generate_invoice_thermal_pdf(
 
     totals_rows = [
         ["Subtotal", f"Rs.{invoice.subtotal:.2f}"],
+        *([["Discount", f"-Rs.{invoice.discount_amount:.2f}"]] if getattr(invoice, "discount_amount", 0) else []),
         ["Tax", f"Rs.{invoice.tax_amount:.2f}"],
         ["GRAND TOTAL", f"Rs.{invoice.grand_total:.2f}"],
         ["Paid", f"Rs.{invoice.amount_paid:.2f}"],

@@ -1,6 +1,6 @@
 // Browser tests: Start New Order for every service, extra charges, GST, invoice, payments, printing, job cards, quotations.
 import fs from 'node:fs';
-import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, BASE, apiCall } from './ui_framework.mjs';
+import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, pickItem, answerExtras, BASE, apiCall } from './ui_framework.mjs';
 
 const ADMIN = ['admin@srijayam.com', process.env.UAT_ADMIN_PASSWORD || 'Admin@123'];
 const U = 'UIORD' + Date.now().toString().slice(-6);
@@ -32,10 +32,9 @@ export async function orderTests(browser) {
     for (const l of ['Billing Person Name', 'Phone Number', 'Proof 1 Date', 'Delivery Date', 'Service']) {
       expect(await page.getByLabel(l, { exact: false }).first().isVisible(), `field "${l}" missing`);
     }
-    await page.getByLabel('Service', { exact: false }).first().click();
-    const n = await page.getByRole('option').count();
-    expect(n >= 14, `only ${n} services in the list`);
-    await page.keyboard.press('Escape');
+    await page.getByTestId('service-tile').first().waitFor({ timeout: 10000 });
+    const n = await page.getByTestId('service-tile').count();
+    expect(n >= 14, `only ${n} services among the tiles`);
     await shot(page, 'dashboard-start-order');
     return `${n} services in the list`;
   }, page, live);
@@ -52,12 +51,12 @@ export async function orderTests(browser) {
     await page.goto(BASE + '/dashboard', { waitUntil: 'networkidle' });
     await page.getByLabel('Billing Person Name', { exact: false }).first().fill(startCust.name);
     await page.getByLabel('Phone Number', { exact: false }).first().fill(startCust.phone);
-    await pick(page, 'Service', 'Visiting Card');
+    await page.getByTestId('service-tile').filter({ hasText: /^Visiting Card$/ }).click();
     await page.getByRole('button', { name: /start order/i }).click();
     await page.waitForURL(/quotations\/new/, { timeout: 10000 });
     await page.getByText(startCust.name).first().waitFor({ timeout: 10000 });
     expect((await bodyText(page)).includes(startCust.name), 'customer name not carried to the order form');
-    expect((await bodyText(page)).toLowerCase().includes('complete order'), 'order form heading missing');
+    expect((await bodyText(page)).includes('New Order: Invoice & Job Card'), 'order form heading missing');
     await shot(page, 'order-form-visiting-card');
   }, page, live);
 
@@ -72,7 +71,7 @@ export async function orderTests(browser) {
   const M2 = 'Order form pricing';
   const vc = specs.find((s) => s.service === 'Visiting Card');
   await run('UI-ORD', M2, 'Visiting Card: choosing finish, side and quantity shows the right total', `Total Rs${vc.expected}`, async () => {
-    await pick(page, 'Item / Size', 'Visiting Card');
+    await pickItem(page, 'Visiting Card');
     for (const [a, v] of vc.opts) await pick(page, a, v);
     await page.getByLabel('Qty', { exact: false }).first().fill(String(vc.qty));
     await page.waitForTimeout(1500);
@@ -81,16 +80,16 @@ export async function orderTests(browser) {
     return `Rs${t}`;
   }, page, live);
 
-  await run('UI-ORD', M2, 'Ticking an extra charge (Designing Charge Rs300) adds it to the total', `Total rises by Rs300`, async () => {
-    await page.getByLabel('Designing Charge', { exact: false }).first().check();
+  await run('UI-ORD', M2, 'Choosing an extra charge (Designing Charge Rs300) adds it to the total', `Total rises by Rs300`, async () => {
+    await answerExtras(page, { Design: 'Designing Charge (+₹300.00)' });
     await page.waitForTimeout(1500);
     const t = await totalShown(page);
     expect(Math.abs(t - (vc.expected + 300)) < 0.01, `screen shows Rs${t}, expected Rs${vc.expected + 300}`);
     return `Rs${t}`;
   }, page, live);
 
-  await run('UI-ORD', M2, 'Un-ticking the extra charge takes it off again', `Total back to Rs${vc.expected}`, async () => {
-    await page.getByLabel('Designing Charge', { exact: false }).first().uncheck();
+  await run('UI-ORD', M2, 'Choosing None for the extra takes it off again', `Total back to Rs${vc.expected}`, async () => {
+    await answerExtras(page, {});
     await page.waitForTimeout(1500);
     const t = await totalShown(page);
     expect(t === vc.expected, `screen shows Rs${t}`);
@@ -109,7 +108,7 @@ export async function orderTests(browser) {
   const M3 = 'Complete Order -> Invoice -> Job card';
   let invoiceUrl;
   await run('UI-INV', M3, 'Generate Invoice creates the invoice and opens it', 'Invoice page with the correct grand total', async () => {
-    await page.getByLabel('Designing Charge', { exact: false }).first().check();
+    await answerExtras(page, { Design: 'Designing Charge (+₹300.00)' });
     await page.waitForTimeout(1200);
     await page.getByRole('button', { name: /generate invoice/i }).click();
     await page.waitForURL(/\/invoices\/\d+/, { timeout: 15000 });
@@ -132,6 +131,7 @@ export async function orderTests(browser) {
 
   await run('UI-INV', M3, 'The new order appears in the Live Job Status board on the dashboard', 'Customer name visible on the board', async () => {
     await page.goto(BASE + '/dashboard', { waitUntil: 'networkidle' });
+    await page.getByTestId('live-search').fill(startCust.name);
     await page.waitForTimeout(900);
     expect((await bodyText(page)).includes(startCust.name), 'order not on the dashboard board');
     await shot(page, 'dashboard-live-board');
@@ -212,9 +212,10 @@ export async function orderTests(browser) {
   await run('UI-GST', M6, 'An order started "With GST" shows GST on the invoice', 'Tax = the GST rate of the item HSN code on the subtotal', async () => {
     await page.goto(BASE + orderUrl(gcust, vc.category_id, 1), { waitUntil: 'networkidle' });
     await page.waitForTimeout(800);
-    await pick(page, 'Item / Size', 'Visiting Card');
+    await pickItem(page, 'Visiting Card');
     for (const [a, v] of vc.opts) await pick(page, a, v);
     await page.getByLabel('Qty', { exact: false }).first().fill(String(vc.qty));
+    await answerExtras(page, {});
     await page.waitForTimeout(1200);
     await page.getByRole('button', { name: /generate invoice/i }).click();
     await page.waitForURL(/\/invoices\/\d+/, { timeout: 15000 });
@@ -238,11 +239,11 @@ export async function orderTests(browser) {
         // guided wizard
         const map = { 'Document Type': 'Document type', 'Paper/GSM Type': 'GSM / grade', 'Copies per Set': 'Copies per set', 'Paper Name': 'Paper name', 'Print Side': 'Print side' };
         await pick(page, 'Document type', s.opts.find((o) => o[0] === 'Document Type')[1]);
-        await pick(page, 'Size', s.product.replace('Sheet Printing - ', ''));
+        await pick(page, 'Paper size', s.product.replace('Sheet Printing - ', ''));
         for (const [a, v] of s.opts) if (a !== 'Document Type') await pick(page, map[a], v);
         await page.getByLabel('Quantity (Nos)').fill(String(s.qty));
       } else {
-        await pick(page, 'Item / Size', s.product);
+        await pickItem(page, s.product);
         for (const [a, v] of s.opts) await pick(page, a, v);
         if (s.sets > 1) {
           await page.getByLabel('Pages / set').fill(String(s.qty / s.sets));
@@ -334,9 +335,10 @@ export async function orderTests(browser) {
     await page.getByLabel('Customer Name', { exact: false }).first().fill(qc.name);
     await page.getByRole('option', { name: qc.name }).first().click();
     await pick(page, 'Service', 'Visiting Card');
-    await pick(page, 'Item / Size', 'Visiting Card');
+    await pickItem(page, 'Visiting Card');
     for (const [a, v] of vc.opts) await pick(page, a, v);
     await page.getByLabel('Qty', { exact: false }).first().fill(String(vc.qty));
+    await answerExtras(page, {});
     await page.waitForTimeout(1200);
     await page.getByRole('button', { name: /create quotation/i }).click();
     await page.waitForURL(/quotations(\/\d+)?$/, { timeout: 12000 });
