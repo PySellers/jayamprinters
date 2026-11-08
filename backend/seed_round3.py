@@ -123,6 +123,10 @@ def xerox():
     factor = {"A5": 0.75, "B5": 0.85, "A4": 1.0, "Letter": 1.0, "Legal / FS": 1.25}
     slabs = db.query(QuantitySlab).filter_by(category_id=cat.id, is_incremental=False).order_by(QuantitySlab.min_quantity).all()
     slabs = [s for s in slabs if s.min_quantity in (1, 51, 101, 501, 1001)]
+    needed = {"A5", "B5", "A4", "Letter", "Legal / FS", "B4", "A3"}
+    if prod is None or not needed <= set(size) or not {"Black & White", "Colour"} <= set(colour) or not {"Single Side", "Double Side"} <= set(side) or len(slabs) < 5:
+        print("Xerox / Photocopy: expected sizes / bands not found - skipped (run seed_xerox_complete.py first)")
+        return
 
     def rate(sz, col, sd):
         if sz == "A3" or sz == "B4":
