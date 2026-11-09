@@ -12,6 +12,7 @@ import { jobCardsApi } from '../../api/jobCardsApi';
 import { getErrorMessage } from '../../utils/api';
 import { PriceBreakdownTable } from '../quotations/PriceBreakdown';
 import ProofsPanel from './ProofsPanel';
+import JobTasksPanel from './JobTasksPanel';
 
 const STAGE_COLOR: Record<string, string> = {
   pending: '#757575', design: '#6a1b9a', approval: '#ef6c00', printing: '#1565c0', binding: '#00838f', packing: '#2e7d32', delivered: '#1b5e20',
@@ -108,6 +109,9 @@ export default function JobDetailPanel({ jobCardId, canEdit = true }: { jobCardI
           <Fact label="Invoice" value={d.bill_no ?? d.invoice_number} />
         </Stack>
       </Paper>
+
+      {/* who is doing which task: take / assign / add a task */}
+      <JobTasksPanel jobCardId={jobCardId} delivered={d.status === 'delivered'} />
 
       {/* everything chosen for the job */}
       <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>

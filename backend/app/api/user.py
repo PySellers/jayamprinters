@@ -40,6 +40,7 @@ def create_user(data: UserCreate, db: Session = Depends(get_db)):
         email=data.email,
         hashed_password=get_password_hash(data.password),
         role=data.role,
+        phone=(data.phone or '').strip() or None,
         is_active=True,
     )
     db.add(user)
@@ -54,6 +55,8 @@ def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     updates = data.model_dump(exclude_unset=True, exclude={"password"})
+    if "phone" in updates:
+        updates["phone"] = (updates["phone"] or '').strip() or None
     for key, value in updates.items():
         setattr(user, key, value)
     if data.password:

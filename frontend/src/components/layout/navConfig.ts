@@ -43,7 +43,7 @@ export const mainNavItems: NavItem[] = [
   { label: 'Inventory', path: '/inventory', icon: WarehouseIcon },
   { label: 'Outsource', path: '/outsource', icon: LocalShippingIcon, roles: ['admin', 'accounts', 'counter'] },
   { label: 'Cash Ledger', path: '/cash-ledger', icon: AccountBalanceIcon, roles: ['admin', 'accounts'] },
-  { label: 'Reports', path: '/reports', icon: BarChartIcon },
+  { label: 'Reports', path: '/reports', icon: BarChartIcon, roles: ['admin'] },
   { label: 'Users', path: '/users', icon: ManageAccountsIcon, roles: ['admin'] },
 ];
 

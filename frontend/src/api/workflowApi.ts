@@ -24,7 +24,7 @@ export const workflowApi = {
   // ---- the steps of one job card
   steps: async (jobId: number): Promise<JobStep[]> => (await api.get(`/job-cards/${jobId}/steps`)).data,
   timeline: async (jobId: number): Promise<JobEvent[]> => (await api.get(`/job-cards/${jobId}/timeline`)).data,
-  addStep: async (jobId: number, data: { name: string; work_center_id?: number | null; kind?: string; stage?: string; after_step_id?: number | null }): Promise<JobStep[]> =>
+  addStep: async (jobId: number, data: { name: string; work_center_id?: number | null; kind?: string; stage?: string; after_step_id?: number | null; assigned_to?: number | null }): Promise<JobStep[]> =>
     (await api.post(`/job-cards/${jobId}/steps`, data)).data,
   editStep: async (id: number, data: { name?: string; work_center_id?: number | null; due_date?: string | null; notes?: string | null; kind?: string }): Promise<JobStep> =>
     (await api.put(`/job-steps/${id}`, data)).data,

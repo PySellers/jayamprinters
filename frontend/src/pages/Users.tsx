@@ -35,6 +35,7 @@ interface FormValues {
   email: string;
   password: string;
   role: UserRole;
+  phone: string;
 }
 
 export default function Users() {
@@ -47,17 +48,17 @@ export default function Users() {
   const listQuery = useQuery({ queryKey: ['users'], queryFn: usersApi.list });
 
   const { control, register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
-    defaultValues: { name: '', email: '', password: '', role: 'counter' },
+    defaultValues: { name: '', email: '', password: '', role: 'counter', phone: '' },
   });
 
   const saveMutation = useMutation({
     mutationFn: (data: FormValues) => {
       if (editing) {
-        const payload: UserUpdateInput = { name: data.name, role: data.role };
+        const payload: UserUpdateInput = { name: data.name, role: data.role, phone: data.phone.trim() || null };
         if (data.password) payload.password = data.password;
         return usersApi.update(editing.id, payload);
       }
-      const payload: UserCreateInput = { name: data.name, email: data.email, password: data.password, role: data.role };
+      const payload: UserCreateInput = { name: data.name, email: data.email, password: data.password, role: data.role, phone: data.phone.trim() || null };
       return usersApi.create(payload);
     },
     onSuccess: () => {
@@ -82,13 +83,13 @@ export default function Users() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: '', email: '', password: '', role: 'counter' });
+    reset({ name: '', email: '', password: '', role: 'counter', phone: '' });
     setDialogOpen(true);
   };
 
   const openEdit = (u: AppUser) => {
     setEditing(u);
-    reset({ name: u.name, email: u.email, password: '', role: u.role });
+    reset({ name: u.name, email: u.email, password: '', role: u.role, phone: u.phone ?? '' });
     setDialogOpen(true);
   };
 
@@ -120,6 +121,7 @@ export default function Users() {
               <TableRow>
                 <TableCell>Name</TableCell>
                 <TableCell>Email</TableCell>
+                <TableCell>Phone</TableCell>
                 <TableCell>Role</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
@@ -132,6 +134,7 @@ export default function Users() {
                     {u.name} {u.id === Number(me?.id) && <Chip label="You" size="small" sx={{ ml: 1 }} />}
                   </TableCell>
                   <TableCell>{u.email}</TableCell>
+                  <TableCell>{u.phone || '-'}</TableCell>
                   <TableCell>
                     <Chip label={ROLE_LABELS[u.role]} color={ROLE_COLORS[u.role]} size="small" />
                   </TableCell>
@@ -160,7 +163,7 @@ export default function Users() {
               ))}
               {rows.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ color: 'text.secondary', py: 4 }}>
+                  <TableCell colSpan={6} align="center" sx={{ color: 'text.secondary', py: 4 }}>
                     No users yet.
                   </TableCell>
                 </TableRow>
@@ -197,6 +200,12 @@ export default function Users() {
                 helperText={editing ? "Email can't be changed after the account is created" : undefined}
                 error={Boolean(errors.email)}
                 {...register('email', { required: true })}
+              />
+              <TextField
+                label="Phone number"
+                fullWidth
+                helperText="Shown on the Contacts page"
+                {...register('phone')}
               />
               <TextField
                 label={editing ? 'New Password (leave blank to keep current)' : 'Password'}

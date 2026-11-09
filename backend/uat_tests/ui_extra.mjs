@@ -1,5 +1,5 @@
 // Browser tests: Pricing Setup, price grid, quotation actions, invoice list, job updates, delivery challan, existing-customer lookup.
-import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, BASE, apiCall } from './ui_framework.mjs';
+import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, pickService, BASE, apiCall } from './ui_framework.mjs';
 
 const ADMIN = ['admin@srijayam.com', process.env.UAT_ADMIN_PASSWORD || 'Admin@123'];
 const U = 'UIX' + Date.now().toString().slice(-6);
@@ -21,7 +21,7 @@ export async function extraTests(browser) {
   const M1 = 'Pricing Setup (screen)';
   await run('UI-PST', M1, 'Choosing a service shows its Attributes, Quantity Slabs and Extra Charges tabs', 'Three tabs and the attribute list', async () => {
     await go('/pricing-setup');
-    await pick(page, 'Product Category', 'Visiting Card');
+    await pickService(page, 'Visiting Card');
     await page.waitForTimeout(800);
     for (const t of ['Attributes', 'Quantity Slabs', 'Extra Charges']) expect(await page.getByRole('tab', { name: t }).isVisible(), `tab ${t} missing`);
     expect((await bodyText(page)).includes('Finish/Lamination Type'), 'attributes not listed');
@@ -62,7 +62,7 @@ export async function extraTests(browser) {
   const tmp = (await api('POST', '/product-categories/', { name: `${U} Service`, is_active: true })).data;
   await run('UI-PST', M1, 'Add a quantity slab (band) to a service', 'Band appears in the list', async () => {
     await go('/pricing-setup');
-    await pick(page, 'Product Category', `${U} Service`);
+    await pickService(page, `${U} Service`);
     await page.getByRole('tab', { name: 'Quantity Slabs' }).click();
     await page.getByRole('button', { name: /add slab/i }).click();
     await dialog(page).getByLabel('Min Quantity').fill('1');

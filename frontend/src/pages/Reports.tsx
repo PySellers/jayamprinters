@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Box, Typography, Paper, Button, TextField, Stack, Grid, Table, TableHead, TableRow, TableCell,
-  TableBody, TableContainer, CircularProgress, ToggleButtonGroup, ToggleButton,
+  TableBody, TableContainer, CircularProgress, ToggleButtonGroup, ToggleButton, Tabs, Tab,
 } from '@mui/material';
+import AutoGraphIcon from '@mui/icons-material/AutoGraph';
+import { useAuth } from '../context/AuthContext';
+import InsightsPanel from '../components/reports/InsightsPanel';
 import DownloadIcon from '@mui/icons-material/Download';
 import { reportsApi } from '../api/reportsApi';
 import type { StatementGroup } from '../types/reports';
@@ -38,7 +41,7 @@ function rangeForPreset(preset: Preset): { start: string; end: string } {
 const rupees = (n: number) => `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const percent = (n: number | null) => (n === null ? '–' : `${n.toFixed(1)}%`);
 
-export default function Reports() {
+function StatementPanel() {
   const [preset, setPreset] = useState<Preset>('month');
   const initial = rangeForPreset('month');
   const [start, setStart] = useState(initial.start);
@@ -75,11 +78,7 @@ export default function Reports() {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-        Reports
-      </Typography>
-
+    <>
       <Paper sx={{ p: 3, borderRadius: 2, mb: 3 }}>
         <Grid container spacing={2} sx={{ alignItems: 'center' }}>
           <Grid size={{ xs: 12, md: 4 }}>
@@ -232,6 +231,30 @@ export default function Reports() {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
         Profit = sales (without GST) minus stock purchases, outsourced job cost and other cash expenses. &quot;Money in / out&quot; is the cash, UPI and bank money actually received and paid in the period.
       </Typography>
+    </>
+  );
+}
+
+export default function Reports() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const [tab, setTab] = useState<'statement' | 'insights'>('statement');
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: isAdmin ? 1 : 3 }}>
+        Reports
+      </Typography>
+      {/* AI Insights is the owner's tool: the tab does not exist for employees, and the server refuses them too */}
+      {isAdmin && (
+        <Paper sx={{ borderRadius: 2, mb: 3 }}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+            <Tab value="statement" label="Financial statement" data-testid="tab-statement" />
+            <Tab value="insights" icon={<AutoGraphIcon fontSize="small" />} iconPosition="start" label="AI Insights" data-testid="tab-insights" />
+          </Tabs>
+        </Paper>
+      )}
+      {tab === 'insights' && isAdmin ? <InsightsPanel /> : <StatementPanel />}
     </Box>
   );
 }

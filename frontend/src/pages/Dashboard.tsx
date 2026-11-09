@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Grid } from '@mui/material';
+import { Box, Typography, Grid, ButtonBase } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,20 +38,24 @@ export default function Dashboard() {
           const Icon = card.icon;
           return (
             <Grid size={{ xs: 6, sm: 3 }} key={card.label}>
-              <Paper
+              {/* a light-blue button: click to open the list; kept slim so the jobs below get the room */}
+              <ButtonBase
                 onClick={() => navigate(card.path)}
+                aria-label={`${card.label}: ${card.value}`}
+                data-testid={`stat-${card.label.toLowerCase().replace(/\s+/g, '-')}`}
                 sx={{
-                  px: 1.5, py: 0.75, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.25, cursor: 'pointer',
-                  border: '1px solid #e5e7eb', boxShadow: 'none', transition: 'border-color .2s, box-shadow .2s',
-                  '&:hover': { borderColor: card.color, boxShadow: '0 3px 12px rgba(15,23,42,0.08)' },
+                  width: '100%', justifyContent: 'flex-start', px: 1.5, py: 0.35, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.25,
+                  bgcolor: '#e3f2fd', border: '1px solid #bbdefb', transition: 'background-color .15s, box-shadow .15s, border-color .15s',
+                  '&:hover': { bgcolor: '#d2e9fb', borderColor: card.color, boxShadow: '0 2px 8px rgba(21,101,192,0.18)' },
+                  '&:focus-visible': { outline: `2px solid ${card.color}`, outlineOffset: 2 },
                 }}
               >
-                <Box sx={{ width: 30, height: 30, borderRadius: 1.5, bgcolor: `${card.color}15`, color: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon sx={{ fontSize: 18 }} />
+                <Box sx={{ width: 26, height: 26, borderRadius: 1.5, bgcolor: '#ffffffb3', color: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon sx={{ fontSize: 16 }} />
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: card.color, lineHeight: 1 }}>{card.value}</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#6b7280' }} noWrap>{card.label}</Typography>
-              </Paper>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: card.color, lineHeight: 1 }}>{card.value}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#37474f' }} noWrap>{card.label}</Typography>
+              </ButtonBase>
             </Grid>
           );
         })}

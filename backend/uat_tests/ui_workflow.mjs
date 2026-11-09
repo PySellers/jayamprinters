@@ -93,16 +93,16 @@ export async function workflowTests(browser) {
     const page = pages.designer.page;
     let c = card(page, job.job_number);
     await c.getByRole('button', { name: 'Take it' }).click();
-    await page.waitForTimeout(900);
+    await page.waitForTimeout(2400);
     c = card(page, job.job_number);
     await c.getByRole('button', { name: 'Start', exact: true }).click();
-    await page.waitForTimeout(900);
+    await page.waitForTimeout(2400);
     c = card(page, job.job_number);
     expect(/In progress/.test(await c.innerText()), 'not in progress');
     await c.getByRole('button', { name: 'Done', exact: true }).click();
     await dialog(page).getByLabel('Note for the next person (optional)').fill('Artwork is in the job folder');
     await dialog(page).getByRole('button', { name: 'Mark done' }).click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3200);
     expect((await page.locator('[data-testid="work-card"]', { hasText: job.job_number }).count()) === 0, 'the job is still on the designer\'s screen');
     const steps = (await api('GET', `/job-cards/${job.id}/steps`)).data;
     expect(steps[0].status === 'done' && steps[1].status === 'ready', JSON.stringify(steps.map((s) => s.status)));
@@ -115,10 +115,10 @@ export async function workflowTests(browser) {
     let c = card(page, job.job_number);
     expect(/Proof approval/.test(await c.innerText()), 'Proof approval card missing for the counter');
     await c.getByRole('button', { name: 'Start', exact: true }).click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2400);
     await card(page, job.job_number).getByRole('button', { name: 'Done', exact: true }).click();
     await dialog(page).getByRole('button', { name: 'Mark done' }).click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3200);
     const steps = (await api('GET', `/job-cards/${job.id}/steps`)).data;
     expect(steps[1].status === 'done' && steps[2].status === 'ready', JSON.stringify(steps.map((s) => s.status)));
   }, pages.counter.page, probs.counter);
@@ -130,9 +130,9 @@ export async function workflowTests(browser) {
     let c = card(page, job.job_number);
     expect(/Printing/.test(await c.innerText()), 'Printing card missing');
     await c.getByRole('button', { name: 'Take it' }).click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2400);
     await card(page, job.job_number).getByRole('button', { name: 'Start', exact: true }).click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2400);
     await card(page, job.job_number).getByRole('button', { name: 'Hold' }).click();
     await dialog(page).getByLabel('Why is it on hold?').fill('Plates not ready');
     await dialog(page).getByRole('button', { name: 'Put on hold' }).click();
@@ -148,16 +148,16 @@ export async function workflowTests(browser) {
   await run('UI-WFH', M1, 'The printing employee finishes; the binding employee cannot touch the printing card but gets the next one', 'Printing done; Finishing ready for the binder', async () => {
     await card(pages.printer.page, job.job_number).getByRole('button', { name: 'Done', exact: true }).click();
     await dialog(pages.printer.page).getByRole('button', { name: 'Mark done' }).click();
-    await pages.printer.page.waitForTimeout(1500);
+    await pages.printer.page.waitForTimeout(3200);
     const page = pages.binder.page;
     await go(page, '/my-work');
     const c = card(page, job.job_number);
     expect(/Cutting & lamination/.test(await c.innerText()), 'binder does not see Cutting & lamination');
     await c.getByRole('button', { name: 'Start', exact: true }).click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2400);
     await card(page, job.job_number).getByRole('button', { name: 'Done', exact: true }).click();
     await dialog(page).getByRole('button', { name: 'Mark done' }).click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3200);
     const steps = (await api('GET', `/job-cards/${job.id}/steps`)).data;
     expect(steps[3].status === 'done' && steps[4].status === 'ready', JSON.stringify(steps.map((s) => s.status)));
   }, pages.binder.page, probs.binder);
@@ -170,7 +170,7 @@ export async function workflowTests(browser) {
     await c.getByRole('button', { name: 'Done', exact: true }).click();
     await dialog(page).getByLabel('Note for the next person (optional)').fill('Collected by the customer');
     await dialog(page).getByRole('button', { name: 'Mark done' }).click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3200);
     const j = (await api('GET', `/job-cards/${job.id}`)).data;
     expect(j.status === 'delivered' && j.steps_done === 5 && j.delivered_at, JSON.stringify(j));
   }, pages.counter.page, probs.counter);
@@ -241,7 +241,7 @@ export async function workflowTests(browser) {
     await dialog(page).getByLabel('Price billed to customer').fill('700');
     await dialog(page).getByLabel('Expected back on').fill(new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10));
     await dialog(page).getByRole('button', { name: 'Send out' }).click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3200);
     const t = await page.locator('[data-testid="step-row"]', { hasText: 'Outside foil (UI test)' }).first().innerText();
     expect(/OS-\d+/.test(t) && t.includes(`${U} Foil Works`), 'Outsource info missing: ' + t);
     await shot(page, 'job-tracking-outside');
@@ -291,7 +291,7 @@ export async function workflowTests(browser) {
     const r = page.locator('tbody tr', { hasText: job4.job_number }).first();
     await r.getByRole('button', { name: /pending/i }).click();
     await page.getByRole('menuitem', { name: /delivered/i }).click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3200);
     const j = (await api('GET', `/job-cards/${job4.id}`)).data;
     expect(j.status === 'delivered' && j.steps_done === j.steps_total, JSON.stringify(j));
   }, pages.counter.page, probs.counter);
@@ -312,7 +312,7 @@ export async function workflowTests(browser) {
   await run('UI-WFB', M4, '"Only overdue" shows only late jobs, and the overdue job is among them', 'Every card is overdue', async () => {
     const page = pages.accounts.page;
     await page.getByLabel('Only overdue').check();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3200);
     for (const b of await page.getByRole('button', { name: /^Show \d+ more$/ }).all()) await b.click();
     await page.waitForTimeout(500);
     const cards = page.locator('[data-testid="work-card"]');
@@ -355,7 +355,7 @@ export async function workflowTests(browser) {
     await dialog(page).getByLabel('What happens here').fill('UI test');
     await dialog(page).getByRole('button', { name: 'Save' }).click();
     await dialog(page).waitFor({ state: 'detached', timeout: 8000 });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2400);
     const r = page.locator('tbody tr', { hasText: wcName }).first();
     expect(await r.isVisible(), 'not listed');
     expect(/No one yet/.test(await r.innerText()), 'team should be empty');
@@ -370,7 +370,7 @@ export async function workflowTests(browser) {
     await page.getByRole('option', { name: /Selvam/ }).click();
     await dialog(page).getByRole('button', { name: 'Save team' }).click();
     await dialog(page).waitFor({ state: 'detached', timeout: 8000 });
-    await page.waitForTimeout(900);
+    await page.waitForTimeout(2400);
     expect(/Selvam/.test(await page.locator('tbody tr', { hasText: wcName }).first().innerText()), 'team not shown');
   }, pages.admin.page, probs.admin);
 
@@ -382,7 +382,7 @@ export async function workflowTests(browser) {
     await dialog(page).getByLabel('Active').uncheck();
     await dialog(page).getByRole('button', { name: 'Save' }).click();
     await dialog(page).waitFor({ state: 'detached', timeout: 8000 });
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(2400);
     r = page.locator('tbody tr', { hasText: wcName }).first();
     expect(/Inactive/.test(await r.innerText()) && /edited/.test(await r.innerText()), 'edit not shown');
     await r.getByRole('button', { name: 'Delete' }).click();

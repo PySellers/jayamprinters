@@ -12,7 +12,7 @@ from app.schemas.job_card import (
     JobCardCreate, JobCardUpdate, JobCardOut, JobCardStatusUpdate,
     JobCardCommentCreate, JobCardCommentOut, JobCardSheetUpdate, JobCardSheetOut,
 )
-from app.services.job_card_service import generate_job_number, get_job_card_sheet, save_job_card_sheet
+from app.services.job_card_service import generate_job_number, get_job_card_sheet, reset_job_card_sheet, save_job_card_sheet
 from app.services import workflow_service as wf
 from app.services import proof_service
 from app.services.company_service import get_company
@@ -132,6 +132,15 @@ def write_job_card_sheet(job_card_id: int, data: JobCardSheetUpdate, db: Session
     if not job_card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
     return save_job_card_sheet(db, job_card, data.sheet)
+
+
+@router.post("/{job_card_id}/sheet/reset", response_model=JobCardSheetOut)
+def reset_job_card_sheet_route(job_card_id: int, db: Session = Depends(get_db)):
+    """Back to the form as the order fills it in (forgets what was typed by hand)."""
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    return reset_job_card_sheet(db, job_card)
 
 
 @router.patch("/{job_card_id}/status", response_model=JobCardOut)

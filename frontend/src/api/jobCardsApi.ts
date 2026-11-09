@@ -38,6 +38,7 @@ export const jobCardsApi = {
     await api.delete(`/job-proofs/${proofId}`);
   },
   getSheet: async (id: number): Promise<JobCardSheet> => (await api.get(`/job-cards/${id}/sheet`)).data,
+  resetSheet: async (id: number): Promise<JobCardSheet> => (await api.post(`/job-cards/${id}/sheet/reset`)).data,
   saveSheet: async (id: number, sheet: JobCardSheetData): Promise<JobCardSheet> =>
     (await api.put(`/job-cards/${id}/sheet`, { sheet })).data,
   updateStatus: async (id: number, status: JobCardStatus): Promise<JobCard> =>

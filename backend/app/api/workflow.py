@@ -234,7 +234,7 @@ def add_step(job_id: int, data: StepAdd, db: Session = Depends(get_db), user: Us
     job = _job(db, job_id)
     if not job.steps:
         wf.create_steps_for_job(db, job, user)
-    wf.add_step(db, job, user, data.name, data.work_center_id, data.kind, data.stage, data.after_step_id)
+    wf.add_step(db, job, user, data.name, data.work_center_id, data.kind, data.stage, data.after_step_id, data.assigned_to)
     db.commit()
     db.refresh(job)
     return _steps_out(db, job, user)

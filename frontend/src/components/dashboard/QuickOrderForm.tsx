@@ -419,6 +419,7 @@ export default function QuickOrderForm() {
                 if (value && typeof value !== 'string') applyCustomer(value);
               }}
               getOptionLabel={(o) => (typeof o === 'string' ? o : o.billing_person_name || o.name)}
+              getOptionKey={(o) => (typeof o === 'string' ? o : o.id)}
               renderOption={(props, o) => {
                 const { key, ...rest } = props as typeof props & { key: string };
                 return (

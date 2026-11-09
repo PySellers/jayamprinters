@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { getErrorMessage } from '../utils/api';
 import type { JobCardSheetData, SheetPaymentKey } from '../types/jobCards';
@@ -124,6 +125,15 @@ export default function JobCardSheet() {
     },
   });
 
+  const resetMutation = useMutation({
+    mutationFn: () => jobCardsApi.resetSheet(jobCardId),
+    onSuccess: (result) => {
+      setSheet(result.sheet);
+      queryClient.setQueryData(['job-card-sheet', jobCardId], result);
+      setSaveNote('The form is filled from the order again.');
+    },
+  });
+
   const set = <K extends keyof JobCardSheetData>(key: K, value: JobCardSheetData[K]) => {
     setSaveNote(null);
     setSheet((s) => (s ? { ...s, [key]: value } : s));
@@ -185,7 +195,21 @@ export default function JobCardSheet() {
 
       <JobDetailPanel jobCardId={jobCardId} canEdit={user?.role !== 'accounts'} />
 
-      <Typography variant="h6" sx={{ fontWeight: 800, color: INK, mb: 1 }}>Paper job card (fill in by hand if needed)</Typography>
+      <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5, mb: 1 }}>
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: INK }}>Printing job card</Typography>
+          <Typography variant="caption" color="text.secondary">
+            Filled in from the order. Change anything here and press Save, or print it and write by hand.
+          </Typography>
+        </Box>
+        <Button
+          size="small" variant="outlined" startIcon={<RestartAltIcon />} disabled={resetMutation.isPending}
+          onClick={() => { if (window.confirm('Throw away what was typed on this form and fill it from the order again?')) resetMutation.mutate(); }}
+          data-testid="sheet-reset"
+        >
+          Fill again from the order
+        </Button>
+      </Stack>
       <Box sx={{ overflowX: 'auto' }}>
         <Paper square sx={{ minWidth: 1020, border: `2px solid ${INK}` }}>
           {/* ---- header ---- */}

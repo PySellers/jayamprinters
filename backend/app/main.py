@@ -11,7 +11,7 @@ from app.models.user import UserRole
 app = FastAPI(
     title="Sri Jayam Printers ERP",
     description="Cloud-based Printing ERP System",
-    version="1.1.0"
+    version="1.2.0"
 )
 
 app.add_middleware(
@@ -52,7 +52,8 @@ app.include_router(attribute.router, prefix="/api/v1", dependencies=authenticate
 app.include_router(quantity_slab.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(price_matrix.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(extra_charge.router, prefix="/api/v1", dependencies=authenticated)
-app.include_router(reports.router, prefix="/api/v1", dependencies=authenticated)
+# sales, profit and AI Insights are for the owner only
+app.include_router(reports.router, prefix="/api/v1", dependencies=admin_only)
 app.include_router(vendor.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(purchase.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(inventory.router, prefix="/api/v1", dependencies=authenticated)

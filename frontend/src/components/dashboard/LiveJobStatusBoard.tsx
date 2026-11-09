@@ -63,7 +63,6 @@ function JobRow({ job, customer, product }: { job: JobCard; customer: string; pr
   const urgent = job.priority === 'urgent';
   const delivered = job.status === 'delivered';
   const accent = urgent ? '#c62828' : job.overdue ? '#ef6c00' : status.color;
-  const who = delivered ? null : job.current_assignee ?? job.current_work_center;
   return (
     <Paper
       variant="outlined"
@@ -106,9 +105,16 @@ function JobRow({ job, customer, product }: { job: JobCard; customer: string; pr
             <LinearProgress variant="determinate" value={(job.steps_done / job.steps_total) * 100} sx={{ height: 5, borderRadius: 3 }} />
           </Box>
         )}
-        {who && (
-          <Typography variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, fontWeight: 600 }}>
-            <PersonIcon sx={{ fontSize: 14 }} />{who}{job.current_step ? ` · ${job.current_step}` : ''}
+        {!delivered && job.current_step && (
+          <Typography variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, fontWeight: 600 }} data-testid="live-who">
+            <PersonIcon sx={{ fontSize: 14 }} />
+            {job.current_work_center ? <Box component="span" sx={{ color: '#455a64' }}>{job.current_work_center}:</Box> : null}
+            {job.current_assignee ? (
+              <Box component="span" sx={{ color: '#1a237e', fontWeight: 800 }}>{job.current_assignee}</Box>
+            ) : (
+              <Box component="span" sx={{ color: '#ef6c00' }}>not taken yet</Box>
+            )}
+            <Box component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}>· {job.current_step}</Box>
           </Typography>
         )}
         {job.proof_text && !delivered && (

@@ -6,6 +6,7 @@ export interface AppUser {
   email: string;
   role: UserRole;
   is_active: boolean;
+  phone?: string | null;
 }
 
 export interface UserCreateInput {
@@ -13,6 +14,7 @@ export interface UserCreateInput {
   email: string;
   password: string;
   role: UserRole;
+  phone?: string | null;
 }
 
 export interface UserUpdateInput {
@@ -20,4 +22,5 @@ export interface UserUpdateInput {
   role?: UserRole;
   is_active?: boolean;
   password?: string;
+  phone?: string | null;
 }

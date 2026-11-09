@@ -238,6 +238,8 @@ def can_act(db: Session, user: User, step: JobStep, centers: Optional[set] = Non
     if step.assigned_to is not None:
         return step.assigned_to == user.id
     centers = centers if centers is not None else center_ids_of(db, user)
+    if not centers and user.role != UserRole.accounts:
+        return True  # an employee who is not in any work center can take any step nobody has taken yet
     return step.work_center_id is not None and step.work_center_id in centers
 
 
@@ -425,40 +427,61 @@ def move_step(db: Session, step: JobStep, user: User, direction: str) -> None:
     log(db, job, step, user, "moved", f"{step.name} moved {direction}")
 
 
+def _may_add_task(job: JobCard, user: User) -> bool:
+    """Supervisors, and any employee who is holding an open step of this very job, may add a task to it."""
+    if is_manager(user):
+        return True
+    return any(s.assigned_to == user.id and s.status in OPEN_STATUSES for s in job.steps)
+
+
 def add_step(db: Session, job: JobCard, user: User, name: str, work_center_id: Optional[int], kind: str = "internal",
-             stage: str = "printing", after_step_id: Optional[int] = None) -> JobStep:
-    _require_manager(user)
+             stage: Optional[str] = None, after_step_id: Optional[int] = None, assigned_to: Optional[int] = None) -> JobStep:
+    if not _may_add_task(job, user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the admin, the counter or the person working on this job can add a task.")
     if job.status == JobCardStatus.delivered:
         raise _conflict("This order is already delivered")
     if not name or not name.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A step needs a name")
     if kind not in STEP_KINDS:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unknown step type")
-    if stage not in WORKING_STAGES:
-        stage = "printing"
+    if stage is not None and stage not in WORKING_STAGES:
+        stage = None
     if work_center_id is not None and not db.query(WorkCenter.id).filter(WorkCenter.id == work_center_id).first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Work center not found")
+    assignee = None
+    if assigned_to is not None:
+        _require_manager(user)
+        assignee = db.query(User).filter(User.id == assigned_to, User.is_active.is_(True)).first()
+        if assignee is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Employee not found")
     ordered = sorted(job.steps, key=lambda s: s.position)
-    insert_at = len(ordered) + 1
+    final_handover = bool(ordered) and ordered[-1].stage == "packing" and ordered[-1].status not in ("done", "skipped")
+    anchor = None
     if after_step_id is not None:
         anchor = next((s for s in ordered if s.id == after_step_id), None)
         if anchor is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="The step to add after was not found")
-        insert_at = anchor.position + 1
-    else:
-        # by default a new step goes before the final hand-over step
-        if ordered and ordered[-1].stage == "packing" and ordered[-1].status not in ("done", "skipped"):
-            insert_at = ordered[-1].position
+    elif ordered:
+        anchor = ordered[-2] if final_handover and len(ordered) > 1 else ordered[-1]
+    insert_at = (anchor.position + 1) if anchor is not None else 1
+    if final_handover and anchor is ordered[-1]:
+        # nothing may come after the final hand-over: the task goes in front of it
+        insert_at = ordered[-1].position
+        anchor = ordered[-2] if len(ordered) > 1 else None
+    if insert_at <= len(ordered) and any(s.status in ("done", "skipped") for s in ordered if s.position >= insert_at):
+        raise _conflict("A task cannot be added in front of a step that is already finished")
+    if stage is None:  # the job's status follows the stage of the step being worked, so a new task takes its neighbour's stage
+        stage = anchor.stage if anchor is not None and anchor.stage in WORKING_STAGES else "printing"
     for existing in ordered:
         if existing.position >= insert_at:
             existing.position += 1
     step = JobStep(job_card_id=job.id, position=insert_at, name=name.strip(), kind=kind, stage=stage,
-                   work_center_id=work_center_id, status="waiting")
+                   work_center_id=work_center_id, status="waiting", assigned_to=assignee.id if assignee is not None else None)
     db.add(step)
     db.flush()
     db.refresh(job)
     normalize(db, job)
-    log(db, job, step, user, "step_added", step.name)
+    log(db, job, step, user, "step_added", step.name + (f" -> {assignee.name}" if assignee is not None else ""))
     return step
 
 
