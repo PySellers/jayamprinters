@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, pickItem, BASE, apiCall } from './ui_framework.mjs';
+import { signedIn, loginApi, watch, run, expect, shot, bodyText, pick, pickItem, pickService, BASE, apiCall } from './ui_framework.mjs';
 
 const ADMIN = ['admin@srijayam.com', process.env.UAT_ADMIN_PASSWORD || 'Admin@123'];
 const U = 'UIENH' + Date.now().toString().slice(-6);
@@ -98,7 +98,7 @@ export async function enhancementTests(browser) {
   const M3 = 'Pricing Setup - Printing & Tax';
   await run('UI-PTX', M3, 'The Printing & Tax tab shows the printing charge and HSN for a service', 'Fields present and filled', async () => {
     await go('/pricing-setup');
-    await pick(page, 'Product Category', 'Visiting Card');
+    await pickService(page, 'Visiting Card');
     await page.getByRole('tab', { name: 'Printing & Tax' }).click();
     await page.waitForTimeout(600);
     const t = await bodyText(page);

@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     role: UserRole = UserRole.counter
+    phone: Optional[str] = None
 
 
 class UserUpdate(BaseModel):
@@ -19,6 +20,7 @@ class UserUpdate(BaseModel):
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
+    phone: Optional[str] = None
 
 
 class UserOut(BaseModel):
@@ -27,6 +29,7 @@ class UserOut(BaseModel):
     email: str
     role: UserRole
     is_active: bool
+    phone: Optional[str] = None
 
     class Config:
         from_attributes = True

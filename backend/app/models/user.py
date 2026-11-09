@@ -20,3 +20,4 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.counter, server_default=UserRole.counter.value)
     is_active = Column(Boolean, default=True)
+    phone = Column(String, nullable=True)  # shown in the Contacts list

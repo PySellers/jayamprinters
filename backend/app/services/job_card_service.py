@@ -13,6 +13,7 @@ from app.models.delivery_challan import DeliveryChallan
 from app.services.time_utils import utc_naive_to_ist
 from app.services.workflow_service import create_steps_for_job
 from app.services.proof_service import create_proofs_from_order
+from app.services.job_sheet_service import merge_saved, prefilled_sheet
 
 
 def generate_job_number(db: Session) -> str:
@@ -101,8 +102,8 @@ def get_job_card_sheet(db: Session, job_card: JobCard) -> Dict[str, Any]:
     invoice = db.query(Invoice).filter(Invoice.quotation_id == quotation.id).first() if quotation else None
     challan = db.query(DeliveryChallan).filter(DeliveryChallan.job_card_id == job_card.id).first()
 
-    sheet = _default_sheet(job_card)
-    sheet.update(job_card.sheet_data or {})
+    # the form is pre-filled from the order and the job's progress; whatever staff saved on it wins
+    sheet = merge_saved(prefilled_sheet(db, job_card), job_card.sheet_data)
 
     return {
         "job_card_id": job_card.id,
@@ -115,8 +116,33 @@ def get_job_card_sheet(db: Session, job_card: JobCard) -> Dict[str, Any]:
     }
 
 
+def _only_changes(base: Dict[str, Any], sheet: Dict[str, Any]) -> Dict[str, Any]:
+    """Keeps just what staff changed. Cells left as the order filled them keep following the order
+    (price, payments received, proof dates, status ticks ...) instead of being frozen at the moment of saving."""
+    kept: Dict[str, Any] = {}
+    for key, value in sheet.items():
+        if key == "paper" and isinstance(value, list):
+            rows = []
+            for index, row in enumerate(value):
+                ref = base["paper"][index] if index < len(base["paper"]) else {}
+                rows.append({c: v for c, v in (row or {}).items() if str(v or "") != str(ref.get(c) or "")})
+            if any(rows):
+                kept["paper"] = rows
+        elif key == "payment" and isinstance(value, dict):
+            changed = {c: v for c, v in value.items() if str(v or "") != str(base["payment"].get(c) or "")}
+            if changed:
+                kept["payment"] = changed
+        elif key == "job_position" and isinstance(value, list):
+            extra = [v for v in value if v not in base["job_position"]]
+            if extra:
+                kept[key] = extra
+        elif value != base.get(key):
+            kept[key] = value
+    return kept
+
+
 def save_job_card_sheet(db: Session, job_card: JobCard, sheet: Dict[str, Any]) -> Dict[str, Any]:
-    job_card.sheet_data = sheet
+    job_card.sheet_data = _only_changes(prefilled_sheet(db, job_card), sheet)
     # Keep the list-page "Delivery" column in step with the delivery date on the sheet.
     raw_delivery = sheet.get("delivery_date")
     if raw_delivery:
@@ -124,6 +150,14 @@ def save_job_card_sheet(db: Session, job_card: JobCard, sheet: Dict[str, Any]) -
             job_card.delivery_date = date.fromisoformat(str(raw_delivery))
         except ValueError:
             pass
+    db.commit()
+    db.refresh(job_card)
+    return get_job_card_sheet(db, job_card)
+
+
+def reset_job_card_sheet(db: Session, job_card: JobCard) -> Dict[str, Any]:
+    """Throws away what was typed on the form, so it is filled from the order again."""
+    job_card.sheet_data = None
     db.commit()
     db.refresh(job_card)
     return get_job_card_sheet(db, job_card)

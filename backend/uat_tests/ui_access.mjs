@@ -6,9 +6,9 @@ const STAFF_PW = process.env.UAT_STAFF_PASSWORD || 'Uat@12345';
 const MAIN_MENU = ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Pricing Setup', 'Purchases', 'Inventory', 'Outsource', 'Cash Ledger', 'Reports', 'Users'];
 const EXPECTED_MENU = {
   admin: MAIN_MENU,
-  counter: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Outsource', 'Reports'],
-  production: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Reports'],
-  accounts: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Purchases', 'Inventory', 'Outsource', 'Cash Ledger', 'Reports'],
+  counter: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Outsource'],
+  production: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory'],
+  accounts: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Purchases', 'Inventory', 'Outsource', 'Cash Ledger'],
 };
 const LOGINS = { admin: ADMIN, counter: ['counter@srijayam.com', STAFF_PW], production: ['designer@srijayam.com', STAFF_PW], accounts: ['accounts@srijayam.com', STAFF_PW] };
 
@@ -50,7 +50,8 @@ export async function accessTests(browser) {
   }, page, problems);
 
   await run('UI-LOG', M1, 'Logout returns to the sign-in page', 'URL /login and the session is cleared', async () => {
-    await page.getByRole('button', { name: 'Logout' }).click();
+    await page.getByTestId('profile-menu-button').click();
+    await page.getByRole('menuitem', { name: 'Logout' }).click();
     await page.waitForURL(/login/, { timeout: 8000 });
     const token = await page.evaluate(() => localStorage.getItem('token'));
     expect(!token, 'token still stored after logout');
@@ -115,7 +116,7 @@ export async function accessTests(browser) {
   const SCREENS = [
     ['Dashboard', '/dashboard', 'Start New Order'], ['Customers', '/customers', 'Add Customer'], ['Quotations', '/quotations', 'New Quotation'],
     ['Job Cards', '/job-cards', 'Job #'], ['Invoices', '/invoices', 'Invoice #'], ['Products', '/products', 'Add Product'],
-    ['Pricing Setup', '/pricing-setup', 'Product Category'], ['Purchases', '/purchases', 'New Purchase'], ['Inventory', '/inventory', 'Add Item'],
+    ['Pricing Setup', '/pricing-setup', 'Pick a service above'], ['Purchases', '/purchases', 'New Purchase'], ['Inventory', '/inventory', 'Add Item'],
     ['Cash Ledger', '/cash-ledger', 'Record Transaction'], ['Reports', '/reports', 'This Month'], ['Users', '/users', 'Add User'],
     ['Machines (master)', '/masters/machines', 'Add New'], ['Printing Types (master)', '/masters/printing-types', 'Add New'], ['Tax', '/taxes', 'Add Tax'],
   ];

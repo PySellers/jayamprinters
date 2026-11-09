@@ -116,8 +116,9 @@ class StepAdd(BaseModel):
     name: str = Field(min_length=1)
     work_center_id: Optional[int] = None
     kind: str = "internal"
-    stage: str = "printing"
+    stage: Optional[str] = None  # blank: the new task takes the stage of the step it follows
     after_step_id: Optional[int] = None
+    assigned_to: Optional[int] = None
 
 
 class AssignIn(BaseModel):

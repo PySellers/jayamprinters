@@ -31,6 +31,10 @@ import Purchases from './pages/Purchases';
 import Inventory from './pages/Inventory';
 import CashLedger from './pages/CashLedger';
 import BillingCounter from './pages/BillingCounter';
+import Profile from './pages/Profile';
+import Manual from './pages/Manual';
+import Contacts from './pages/Contacts';
+import About from './pages/About';
 
 export default function App() {
   return (
@@ -63,6 +67,10 @@ export default function App() {
             <Route path="job-cards" element={<JobCards />} />
             <Route path="job-cards/:id" element={<JobCardSheet />} />
             <Route path="job-cards/:id/track" element={<JobWorkflow />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="manual" element={<Manual />} />
+            <Route path="contacts" element={<Contacts />} />
+            <Route path="about" element={<About />} />
             <Route path="my-work" element={<MyWork />} />
             <Route path="production" element={<ProductionBoard />} />
             <Route
@@ -93,7 +101,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="reports" element={<Reports />} />
+            <Route
+              path="reports"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="taxes"
               element={

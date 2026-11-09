@@ -5,6 +5,9 @@ from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.security import require_role
+from app.models.user import UserRole
+from app.services.insights_service import generate_insights
 from app.services.report_service import sales_breakdown, sales_report_excel
 from app.services.statement_service import financial_statement, statement_excel
 
@@ -43,3 +46,9 @@ def export_financial_statement(start: date = Query(...), end: date = Query(...),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/insights", dependencies=[Depends(require_role(UserRole.admin))])
+def get_insights(days: int = Query(180, ge=30, le=730), db: Session = Depends(get_db)):
+    """AI Insights (forecasts, service / team performance, advice). Admin only - employees get a 403."""
+    return generate_insights(db, days)

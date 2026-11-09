@@ -1,7 +1,9 @@
 import api from '../utils/api';
-import type { FinancialStatement, SalesReport, StatementGroup } from '../types/reports';
+import type { FinancialStatement, Insights, SalesReport, StatementGroup } from '../types/reports';
 
 export const reportsApi = {
+  /** AI Insights: forecasts, service and team performance, advice (admin only; others get a 403). */
+  insights: async (days = 180): Promise<Insights> => (await api.get('/reports/insights', { params: { days } })).data,
   statement: async (start: string, end: string, group: StatementGroup): Promise<FinancialStatement> =>
     (await api.get('/reports/statement', { params: { start, end, group } })).data,
   downloadStatementExcel: async (start: string, end: string, group: StatementGroup): Promise<void> => {

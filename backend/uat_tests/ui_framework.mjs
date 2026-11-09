@@ -91,6 +91,14 @@ export async function pick(page, label, option) {
   await page.waitForTimeout(250);
 }
 
+/** Pricing Setup: the services are buttons now; clicks the one called `name`. */
+export async function pickService(page, name) {
+  await page.getByTestId('ps-service-search').fill(name);
+  await page.getByTestId('ps-service-tiles').getByRole('button', { name, exact: true }).first().click();
+  await page.getByTestId('ps-service-search').fill('');
+  await page.waitForTimeout(250);
+}
+
 /** Picks the item of a service on the order page; a service with one item does not ask (it is chosen for the counter). */
 export async function pickItem(page, product) {
   if (await page.getByLabel(/^Item \/ Size/).count()) await pick(page, 'Item / Size', product);

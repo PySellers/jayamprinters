@@ -2,21 +2,27 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Box, AppBar, Toolbar, Typography, Button, IconButton,
+  Box, AppBar, Toolbar, Typography, IconButton, Avatar, Menu, MenuItem, Divider,
   Badge, Drawer, List, ListItem, ListItemIcon,
   ListItemText, ListItemButton, Collapse, useMediaQuery, useTheme,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import PrintIcon from '@mui/icons-material/Print';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import ContactsIcon from '@mui/icons-material/Contacts';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useAuth } from '../../context/AuthContext';
 import { mainNavItems, mastersNavItems } from './navConfig';
 import { workflowApi } from '../../api/workflowApi';
+import logo from '../../assets/sjp-logo.png';
 
 const SIDEBAR_WIDTH = 260;
+const FIRST_YEAR = 2026;
+const initials = (name?: string) => (name ?? '?').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -27,6 +33,7 @@ export default function Layout() {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null);
   const [mastersOpen, setMastersOpen] = useState(location.pathname.startsWith('/masters') || location.pathname === '/taxes');
 
   // number of open tasks waiting for this employee (refreshes every 30 s)
@@ -38,13 +45,20 @@ export default function Layout() {
   const visibleMastersNav = mastersNavItems.filter((item) => canSee(item.roles));
 
   const isActive = (path: string) => location.pathname === path;
+  const openProfilePage = (path: string) => {
+    setProfileAnchor(null);
+    navigate(path);
+  };
+  const year = new Date().getFullYear();
   const go = (path: string) => {
     navigate(path);
     setMenuOpen(false);
   };
   // Exact match first, then the longest section prefix (so /quotations/new still says "Quotations").
   const navAll = [...mainNavItems, ...mastersNavItems];
+  const EXTRA_TITLES: Record<string, string> = { '/profile': 'Edit profile', '/manual': 'Manual', '/contacts': 'Contacts', '/about': 'About' };
   const activeLabel =
+    EXTRA_TITLES[location.pathname] ||
     navAll.find((item) => isActive(item.path))?.label ||
     [...navAll].filter((item) => item.path !== '/' && location.pathname.startsWith(`${item.path}/`)).sort((a, b) => b.path.length - a.path.length)[0]?.label ||
     'Dashboard';
@@ -68,7 +82,10 @@ export default function Layout() {
         }}
       >
         <Box sx={{ p: 2.5, textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)' }}>
-          <PrintIcon sx={{ fontSize: 52 }} />
+          {/* the logo sits on a white badge so its black letters stay readable on the dark sidebar */}
+          <Box sx={{ bgcolor: '#fff', borderRadius: 2, p: 0.75, display: 'inline-flex', mb: 0.5 }}>
+            <Box component="img" src={logo} alt="Sri Jayam Printers" data-testid="brand-logo" sx={{ height: 64, width: 'auto', display: 'block' }} />
+          </Box>
           <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2, mt: 0.5 }}>
             Sri Jayam Printers
           </Typography>
@@ -148,15 +165,42 @@ export default function Layout() {
             <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
               {activeLabel}
             </Typography>
-            <Typography noWrap sx={{ mr: 2, display: { xs: 'none', sm: 'block' } }}>Welcome, {user?.name}</Typography>
-            <Button color="inherit" onClick={logout} startIcon={<LogoutIcon />}>
-              Logout
-            </Button>
+            <Typography noWrap sx={{ mr: 1.5, display: { xs: 'none', sm: 'block' } }}>Welcome, {user?.name}</Typography>
+            <IconButton color="inherit" aria-label="Profile menu" data-testid="profile-menu-button" onClick={(e) => setProfileAnchor(e.currentTarget)} sx={{ p: 0.5 }}>
+              <Avatar sx={{ width: 34, height: 34, bgcolor: '#fff', color: '#283593', fontSize: 14, fontWeight: 800 }}>{initials(user?.name)}</Avatar>
+            </IconButton>
+            <Menu
+              anchorEl={profileAnchor}
+              open={Boolean(profileAnchor)}
+              onClose={() => setProfileAnchor(null)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              slotProps={{ paper: { sx: { minWidth: 230, mt: 0.5 } } }}
+            >
+              <Box sx={{ px: 2, py: 1 }}>
+                <Typography sx={{ fontWeight: 700 }} noWrap>{user?.name}</Typography>
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>{user?.email}</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>{user?.role}</Typography>
+              </Box>
+              <Divider />
+              <MenuItem onClick={() => openProfilePage('/profile')}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon>Edit profile</MenuItem>
+              <MenuItem onClick={() => openProfilePage('/manual')}><ListItemIcon><MenuBookIcon fontSize="small" /></ListItemIcon>Manual</MenuItem>
+              <MenuItem onClick={() => openProfilePage('/contacts')}><ListItemIcon><ContactsIcon fontSize="small" /></ListItemIcon>Contacts</MenuItem>
+              <MenuItem onClick={() => openProfilePage('/about')}><ListItemIcon><InfoOutlinedIcon fontSize="small" /></ListItemIcon>About</MenuItem>
+              <Divider />
+              <MenuItem onClick={() => { setProfileAnchor(null); logout(); }}><ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon>Logout</MenuItem>
+            </Menu>
           </Toolbar>
         </AppBar>
 
         <Box sx={{ flexGrow: 1, minWidth: 0, bgcolor: '#f5f5f5', overflowX: 'auto' }}>
           <Outlet />
+        </Box>
+
+        <Box component="footer" data-testid="app-footer" sx={{ bgcolor: '#e8eaf6', borderTop: '1px solid #c5cae9', py: 0.5, px: 2, textAlign: 'center' }}>
+          <Typography sx={{ fontSize: 12, color: '#37474f', lineHeight: 1.5 }}>
+            &copy; {FIRST_YEAR}{year > FIRST_YEAR ? `–${year}` : ''} Sri Jayam Printers. All rights reserved. &nbsp;|&nbsp; Developed by PySellers Services Pvt Ltd, 8838587824
+          </Typography>
         </Box>
       </Box>
     </Box>
