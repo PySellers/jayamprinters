@@ -131,6 +131,7 @@ export default function ExtraChargesPanel({ categoryId }: ExtraChargesPanelProps
       </Paper>
 
       <ExtraChargeFormDialog
+        groups={Array.from(new Set((chargesQuery.data ?? []).map((c) => c.group_name).filter((g): g is string => Boolean(g))))}
         open={dialogOpen}
         title={editing ? 'Edit Extra Charge' : 'Add Extra Charge'}
         initialValues={editing}

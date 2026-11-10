@@ -101,6 +101,21 @@ export async function pickService(page, name) {
 
 /** Picks the item of a service on the order page; a service with one item does not ask (it is chosen for the counter). */
 export async function pickItem(page, product) {
+  if (await page.getByLabel(/^Sub-category/).count()) {
+    // the sub-category comes first: try each one until it lists the item
+    const box = page.getByLabel(/^Sub-category/).first();
+    await box.click();
+    const subs = await page.getByRole('option').allInnerTexts();
+    await page.keyboard.press('Escape');
+    for (const sub of subs) {
+      await pick(page, 'Sub-category', sub);
+      await page.getByLabel(/^Item \/ Size/).first().click();
+      const hit = page.getByRole('option', { name: product, exact: false });
+      if (await hit.count()) { await hit.first().click(); await page.waitForTimeout(250); return; }
+      await page.keyboard.press('Escape');
+    }
+    throw new Error(`no sub-category lists "${product}"`);
+  }
   if (await page.getByLabel(/^Item \/ Size/).count()) await pick(page, 'Item / Size', product);
 }
 

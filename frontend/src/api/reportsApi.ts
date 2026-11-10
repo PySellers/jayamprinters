@@ -1,5 +1,5 @@
 import api from '../utils/api';
-import type { FinancialStatement, Insights, SalesReport, StatementGroup } from '../types/reports';
+import type { AccountStatement, FinancialStatement, Insights, SalesReport, StatementGroup } from '../types/reports';
 
 export const reportsApi = {
   /** AI Insights: forecasts, service and team performance, advice (admin only; others get a 403). */
@@ -14,6 +14,19 @@ export const reportsApi = {
     const link = document.createElement('a');
     link.href = url;
     link.download = `financial-statement-${start}-to-${end}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+  ledger: async (start: string, end: string, group: 'day' | 'week', basis: 'accrual' | 'cash'): Promise<AccountStatement> =>
+    (await api.get('/reports/ledger', { params: { start, end, group, basis } })).data,
+  downloadLedgerExcel: async (start: string, end: string, group: 'day' | 'week', basis: 'accrual' | 'cash'): Promise<void> => {
+    const response = await api.get('/reports/ledger/export', { params: { start, end, group, basis }, responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `account-statement-${start}-to-${end}.xlsx`;
     document.body.appendChild(link);
     link.click();
     link.remove();

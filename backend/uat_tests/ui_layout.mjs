@@ -26,6 +26,7 @@ export async function layoutTests(browser) {
             if (r.width < 3 || r.height < 3 || cs.visibility === 'hidden' || cs.display === 'none') return;
             if (![...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length > 1)) return;
             if (el.closest('[class*=MuiTableContainer], [class*=MuiTable-root], table')) return; // tables scroll inside their own box by design
+            if (el.closest('[data-testid=service-tiles], [data-testid=chat-messages]')) return; // lists that scroll inside their own box by design
             if (el.closest('legend, fieldset')) return; // outlined inputs repeat their label inside a hidden legend
             leaves.push({ el, r, t: el.textContent.trim().slice(0, 24) });
           });

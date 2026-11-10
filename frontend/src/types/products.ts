@@ -40,6 +40,8 @@ export interface Product {
   hsn_id?: number | null;
   /** Smallest quantity that can be ordered. */
   min_quantity?: number | null;
+  /** Groups the items of a service in the order form (e.g. Rubber Stamp: Polymer Stamp series, Printer / Dater). */
+  sub_category?: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -52,5 +54,6 @@ export interface ProductInput {
   fixed_price?: number | null;
   hsn_id?: number | null;
   min_quantity?: number | null;
+  sub_category?: string | null;
   is_active?: boolean;
 }

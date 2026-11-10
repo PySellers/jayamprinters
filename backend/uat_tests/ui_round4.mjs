@@ -42,9 +42,10 @@ export async function round4Tests(browser) {
 
   // ================================================================== the shell
   const M1 = 'Header, logo, footer and profile menu';
-  await run('UI-R4H', M1, 'The Customers / Quotations / Job Cards / Invoices strip is four slim light-blue buttons', 'Light blue, under 50px, clickable', async () => {
+  await run('UI-R4H', M1, 'The Quotations / Job Cards / Invoices strip is three slim light-blue buttons (Live Jobs is the red one)', 'Light blue, under 50px, clickable', async () => {
     await go(ap, '/dashboard');
-    for (const key of ['customers', 'quotations', 'job-cards', 'invoices']) {
+    expect(await ap.getByTestId('live-switch').count() === 1 && await ap.getByTestId('stat-customers').count() === 0, 'Live Jobs / Customers buttons');
+    for (const key of ['quotations', 'job-cards', 'invoices']) {
       const el = ap.getByTestId(`stat-${key}`);
       const box = await el.boundingBox();
       expect(box && box.height < 50, `${key} button is ${box && Math.round(box.height)}px tall`);
@@ -143,10 +144,10 @@ export async function round4Tests(browser) {
     await shot(ap, 'r4-manual');
   }, ap, aprob);
 
-  await run('UI-R4P', M2, 'About: version, release, developer and support details', 'Version 1.2.0; PySellers contact, phone and website', async () => {
+  await run('UI-R4P', M2, 'About: version, release, developer and support details', 'Version 1.3.0; PySellers contact, phone and website', async () => {
     await go(ap, '/about');
     const t = await bodyText(ap);
-    expect((await ap.getByTestId('about-version').innerText()).trim() === '1.2.0', 'version is not 1.2.0');
+    expect((await ap.getByTestId('about-version').innerText()).trim() === '1.3.0', 'version is not 1.3.0');
     expect(t.includes('Developed by PySellers Services Pvt Ltd'), 'developer line missing');
     expect(t.includes('any support request'), 'support wording missing');
     expect((await ap.getByTestId('about-phone').innerText()).trim() === '8838587824', 'phone');
@@ -196,7 +197,7 @@ export async function round4Tests(browser) {
     expect(vals.filter((v) => v === '80 GSM').length >= 2, 'GSM is not filled for both copies');
     expect(vals.includes('300'), 'quantity not filled');
     expect(await ap.getByRole('checkbox', { name: 'Offset' }).isChecked(), 'Offset is not ticked');
-    expect(vals.some((v) => /^Bill total/.test(v)), 'payment column not filled');
+    expect(vals.some((v) => /^[\d,]+(\.\d+)?$/.test(v) && Number(v.replace(/,/g, '')) > 0), 'payment column not filled');
     await shot(ap, 'r4-job-card-form');
   }, ap, aprob);
 
@@ -244,7 +245,7 @@ export async function round4Tests(browser) {
   }, ap, aprob);
 
   await run('UI-R4J', M4, 'The person and section show on the Live Jobs board', 'Row says "Design: Staff User"', async () => {
-    await go(ap, '/dashboard');
+    await go(ap, '/dashboard?view=live');
     await ap.getByTestId('live-search').fill(job.job_number);
     await ap.waitForTimeout(600);
     const who = await ap.getByTestId('live-who').first().innerText();
@@ -292,7 +293,7 @@ export async function round4Tests(browser) {
     expect((await first.getByTestId('task-person').innerText()).includes('Staff User (you)'), 'task not shown as mine');
     expect((await sp.getByTestId('assign-task').count()) === 0, 'an employee should not see Assign');
     expect((await sp.getByTestId('add-task').count()) === 1, 'the employee holding a task should be able to add one');
-    await go(sp, '/dashboard');
+    await go(sp, '/dashboard?view=live');
     await sp.getByTestId('live-search').fill(job2.job_number);
     await sp.waitForTimeout(600);
     expect((await sp.getByTestId('live-who').first().innerText()).includes('Staff User'), 'Live Jobs does not name the employee');
@@ -346,12 +347,12 @@ export async function round4Tests(browser) {
     expect((await bodyText(ap)).includes('Total Sales'), 'the financial statement did not come back');
   }, ap, aprob);
 
-  await run('UI-R4I', M6, 'The dashboard layout is unchanged: order form on the left, live jobs on the right', 'Both present, jobs board starts near the top', async () => {
+  await run('UI-R4I', M6, 'The dashboard is the order form with the red Live Jobs button; the jobs board opens in its place', 'Form first; board on the button', async () => {
     await go(ap, '/dashboard');
-    const form = await ap.locator('h6:has-text("Start New Order")').boundingBox();
+    expect(await ap.locator('h6:has-text("Start New Order")').count() === 1 && await ap.getByTestId('live-board').count() === 0, 'order form only');
+    await ap.getByTestId('live-switch').click();
     const board = await ap.getByTestId('live-board').boundingBox();
-    expect(form && board && form.x < board.x, 'order form is not left of the live jobs');
-    expect(board.y < 200, `live jobs start ${Math.round(board.y)}px down`);
+    expect(board && board.y < 200, `live jobs start ${board && Math.round(board.y)}px down`);
   }, ap, aprob);
 
   // ================================================================== clean-up

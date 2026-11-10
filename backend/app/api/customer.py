@@ -5,7 +5,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
 
+from fastapi.responses import Response
+
 from app.core.database import get_db
+from app.core.security import require_role
+from app.models.user import UserRole
+from app.services.customer_service import contact_count, contacts_csv, contacts_vcf, order_history
 from app.models.customer import Customer
 from app.schemas.customer import BillingDefaults, CustomerCreate, CustomerResponse, CustomerUpdate
 
@@ -41,6 +46,29 @@ def get_billing_defaults(db: Session = Depends(get_db)):
 @router.get("/", response_model=List[CustomerResponse])
 def get_customers(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(Customer).order_by(Customer.id).offset(skip).limit(limit).all()
+
+
+@router.get("/export/contacts", dependencies=[Depends(require_role(UserRole.admin))])
+def export_contacts(format: str = "vcf", include_staff: bool = True, db: Session = Depends(get_db)):
+    """Every customer (and employee) phone number as a file for the Admin's phone / Google Contacts.
+    vcf = vCard (phone Contacts, Google Contacts > Import), csv = Google Contacts CSV, count = just how many."""
+    if format == "count":
+        return {"count": contact_count(db, include_staff)}
+    if format == "csv":
+        return Response(content=contacts_csv(db, include_staff), media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": 'attachment; filename="sri-jayam-contacts.csv"'})
+    if format != "vcf":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="format must be vcf, csv or count")
+    return Response(content=contacts_vcf(db, include_staff), media_type="text/vcard; charset=utf-8",
+                    headers={"Content-Disposition": 'attachment; filename="sri-jayam-contacts.vcf"'})
+
+
+@router.get("/{customer_id}/orders")
+def customer_orders(customer_id: int, db: Session = Depends(get_db)):
+    """Earlier orders of this customer, one line each, newest first (date, order, quantity, amount, paid)."""
+    if not db.query(Customer.id).filter(Customer.id == customer_id).first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+    return order_history(db, customer_id)
 
 
 @router.get("/{customer_id}", response_model=CustomerResponse)

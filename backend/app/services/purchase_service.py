@@ -29,10 +29,21 @@ def create_purchase(db: Session, payload: PurchaseCreate) -> Purchase:
 
     total = 0.0
     for line in payload.items:
+        line_total = line.quantity * line.unit_price
+        custom = (line.custom_name or "").strip()
+        if line.inventory_item_id is None:
+            # A one-time item (used once for a job): recorded on the bill, never added to the stock.
+            if not custom:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Pick a stock item or type the name of the one-time item")
+            total += line_total
+            db.add(PurchaseItem(
+                purchase_id=purchase.id, inventory_item_id=None, custom_name=custom,
+                quantity=line.quantity, unit_price=line.unit_price, total_price=line_total,
+            ))
+            continue
         item = db.query(InventoryItem).filter(InventoryItem.id == line.inventory_item_id).first()
         if not item:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Inventory item {line.inventory_item_id} not found")
-        line_total = line.quantity * line.unit_price
         total += line_total
         db.add(PurchaseItem(
             purchase_id=purchase.id, inventory_item_id=line.inventory_item_id,

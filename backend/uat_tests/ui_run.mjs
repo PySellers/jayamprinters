@@ -14,6 +14,7 @@ try {
   if (all || which.includes('workflow')) { const m = await import('./ui_workflow.mjs'); await m.workflowTests(browser); }
   if (all || which.includes('round3')) { const m = await import('./ui_round3.mjs'); await m.round3Tests(browser); }
   if (all || which.includes('round4')) { const m = await import('./ui_round4.mjs'); await m.round4Tests(browser); }
+  if (all || which.includes('round5')) { const m = await import('./ui_round5.mjs'); await m.round5Tests(browser); }
   if (all || which.includes('enhancements')) { const m = await import('./ui_enhancements.mjs'); await m.enhancementTests(browser); }
 } finally {
   await browser.close();

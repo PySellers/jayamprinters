@@ -45,5 +45,7 @@ class Product(Base):
     hsn_id = Column(Integer, ForeignKey("hsn_codes.id"), nullable=True)  # overrides the service's HSN
     # Smallest quantity that can be ordered (e.g. 50 visiting cards). Blank = no minimum.
     min_quantity = Column(Integer, nullable=True)
+    # Groups items of one service in the order form (e.g. Rubber Stamp: Polymer Stamp / Dater / Pre-ink). Blank = none.
+    sub_category = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)

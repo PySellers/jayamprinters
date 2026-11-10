@@ -7,12 +7,13 @@ import AttributesPanel from '../components/pricingSetup/AttributesPanel';
 import QuantitySlabsPanel from '../components/pricingSetup/QuantitySlabsPanel';
 import ExtraChargesPanel from '../components/pricingSetup/ExtraChargesPanel';
 import PrintingTaxPanel from '../components/pricingSetup/PrintingTaxPanel';
+import ItemsPanel from '../components/pricingSetup/ItemsPanel';
 
 export default function PricingSetup() {
   // A link from the order screen opens straight on the service and tab that holds a rate:
-  // /pricing-setup?category=9&tab=printing  (attributes | slabs | charges | printing)
+  // /pricing-setup?category=9&tab=printing  (attributes | slabs | charges | printing | items)
   const [searchParams] = useSearchParams();
-  const TABS = ['attributes', 'slabs', 'charges', 'printing'];
+  const TABS = ['attributes', 'slabs', 'charges', 'printing', 'items'];
   const [categoryId, setCategoryId] = useState<number | null>(searchParams.get('category') ? Number(searchParams.get('category')) : null);
   const [tab, setTab] = useState(Math.max(0, TABS.indexOf(searchParams.get('tab') ?? '')));
 
@@ -120,6 +121,7 @@ export default function PricingSetup() {
               <Tab label="Quantity Slabs" />
               <Tab label="Extra Charges" />
               <Tab label="Printing & Tax" />
+              <Tab label="Items & Sub-categories" data-testid="tab-items" />
             </Tabs>
           </Paper>
 
@@ -127,6 +129,7 @@ export default function PricingSetup() {
           {tab === 1 && <QuantitySlabsPanel categoryId={categoryId} />}
           {tab === 2 && <ExtraChargesPanel categoryId={categoryId} />}
           {tab === 3 && category && <PrintingTaxPanel category={category} />}
+          {tab === 4 && <ItemsPanel categoryId={categoryId} />}
         </>
       )}
     </Box>

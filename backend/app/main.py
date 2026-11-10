@@ -4,14 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, customer, quotation, masters, tax, product, job_card, invoice, user
 from app.api import attribute, quantity_slab, price_matrix, extra_charge, reports
 from app.api import vendor, purchase, inventory, cash_ledger, delivery_challan, company, outsource, workflow
-from app.api import job_proof, print_charge
+from app.api import job_proof, print_charge, job_material, payment_proof, assistant
 from app.core.security import get_current_user, require_role
 from app.models.user import UserRole
 
 app = FastAPI(
     title="Sri Jayam Printers ERP",
     description="Cloud-based Printing ERP System",
-    version="1.2.0"
+    version="1.3.0"
 )
 
 app.add_middleware(
@@ -53,6 +53,10 @@ app.include_router(quantity_slab.router, prefix="/api/v1", dependencies=authenti
 app.include_router(price_matrix.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(extra_charge.router, prefix="/api/v1", dependencies=authenticated)
 # sales, profit and AI Insights are for the owner only
+app.include_router(job_material.job_router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(job_material.material_router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(payment_proof.router, prefix="/api/v1", dependencies=authenticated)
+app.include_router(assistant.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(reports.router, prefix="/api/v1", dependencies=admin_only)
 app.include_router(vendor.router, prefix="/api/v1", dependencies=authenticated)
 app.include_router(purchase.router, prefix="/api/v1", dependencies=authenticated)

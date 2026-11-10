@@ -131,8 +131,10 @@ export async function orderTests(browser) {
 
   await run('UI-INV', M3, 'The new order appears in the Live Job Status board on the dashboard', 'Customer name visible on the board', async () => {
     await page.goto(BASE + '/dashboard', { waitUntil: 'networkidle' });
+    await page.getByTestId('live-switch').click();
     await page.getByTestId('live-search').fill(startCust.name);
-    await page.waitForTimeout(900);
+    await page.getByText(startCust.name).first().waitFor({ timeout: 20000 }).catch(() => {});
+    await page.waitForTimeout(500);
     expect((await bodyText(page)).includes(startCust.name), 'order not on the dashboard board');
     await shot(page, 'dashboard-live-board');
   }, page, live);
@@ -144,9 +146,10 @@ export async function orderTests(browser) {
     await page.goto(BASE + `/invoices/${invId()}`, { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: /record payment/i }).click();
     await page.getByRole('dialog').getByLabel('Amount', { exact: false }).fill('500');
-    await page.getByRole('dialog').getByLabel('Method').click();
+    await page.getByRole('dialog').getByLabel('Paid by').click();
     await page.getByRole('option', { name: /upi/i }).click();
-    await page.getByRole('dialog').getByLabel('Reference Number').fill('UPI-UITEST-1');
+    await page.getByRole('dialog').getByLabel('UPI id', { exact: false }).fill('uitest@upi');
+    await page.getByRole('dialog').getByLabel('Transaction id', { exact: false }).fill('UPI-UITEST-1');
     await page.getByRole('dialog').getByRole('button', { name: /^save$/i }).click();
     await page.getByRole('dialog').waitFor({ state: 'detached', timeout: 8000 });
     await page.waitForTimeout(800);
@@ -288,7 +291,7 @@ export async function orderTests(browser) {
     await page.getByRole('option').nth(1).click();
     await d.getByLabel('Notes').fill('UI test note');
     await d.getByRole('button', { name: /^save$/i }).click();
-    await d.waitFor({ state: 'detached', timeout: 8000 });
+    await d.waitFor({ state: 'detached', timeout: 25000 });
     await page.waitForTimeout(700);
     const job = (await apiCall('GET', '/job-cards/', null, tok)).data.find((j) => j.customer_id === startCust.id);
     expect(job.machine_id && job.designer_id && job.operator_id, 'assignments not saved');

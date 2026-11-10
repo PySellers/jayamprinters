@@ -19,6 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { mainNavItems, mastersNavItems } from './navConfig';
 import { workflowApi } from '../../api/workflowApi';
 import logo from '../../assets/sjp-logo.png';
+import HelpChat from './HelpChat';
 
 const SIDEBAR_WIDTH = 260;
 const FIRST_YEAR = 2026;
@@ -202,6 +203,7 @@ export default function Layout() {
             &copy; {FIRST_YEAR}{year > FIRST_YEAR ? `–${year}` : ''} Sri Jayam Printers. All rights reserved. &nbsp;|&nbsp; Developed by PySellers Services Pvt Ltd, 8838587824
           </Typography>
         </Box>
+        <HelpChat />
       </Box>
     </Box>
   );

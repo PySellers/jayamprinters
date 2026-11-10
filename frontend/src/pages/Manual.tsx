@@ -28,10 +28,11 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    id: 'dashboard', title: '2. The Dashboard', who: 'Everyone',
+    id: 'dashboard', title: '2. The Dashboard and Live Jobs', who: 'Everyone',
     steps: [
-      'The four blue buttons at the top (Customers, Quotations, Job Cards, Invoices) show the totals. Click one to open that list.',
-      'Left: the quick order form. Right: Live Jobs - every running job with its status, who has it now and when it is due.',
+      'The home page opens on the order form (Start New Order). In the strip at the top the big RED button is Live Jobs: it shows how many jobs are running. Click it and the page changes to the Live Jobs board - every job on one page. The button then reads "Order online"; click it to go back to the order form.',
+      'The light-blue buttons Quotations, Job Cards and Invoices next to it show the totals; click one to open that list.',
+      'Above the order form the Dashboard warns you about two things: "Payments due" (customers who promised to pay the balance on a day that has come - press Remind to open a ready WhatsApp message with the amount) and "Stock to buy" (paper or material that is low or finished).',
       {
         head: 'Live Jobs',
         items: [
@@ -147,7 +148,60 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    id: 'help', title: '11. Something not working?', who: 'Everyone',
+    id: 'v13', title: '11. New in version 1.3', who: 'Everyone',
+    steps: [
+      {
+        head: 'Taking an order',
+        items: [
+          'The paper (paper name, board, GSM, paper size) is asked first, before colour, sides and finishing.',
+          'Services with sub-categories (for example Rubber Stamp) ask the Sub-category first and then the size. The Admin manages them under Pricing Setup > Items & Sub-categories.',
+          'Binding Services (and visiting cards) have required extras: for each one choose None, one of the options, or Custom to type your own. Binding options can be added by the Admin in Pricing Setup > Extra Charges (pick the section, for example Binding, and add the option).',
+          'Advance received: type the amount, how it was paid (cash, UPI, bank transfer, card) and for UPI / bank the id or reference and a photo of the receipt. The invoice and the bills show Advance and Balance.',
+          '"Balance will be paid by": if the customer pays the rest later, choose the day. On that day the Dashboard lists it under Payments due with a Remind button (WhatsApp message with the amount). You can also set or clear the day on the invoice page.',
+          'Below the Generate button you see the customer\'s earlier orders, one line each (date, bill, item, quantity, amount, balance) and a short summary - use it to give regular customers a better discount.',
+        ],
+      },
+      {
+        head: 'Payments and receipts',
+        items: [
+          'Every payment - from customers, to suppliers (Purchases) and to outside companies (Outsource) - can carry the UPI id, the bank details, the reference number and an uploaded photo / PDF of the receipt. A paperclip on the payment opens it.',
+        ],
+      },
+      {
+        head: 'Stock',
+        items: [
+          'Purchases: tick "One-time item" on a line for something bought for one job only. It is on the bill but is not added to the stock.',
+          'Inventory: tick "Customer\'s own material" and choose the customer for paper or material a customer brought. It is kept apart and is not in the shop\'s buy list.',
+          'Job card > Materials used: choose the stock item and quantity; it is taken off the stock at once and put back if you remove the line.',
+          'Set a reorder level on each item. When it is reached (or the stock is zero) the Dashboard shows "Stock to buy" and Inventory marks it Low or Empty.',
+        ],
+      },
+      {
+        head: 'Job cards and bills',
+        items: [
+          'Every line of the Job Cards list has a Print button at its end for the paper job card (with or without price). It prints on A4 landscape.',
+          'The paper job card shows only what belongs to the service: Xerox and Printout have no ink colours, margins, proofs or copy rows; bill books have a row per copy, margins and numbering; offset jobs have colours and proofs. Add more proof lines with "Add proof".',
+          'The job card printed "with price" leaves out the production steps and shows the price list, advance and balance, the design proofs and the delivery date.',
+          'The GST invoice and the cash bill follow the printed bill books (lavender page, logo, particulars with every option chosen, advance and balance). The delivery challan prints as a white form with blue outlines, ready for the yellow challan paper.',
+        ],
+      },
+      {
+        head: 'Admin',
+        items: [
+          'Customers > Export contacts: every customer and employee phone number as a .vcf file (open on the phone) or a Google Contacts .csv (contacts.google.com > Import).',
+          'Reports > Account statement: like a bank statement - serial number, date, particulars, debit, credit and balance, per day or per week, with the number of invoices and purchases in each group and a grand total. Choose Sales and purchases, or Money in and out. Download to Excel.',
+        ],
+      },
+      {
+        head: 'Help chat',
+        items: [
+          'The round button at the bottom right of every page opens the help chat. Type a question in your own words ("how do I add an advance?") and it shows the answer from this manual and a button to open the page. If it cannot answer, it gives the support contact.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'help', title: '12. Something not working?', who: 'Everyone',
     steps: [
       'The sign-in page appeared by itself: your 3 hours were up - sign in again.',
       '"This step belongs to ...": someone else has taken that task. Ask the Admin or Counter to reassign it.',
@@ -165,8 +219,9 @@ const ROLE_ROWS: [string, string, string, string, string][] = [
   ['Delete invoices, job cards or payments', 'Yes', 'No', 'No', 'Payments only'],
   ['Outsource', 'Yes', 'Yes', 'No', 'Yes'],
   ['Purchases, Cash Ledger', 'Yes', 'No', 'No', 'Yes'],
-  ['Pricing Setup, Users, Masters, Work Centers, Workflows', 'Yes', 'No', 'No', 'No'],
-  ['Reports (sales, profit) and AI Insights', 'Yes', 'No', 'No', 'No'],
+  ['Pricing Setup (incl. items and sub-categories), Users, Masters, Work Centers, Workflows', 'Yes', 'No', 'No', 'No'],
+  ['Export contacts (Customers page)', 'Yes', 'No', 'No', 'No'],
+  ['Reports (sales, profit, account statement) and AI Insights', 'Yes', 'No', 'No', 'No'],
 ];
 
 export default function Manual() {

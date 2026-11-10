@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, TextField, Dialog, DialogTitle, DialogContent, DialogActions,
-  Stack, CircularProgress,
+  Stack, CircularProgress, Menu, MenuItem, Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -13,8 +13,14 @@ import SearchIcon from '@mui/icons-material/Search';
 import { customersApi } from '../api/customersApi';
 import type { Customer, CustomerInput } from '../types/customers';
 import ConfirmDialog from '../components/ConfirmDialog';
+import ContactsIcon from '@mui/icons-material/ContactPhone';
+import { useAuth } from '../context/AuthContext';
 
 export default function Customers() {
+  const { user } = useAuth();
+  const [exportMenu, setExportMenu] = useState<HTMLElement | null>(null);
+  const [exportNote, setExportNote] = useState<string | null>(null);
+  const countQuery = useQuery({ queryKey: ['contact-count'], queryFn: customersApi.contactCount, enabled: user?.role === 'admin' });
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -76,10 +82,28 @@ export default function Customers() {
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
           Customers
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={openCreate}>
-          Add Customer
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {user?.role === 'admin' && (
+            <>
+              <Button variant="outlined" startIcon={<ContactsIcon />} onClick={(e) => setExportMenu(e.currentTarget)} data-testid="export-contacts">
+                Export contacts{countQuery.data != null ? ` (${countQuery.data})` : ''}
+              </Button>
+              <Menu anchorEl={exportMenu} open={Boolean(exportMenu)} onClose={() => setExportMenu(null)}>
+                <MenuItem data-testid="export-vcf" onClick={async () => { setExportMenu(null); await customersApi.exportContacts('vcf'); setExportNote('Saved sri-jayam-contacts.vcf - open it on the phone (or in Google Contacts: Import) to save every number.'); }}>
+                  Phone / Google Contacts file (.vcf)
+                </MenuItem>
+                <MenuItem data-testid="export-csv" onClick={async () => { setExportMenu(null); await customersApi.exportContacts('csv'); setExportNote('Saved sri-jayam-contacts.csv - in contacts.google.com choose Import and pick this file.'); }}>
+                  Google Contacts CSV (.csv)
+                </MenuItem>
+              </Menu>
+            </>
+          )}
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={openCreate}>
+            Add Customer
+          </Button>
+        </Box>
       </Box>
+      {exportNote && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setExportNote(null)} data-testid="export-note">{exportNote}</Alert>}
 
       <TextField
         placeholder="Search by name or phone..."

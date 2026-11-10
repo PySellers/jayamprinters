@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user, require_role
 from app.models.customer import Customer
-from app.models.outsource import OutsourceJob, OutsourceStatus
+from app.models.outsource import OutsourceJob, OutsourcePayment as OutsourcePaymentRow, OutsourceStatus
 from app.models.purchase import Vendor
 from app.models.user import User, UserRole
 from app.schemas.outsource import OutsourceCreate, OutsourceOut, OutsourcePayment, OutsourceUpdate
@@ -91,6 +91,7 @@ def pay_job(job_id: int, data: OutsourcePayment, db: Session = Depends(get_db)):
             detail=f"Payment of Rs. {data.amount:.2f} is more than the balance owed (Rs. {max(balance, 0):.2f})",
         )
     job.amount_paid = round((job.amount_paid or 0) + data.amount, 2)
+    db.add(OutsourcePaymentRow(job_id=job.id, **data.model_dump()))
     db.commit()
     db.refresh(job)
     return _out(job)

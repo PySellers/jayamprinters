@@ -120,6 +120,8 @@ def delete_payment(db: Session, payment_id: int) -> None:
     if not payment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
     invoice = payment.invoice
+    from app.models.payment_proof import PaymentProof
+    db.query(PaymentProof).filter(PaymentProof.kind == "sale", PaymentProof.payment_id == payment.id).delete()
     db.delete(payment)
     db.commit()
     db.refresh(invoice)

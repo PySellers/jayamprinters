@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, FormControlLabel, Switch, Checkbox, Stack } from '@mui/material';
+import { Autocomplete, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem, FormControlLabel, Switch, Checkbox, Stack } from '@mui/material';
 import type { ChargeType, ExtraCharge, ExtraChargeInput } from '../../types/extraCharges';
 
 const CHARGE_TYPES: ChargeType[] = ['flat', 'per_unit', 'per_set', 'per_sqft', 'percentage'];
@@ -11,9 +11,11 @@ interface ExtraChargeFormDialogProps {
   onSave: (values: Omit<ExtraChargeInput, 'category_id'> & { global: boolean }) => void;
   onCancel: () => void;
   loading?: boolean;
+  /** Sections already used by this service's charges, offered in the Section box. */
+  groups?: string[];
 }
 
-export default function ExtraChargeFormDialog({ open, title, initialValues, onSave, onCancel, loading }: ExtraChargeFormDialogProps) {
+export default function ExtraChargeFormDialog({ open, title, initialValues, onSave, onCancel, loading, groups = [] }: ExtraChargeFormDialogProps) {
   const [name, setName] = useState('');
   const [chargeType, setChargeType] = useState<ChargeType>('flat');
   const [amount, setAmount] = useState('0');
@@ -59,7 +61,13 @@ export default function ExtraChargeFormDialog({ open, title, initialValues, onSa
           </TextField>
           <TextField label="Amount" type="number" slotProps={{ htmlInput: { step: 'any' } }} value={amount} onChange={(e) => setAmount(e.target.value)} fullWidth />
           <TextField label="Never less than (optional)" type="number" slotProps={{ htmlInput: { step: 'any', min: 0 } }} value={minAmount} onChange={(e) => setMinAmount(e.target.value)} fullWidth helperText="The least this charge comes to once chosen, e.g. thermal lamination at least 150." />
-          <TextField label="Section (optional)" value={groupName} onChange={(e) => setGroupName(e.target.value)} fullWidth helperText="Charges with the same section name become one dropdown (pick one), e.g. Lamination." />
+          <Autocomplete
+            freeSolo options={groups} inputValue={groupName} onInputChange={(_, v) => setGroupName(v)}
+            renderInput={(params) => (
+              <TextField {...params} label="Section (optional)" helperText="Charges with the same section name become one dropdown (pick one), e.g. Binding. Pick a section to add another option to it, or type a new one."
+                slotProps={{ ...params.slotProps, htmlInput: { ...params.slotProps.htmlInput, 'data-testid': 'charge-section' } }} />
+            )}
+          />
           <FormControlLabel
             control={<Checkbox checked={global} onChange={(e) => setGlobal(e.target.checked)} />}
             label="Apply to all categories (global)"

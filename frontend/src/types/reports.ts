@@ -91,3 +91,35 @@ export interface Insights {
   receivables: { total: number; aging: { bucket: string; amount: number }[]; top: { name: string; amount: number }[] };
   recommendations: InsightTip[];
 }
+
+
+export interface LedgerEntry {
+  sr: number;
+  date: string;
+  kind: string;
+  particulars: string;
+  ref: string;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface LedgerPeriod {
+  period_start: string;
+  label: string;
+  entries: LedgerEntry[];
+  debit: number;
+  credit: number;
+  closing: number;
+  summary: string;
+}
+
+/** Bank-statement style account statement (serial no., particulars, debit, credit, balance). */
+export interface AccountStatement {
+  start: string;
+  end: string;
+  group: 'day' | 'week';
+  basis: 'accrual' | 'cash';
+  periods: LedgerPeriod[];
+  totals: { entries: number; debit: number; credit: number; balance: number; counts: Record<string, number>; summary: string };
+}

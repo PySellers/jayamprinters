@@ -13,6 +13,7 @@ import { getErrorMessage } from '../../utils/api';
 import { PriceBreakdownTable } from '../quotations/PriceBreakdown';
 import ProofsPanel from './ProofsPanel';
 import JobTasksPanel from './JobTasksPanel';
+import JobMaterialsPanel from './JobMaterialsPanel';
 
 const STAGE_COLOR: Record<string, string> = {
   pending: '#757575', design: '#6a1b9a', approval: '#ef6c00', printing: '#1565c0', binding: '#00838f', packing: '#2e7d32', delivered: '#1b5e20',
@@ -42,6 +43,7 @@ export default function JobDetailPanel({ jobCardId, canEdit = true }: { jobCardI
     refetchInterval: 20000,
   });
   const printMutation = useMutation({ mutationFn: (withPrice: boolean) => jobCardsApi.printCard(jobCardId, withPrice) });
+  const sheetPrint = useMutation({ mutationFn: (withPrice: boolean) => jobCardsApi.printSheet(jobCardId, withPrice) });
   const urgentMutation = useMutation({
     mutationFn: (urgent: boolean) => jobCardsApi.update(jobCardId, { priority: urgent ? 'urgent' : 'medium' }),
     onSuccess: () => {
@@ -113,6 +115,9 @@ export default function JobDetailPanel({ jobCardId, canEdit = true }: { jobCardI
       {/* who is doing which task: take / assign / add a task */}
       <JobTasksPanel jobCardId={jobCardId} delivered={d.status === 'delivered'} />
 
+      {/* stock used by the job: reduces the stock */}
+      <JobMaterialsPanel jobCardId={jobCardId} canEdit={canEdit} />
+
       {/* everything chosen for the job */}
       <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1a237e', mb: 1 }}>Specification</Typography>
@@ -173,6 +178,9 @@ export default function JobDetailPanel({ jobCardId, canEdit = true }: { jobCardI
           <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1a237e', flexGrow: 1 }}>Print this job card</Typography>
           <Button variant="contained" startIcon={<PrintIcon />} sx={{ bgcolor: '#1a237e' }} disabled={printMutation.isPending} onClick={() => printMutation.mutate(false)} data-testid="print-no-price">
             Print without price
+          </Button>
+          <Button variant="outlined" startIcon={<PrintIcon />} disabled={sheetPrint.isPending} onClick={() => sheetPrint.mutate(false)} data-testid="print-paper-card">
+            Paper job card
           </Button>
           <Button variant="outlined" startIcon={<PrintIcon />} disabled={printMutation.isPending} onClick={() => printMutation.mutate(true)} data-testid="print-with-price">
             Print with price

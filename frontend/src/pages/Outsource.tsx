@@ -14,6 +14,9 @@ import { customersApi } from '../api/customersApi';
 import { getErrorMessage } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PaymentDetailsFields, { detailsPayload, emptyPaymentDetails, type PaymentDetails } from '../components/PaymentDetailsFields';
+import { paymentProofApi } from '../api/extraApi';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import type { OutsourceJob, OutsourceStatus } from '../types/outsource';
 
 const STATUSES: { value: OutsourceStatus; label: string; color: 'default' | 'info' | 'warning' | 'success' | 'error' }[] = [
@@ -59,6 +62,7 @@ export default function Outsource() {
   const [form, setForm] = useState<FormState>(blank());
   const [paying, setPaying] = useState<OutsourceJob | null>(null);
   const [payAmount, setPayAmount] = useState('');
+  const [payDetails, setPayDetails] = useState<PaymentDetails>(emptyPaymentDetails());
   const [deleting, setDeleting] = useState<OutsourceJob | null>(null);
   const [filter, setFilter] = useState<'all' | 'open' | 'unpaid'>('all');
 
@@ -114,8 +118,15 @@ export default function Outsource() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['outsource'] }),
   });
   const pay = useMutation({
-    mutationFn: () => outsourceApi.pay(paying!.id, Number(payAmount)),
+    mutationFn: async () => {
+      const before = new Set((paying?.payments ?? []).map((x) => x.id));
+      const updated = await outsourceApi.pay(paying!.id, { amount: Number(payAmount), ...detailsPayload(payDetails) });
+      const created = (updated.payments ?? []).find((x) => !before.has(x.id));
+      if (created && payDetails.file) await paymentProofApi.upload('outsource', created.id, payDetails.file);
+      return updated;
+    },
     onSuccess: () => {
+      setPayDetails(emptyPaymentDetails());
       queryClient.invalidateQueries({ queryKey: ['outsource'] });
       setPaying(null);
     },
@@ -214,7 +225,7 @@ export default function Outsource() {
                   <TableCell align="right" sx={{ color: j.margin < 0 ? 'error.main' : 'success.main', fontWeight: 700 }}>{money(j.margin)}</TableCell>
                   <TableCell align="right">{j.balance_to_pay > 0 ? <strong>{money(j.balance_to_pay)}</strong> : <Chip size="small" color="success" label="Paid" />}</TableCell>
                   <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                    {j.balance_to_pay > 0 && <IconButton size="small" aria-label="Pay outside company" onClick={() => { setPaying(j); setPayAmount(String(j.balance_to_pay)); pay.reset(); }}><PaymentsIcon fontSize="small" /></IconButton>}
+                    {j.balance_to_pay > 0 && <IconButton size="small" aria-label="Pay outside company" onClick={() => { setPaying(j); setPayAmount(String(j.balance_to_pay)); setPayDetails(emptyPaymentDetails()); pay.reset(); }}><PaymentsIcon fontSize="small" /></IconButton>}
                     <IconButton size="small" aria-label="Edit" onClick={() => openEdit(j)}><EditIcon fontSize="small" /></IconButton>
                     {isAdmin && <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(j)}><DeleteIcon fontSize="small" /></IconButton>}
                   </TableCell>
@@ -278,6 +289,18 @@ export default function Outsource() {
           <Stack spacing={2} sx={{ mt: 1 }}>
             <Typography variant="body2" color="text.secondary">{paying?.job_number} — balance owed {money(paying?.balance_to_pay ?? 0)}</Typography>
             <TextField label="Amount paid" type="number" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} slotProps={MONEY_PROPS} autoFocus />
+            <PaymentDetailsFields value={payDetails} onChange={setPayDetails} idPrefix="os-pay" />
+            {(paying?.payments ?? []).length > 0 && (
+              <Box data-testid="os-payments">
+                <Typography variant="caption" color="text.secondary">Paid so far</Typography>
+                {(paying?.payments ?? []).map((x) => (
+                  <Box key={x.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: 13 }}>
+                    <span>{x.payment_date} · {money(x.amount)} · {[x.method, x.upi_id && `UPI ${x.upi_id}`, x.bank_details, x.reference_number].filter(Boolean).join(' · ')}</span>
+                    {x.has_proof && <IconButton size="small" aria-label="Open receipt" onClick={() => paymentProofApi.open('outsource', x.id)}><AttachFileIcon fontSize="inherit" /></IconButton>}
+                  </Box>
+                ))}
+              </Box>
+            )}
           </Stack>
         </DialogContent>
         <DialogActions>

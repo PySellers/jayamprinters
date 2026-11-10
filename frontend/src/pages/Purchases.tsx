@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Tabs, Tab, Table, TableHead, TableRow, TableCell, TableBody,
-  Button, IconButton, TextField, MenuItem, Chip, Dialog, DialogTitle, DialogContent,
+  Button, IconButton, TextField, Checkbox, FormControlLabel, Chip, Dialog, DialogTitle, DialogContent,
   DialogActions, Stack, CircularProgress, Alert, Grid,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -17,14 +17,14 @@ import { purchasesApi } from '../api/purchasesApi';
 import { inventoryApi } from '../api/inventoryApi';
 import { getErrorMessage } from '../utils/api';
 import type { Vendor, VendorInput, Purchase, PurchaseInput } from '../types/purchases';
-import type { PaymentMethod } from '../types/common';
+import PaymentDetailsFields, { detailsPayload, emptyPaymentDetails, type PaymentDetails } from '../components/PaymentDetailsFields';
+import { paymentProofApi } from '../api/extraApi';
 import EntitySelect from '../components/pickers/EntitySelect';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
   unpaid: 'default', partially_paid: 'warning', paid: 'success',
 };
-const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'upi', 'card', 'credit', 'bank_transfer'];
 
 function VendorsTab() {
   const queryClient = useQueryClient();
@@ -138,7 +138,7 @@ function VendorsTab() {
   );
 }
 
-const emptyLine: { inventory_item_id: number; quantity: number; unit_price: number; new_item_name?: string } = { inventory_item_id: 0, quantity: 1, unit_price: 0 };
+const emptyLine: { inventory_item_id: number; quantity: number; unit_price: number; new_item_name?: string; one_time?: boolean; custom_name?: string } = { inventory_item_id: 0, quantity: 1, unit_price: 0 };
 
 function PurchasesTab() {
   const queryClient = useQueryClient();
@@ -150,7 +150,7 @@ function PurchasesTab() {
 
   const vendorName = (id: number) => vendorsQuery.data?.find((v) => v.id === id)?.name ?? `#${id}`;
 
-  const { control, register, handleSubmit, reset, getValues, setValue } = useForm<PurchaseInput>({
+  const { control, register, handleSubmit, reset, getValues, setValue, watch } = useForm<PurchaseInput>({
     defaultValues: { vendor_id: 0, notes: '', items: [emptyLine] },
   });
   const { fields, append, remove, replace } = useFieldArray({ control, name: 'items' });
@@ -195,6 +195,11 @@ function PurchasesTab() {
       if (!vendorId && newVendor) vendorId = (await vendorsApi.create({ name: newVendor.name, gstin: newVendor.gstin ?? undefined })).id;
       const items = [];
       for (const item of data.items as (typeof emptyLine)[]) {
+        if (item.one_time) {
+          // used once for a job: on the bill and in the expenses, but never added to the stock
+          items.push({ inventory_item_id: null, custom_name: (item.custom_name ?? '').trim(), quantity: item.quantity, unit_price: item.unit_price });
+          continue;
+        }
         let itemId = item.inventory_item_id;
         if (!itemId && item.new_item_name) itemId = (await inventoryApi.create({ name: item.new_item_name, unit: 'pcs', current_qty: 0, reorder_threshold: 0 })).id;
         items.push({ inventory_item_id: itemId, quantity: item.quantity, unit_price: item.unit_price });
@@ -214,16 +219,23 @@ function PurchasesTab() {
     },
   });
 
-  const { register: registerPay, handleSubmit: handlePaySubmit, reset: resetPay } = useForm<{ amount: number; method: PaymentMethod }>({
-    defaultValues: { amount: 0, method: 'cash' },
+  const { register: registerPay, handleSubmit: handlePaySubmit, reset: resetPay } = useForm<{ amount: number }>({
+    defaultValues: { amount: 0 },
   });
+  const [payDetails, setPayDetails] = useState<PaymentDetails>(emptyPaymentDetails());
   const paymentMutation = useMutation({
-    mutationFn: (vars: { id: number; amount: number; method: PaymentMethod }) =>
-      purchasesApi.addPayment(vars.id, { amount: vars.amount, method: vars.method }),
+    mutationFn: async (vars: { id: number; amount: number }) => {
+      const before = new Set((paymentTarget?.payments ?? []).map((x) => x.id));
+      const updated = await purchasesApi.addPayment(vars.id, { amount: vars.amount, ...detailsPayload(payDetails) });
+      const created = updated.payments.find((x) => !before.has(x.id));
+      if (created && payDetails.file) await paymentProofApi.upload('purchase', created.id, payDetails.file);
+      return updated;
+    },
     onSuccess: () => {
+      setPayDetails(emptyPaymentDetails());
       queryClient.invalidateQueries({ queryKey: ['purchases'] });
       setPaymentTarget(null);
-      resetPay({ amount: 0, method: 'cash' });
+      resetPay({ amount: 0 });
     },
   });
 
@@ -335,6 +347,14 @@ function PurchasesTab() {
               {fields.map((f, index) => (
                 <Grid container spacing={1} key={f.id} sx={{ alignItems: 'center' }}>
                   <Grid size={{ xs: 5 }}>
+                    <FormControlLabel
+                      sx={{ m: 0, display: 'flex' }}
+                      control={<Checkbox size="small" sx={{ p: 0.5 }} checked={Boolean(watch(`items.${index}.one_time` as never))} onChange={(e) => setValue(`items.${index}.one_time` as never, e.target.checked as never)} slotProps={{ input: { 'aria-label': 'One-time item', ...({ 'data-testid': `one-time-${index}` } as object) } }} />}
+                      label={<Typography variant="caption">One-time item (not kept in stock)</Typography>}
+                    />
+                    {Boolean(watch(`items.${index}.one_time` as never)) ? (
+                      <TextField label="One-time item name" size="small" fullWidth required {...register(`items.${index}.custom_name` as never, { required: true })} slotProps={{ htmlInput: { 'data-testid': `one-time-name-${index}` } }} />
+                    ) : (<>
                     {f && (getValues(`items.${index}.new_item_name` as never) as unknown as string | undefined) && !getValues(`items.${index}.inventory_item_id`) && (
                       <Typography variant="caption" color="info.main" sx={{ display: 'block', mb: 0.25 }}>
                         New stock item: {String(getValues(`items.${index}.new_item_name` as never))} (added when you save) — or pick an existing item:
@@ -343,7 +363,7 @@ function PurchasesTab() {
                     <Controller
                       name={`items.${index}.inventory_item_id`}
                       control={control}
-                      rules={{ validate: (v) => v > 0 || Boolean(getValues(`items.${index}.new_item_name` as never)) || 'Required' }}
+                      rules={{ validate: (v) => (v ?? 0) > 0 || Boolean(getValues(`items.${index}.new_item_name` as never)) || 'Required' }}
                       render={({ field }) => (
                         <EntitySelect
                           label="Inventory Item" required size="small" mode="list" queryKey="inventory-item-picker"
@@ -352,6 +372,7 @@ function PurchasesTab() {
                         />
                       )}
                     />
+                    </>)}
                   </Grid>
                   <Grid size={{ xs: 3 }}>
                     <TextField label="Quantity" type="number" slotProps={{ htmlInput: { step: 'any' } }} size="small" fullWidth {...register(`items.${index}.quantity`, { valueAsNumber: true, min: 0.01 })} />
@@ -380,7 +401,7 @@ function PurchasesTab() {
       </Dialog>
 
       <Dialog open={Boolean(paymentTarget)} onClose={() => setPaymentTarget(null)} maxWidth="xs" fullWidth>
-        <form onSubmit={handlePaySubmit((data) => paymentTarget && paymentMutation.mutate({ id: paymentTarget.id, amount: Number(data.amount), method: data.method }))}>
+        <form onSubmit={handlePaySubmit((data) => paymentTarget && paymentMutation.mutate({ id: paymentTarget.id, amount: Number(data.amount) }))}>
           <DialogTitle>Record Payment -- {paymentTarget?.purchase_number}</DialogTitle>
           <DialogContent>
             {paymentMutation.isError && <Alert severity="error" sx={{ mb: 2 }}>{getErrorMessage(paymentMutation.error, 'Failed to record payment')}</Alert>}
@@ -389,9 +410,7 @@ function PurchasesTab() {
                 label="Amount" type="number" slotProps={{ htmlInput: { step: 'any' } }} fullWidth required
                 {...registerPay('amount', { required: true, valueAsNumber: true, min: 0.01, max: paymentTarget ? paymentTarget.total_amount - paymentTarget.paid_amount : undefined })}
               />
-              <TextField label="Method" select fullWidth defaultValue="cash" {...registerPay('method')}>
-                {PAYMENT_METHODS.map((m) => <MenuItem key={m} value={m}>{m.replace('_', ' ')}</MenuItem>)}
-              </TextField>
+              <PaymentDetailsFields value={payDetails} onChange={setPayDetails} idPrefix="pur-pay" />
             </Stack>
           </DialogContent>
           <DialogActions>

@@ -7,6 +7,8 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import PrintIcon from '@mui/icons-material/Print';
+import AddIcon from '@mui/icons-material/Add';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { getErrorMessage } from '../utils/api';
 import type { JobCardSheetData, SheetPaymentKey } from '../types/jobCards';
@@ -16,19 +18,11 @@ import { useAuth } from '../context/AuthContext';
 const INK = '#1a237e';
 const border = `1px solid ${INK}`;
 
-const TYPE_OPTIONS = ['Offset', 'Screen', 'Multi Colour', 'Xerox', 'B/W Printout', 'Colour Printout'];
 const COLOUR_OPTIONS = ['Royal Blue', 'Peacock Blue', 'Green', 'Red', 'Mejentha', 'Merun', 'Brown', 'Black'];
 const MARGIN_OPTIONS = ['Centre', 'Top', 'Left', 'Right'];
-// The paper card's job position ticks, plus Delivery / Half Payment / Full Payment.
-const POSITION_OPTIONS = [
-  '1st Proof', '2nd Proof', 'Proof OK', 'Tracing', 'Master', 'Screen', 'Printing', 'Binding', 'Ready',
-  'Delivery', 'Half Payment', 'Full Payment',
-];
-const PAYMENT_ROWS: [SheetPaymentKey, string][] = [
-  ['first', '1st'], ['rate', 'Rate'], ['advance', 'Advance'], ['balance1', 'Balance'],
-  ['ap_advance', 'A.P.Advance'], ['balance2', 'Balance'], ['dtp', 'D.T.P'], ['proof', 'PROOF'],
-  ['printing', 'PRINTING'], ['binding', 'BINDING'], ['packing', 'PACKING'], ['delivery', 'DELIVERY'],
-];
+const PAYMENT_LABELS: Partial<Record<SheetPaymentKey, string>> = { first: 'Bill total', rate: 'Rate', advance: 'Advance paid', balance1: 'Balance' };
+type PaperCol = 'range' | 'kgs' | 'colour' | 'qty' | 'cutting' | 'printing';
+const COL_WEIGHT: Record<PaperCol, string> = { range: '1.5fr', kgs: '0.8fr', colour: '1fr', qty: '1fr', cutting: '1fr', printing: '1.4fr' };
 const COPY_LABELS = ['1st Copy', '2nd Copy', '3rd Copy', '4th Copy'];
 
 const fmtDate = (iso?: string | null) => (iso ? iso.split('-').reverse().join('/') : '');
@@ -160,6 +154,15 @@ export default function JobCardSheet() {
   }
 
   const meta = sheetQuery.data;
+  const profile = meta.profile;
+  const labels = profile.paper_labels;
+  const cols: PaperCol[] = (['range', 'kgs', 'colour', 'qty', 'cutting', 'printing'] as PaperCol[]).filter((c) => {
+    if (c === 'cutting') return profile.show_cutting;
+    return Boolean(labels[c]);
+  });
+  const copyColumn = profile.copy_rows > 1;
+  const colLabel = (c: PaperCol) => (c === 'cutting' ? 'Cutting Size' : labels[c]);
+  const moreProofs = sheet.more_proofs ?? [];
   const cell = { borderRight: border, borderBottom: border, p: 0.5, display: 'flex', alignItems: 'center' } as const;
   const headCell = { ...cell, justifyContent: 'center', fontWeight: 700, fontSize: 13, bgcolor: '#eef0fa' } as const;
 
@@ -174,6 +177,12 @@ export default function JobCardSheet() {
         </Typography>
         <Button variant="outlined" onClick={() => navigate(`/job-cards/${id}/track`)}>
           Track progress
+        </Button>
+        <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => jobCardsApi.printSheet(jobCardId, false)} data-testid="sheet-print">
+          Print
+        </Button>
+        <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => jobCardsApi.printSheet(jobCardId, true)} data-testid="sheet-print-price">
+          Print with price
         </Button>
         <Button
           variant="contained"
@@ -244,10 +253,12 @@ export default function JobCardSheet() {
           </Box>
 
           {/* ---- type of printing ---- */}
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'center', px: 1.5, py: 0.75, borderBottom: border }}>
-            <Typography sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Type of Printing :</Typography>
-            <CheckList row options={TYPE_OPTIONS} value={sheet.type_of_printing} onChange={(v) => set('type_of_printing', v)} />
-          </Stack>
+          {profile.type_options.length > 0 && (
+            <Stack direction="row" spacing={2} sx={{ alignItems: 'center', px: 1.5, py: 0.75, borderBottom: border }} data-testid="sheet-types">
+              <Typography sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Type of Printing :</Typography>
+              <CheckList row options={profile.type_options} value={sheet.type_of_printing} onChange={(v) => set('type_of_printing', v)} />
+            </Stack>
+          )}
 
           {/* ---- main body: left stack + payment column ---- */}
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 290px' }}>
@@ -255,14 +266,28 @@ export default function JobCardSheet() {
               {/* proof / delivery + paper details */}
               <Box sx={{ display: 'grid', gridTemplateColumns: '170px 1fr', borderBottom: border }}>
                 <Box sx={{ borderRight: border, p: 1 }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: 13 }}>Proof Date-Time</Typography>
-                  <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>Proof 1</Typography>
-                  <Plain type="date" value={sheet.proof1_date} onChange={(v) => set('proof1_date', v)} />
-                  <Plain type="time" value={sheet.proof1_time} onChange={(v) => set('proof1_time', v)} />
-                  <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>Proof 2 (optional)</Typography>
-                  <Plain type="date" value={sheet.proof2_date} onChange={(v) => set('proof2_date', v)} />
-                  <Plain type="time" value={sheet.proof2_time} onChange={(v) => set('proof2_time', v)} />
-                  <Typography sx={{ fontWeight: 700, fontSize: 13, mt: 1.5 }}>Delivery Date-Time</Typography>
+                  {profile.show_proofs && (
+                    <Box data-testid="sheet-proofs">
+                      <Typography sx={{ fontWeight: 700, fontSize: 13 }}>Proof Date-Time</Typography>
+                      <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>Proof 1</Typography>
+                      <Plain type="date" value={sheet.proof1_date} onChange={(v) => set('proof1_date', v)} />
+                      <Plain type="time" value={sheet.proof1_time} onChange={(v) => set('proof1_time', v)} />
+                      <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>Proof 2 (optional)</Typography>
+                      <Plain type="date" value={sheet.proof2_date} onChange={(v) => set('proof2_date', v)} />
+                      <Plain type="time" value={sheet.proof2_time} onChange={(v) => set('proof2_time', v)} />
+                      {moreProofs.map((pr, i) => (
+                        <Box key={i}>
+                          <Typography sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>Proof {i + 3}</Typography>
+                          <Plain type="date" value={pr.date} onChange={(v) => set('more_proofs', moreProofs.map((x, k) => (k === i ? { ...x, date: v } : x)))} />
+                          <Plain type="time" value={pr.time} onChange={(v) => set('more_proofs', moreProofs.map((x, k) => (k === i ? { ...x, time: v } : x)))} />
+                        </Box>
+                      ))}
+                      <Button size="small" startIcon={<AddIcon />} sx={{ mt: 0.5 }} data-testid="sheet-add-proof" onClick={() => set('more_proofs', [...moreProofs, { date: '', time: '' }])}>
+                        Add proof line
+                      </Button>
+                    </Box>
+                  )}
+                  <Typography sx={{ fontWeight: 700, fontSize: 13, mt: profile.show_proofs ? 1.5 : 0 }}>Delivery Date-Time</Typography>
                   <Plain type="date" value={sheet.delivery_date} onChange={(v) => set('delivery_date', v)} />
                   <Plain type="time" value={sheet.delivery_time} onChange={(v) => set('delivery_time', v)} />
                 </Box>
@@ -270,60 +295,63 @@ export default function JobCardSheet() {
                 <Box>
                   <Heading>Paper Details</Heading>
                   <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: '78px 1.1fr 0.7fr 1fr 0.8fr 1fr 1.1fr',
-                      borderTop: border,
-                      mt: '-1px',
-                    }}
+                    data-testid="sheet-paper"
+                    sx={{ display: 'grid', gridTemplateColumns: `${copyColumn ? '78px ' : ''}${cols.map((c) => COL_WEIGHT[c]).join(' ')}`, borderTop: border, mt: '-1px' }}
                   >
-                    {['Range', 'K.gs', 'Colour', 'Qty', 'Cutting Size', 'Printing'].map((h, i) => (
-                      <Box key={h} sx={{ ...headCell, gridRow: 1, gridColumn: i + 2 }}>{h}</Box>
-                    ))}
-                    <Box sx={{ ...headCell, gridRow: 1, gridColumn: 1 }} />
+                    {copyColumn && <Box sx={headCell} />}
+                    {cols.map((c) => <Box key={c} sx={headCell}>{colLabel(c)}</Box>)}
                     {sheet.paper.map((row, r) => (
                       <Box key={r} sx={{ display: 'contents' }}>
-                        <Box sx={{ ...cell, gridRow: r + 2, gridColumn: 1, fontSize: 12, color: 'text.secondary' }}>{COPY_LABELS[r]}</Box>
-                        <Box sx={{ ...cell, gridRow: r + 2, gridColumn: 2 }}><Plain value={row.range} onChange={(v) => setPaper(r, 'range', v)} /></Box>
-                        <Box sx={{ ...cell, gridRow: r + 2, gridColumn: 3 }}><Plain value={row.kgs} onChange={(v) => setPaper(r, 'kgs', v)} /></Box>
-                        <Box sx={{ ...cell, gridRow: r + 2, gridColumn: 4 }}><Plain value={row.colour} onChange={(v) => setPaper(r, 'colour', v)} /></Box>
-                        <Box sx={{ ...cell, gridRow: r + 2, gridColumn: 5 }}><Plain value={row.qty} onChange={(v) => setPaper(r, 'qty', v)} /></Box>
-                        <Box sx={{ ...cell, gridRow: r + 2, gridColumn: 7 }}>
-                          <Plain value={row.printing} placeholder={COPY_LABELS[r]} onChange={(v) => setPaper(r, 'printing', v)} />
-                        </Box>
+                        {copyColumn && <Box sx={{ ...cell, fontSize: 12, color: 'text.secondary' }}>{COPY_LABELS[r]}</Box>}
+                        {cols.map((c) => (
+                          c === 'cutting' ? (
+                            r === 0 ? (
+                              <Box key={c} sx={{ ...cell, gridRow: `span ${sheet.paper.length}` }}>
+                                <Plain value={sheet.cutting_size} onChange={(v) => set('cutting_size', v)} />
+                              </Box>
+                            ) : null
+                          ) : (
+                            <Box key={c} sx={cell}><Plain value={row[c]} onChange={(v) => setPaper(r, c, v)} /></Box>
+                          )
+                        ))}
                       </Box>
                     ))}
-                    <Box sx={{ ...cell, gridRow: '2 / span 4', gridColumn: 6 }}>
-                      <Plain value={sheet.cutting_size} onChange={(v) => set('cutting_size', v)} />
-                    </Box>
                   </Box>
                 </Box>
               </Box>
 
-              {/* printing colour / margin / no details */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1.3fr 0.8fr 1.2fr', borderBottom: border }}>
-                <Box sx={{ borderRight: border }}>
-                  <Heading>Printing Colour</Heading>
-                  <Box sx={{ p: 1 }}>
-                    <CheckList options={COLOUR_OPTIONS} columns={2} value={sheet.printing_colours} onChange={(v) => set('printing_colours', v)} />
-                  </Box>
+              {/* printing colour / margin / no details: only for the services that have them */}
+              {(profile.show_colours || profile.show_margin || profile.show_numbering) && (
+                <Box sx={{ display: 'grid', gridTemplateColumns: [profile.show_colours && '1.3fr', profile.show_margin && '0.8fr', profile.show_numbering && '1.2fr'].filter(Boolean).join(' '), borderBottom: border }} data-testid="sheet-extras">
+                  {profile.show_colours && (
+                    <Box sx={{ borderRight: border }}>
+                      <Heading>Printing Colour</Heading>
+                      <Box sx={{ p: 1 }}>
+                        <CheckList options={COLOUR_OPTIONS} columns={2} value={sheet.printing_colours} onChange={(v) => set('printing_colours', v)} />
+                      </Box>
+                    </Box>
+                  )}
+                  {profile.show_margin && (
+                    <Box sx={{ borderRight: border }}>
+                      <Heading>Margin</Heading>
+                      <Box sx={{ p: 1 }}>
+                        <CheckList options={MARGIN_OPTIONS} value={sheet.margins} onChange={(v) => set('margins', v)} />
+                      </Box>
+                    </Box>
+                  )}
+                  {profile.show_numbering && (
+                    <Box>
+                      <Heading>No Details</Heading>
+                      <Box sx={{ p: 1 }}>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Serial No. From - To</Typography>
+                        <TextField variant="standard" size="small" fullWidth value={sheet.serial_from_to} onChange={(e) => set('serial_from_to', e.target.value)} />
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>Book No. From - To</Typography>
+                        <TextField variant="standard" size="small" fullWidth value={sheet.book_from_to} onChange={(e) => set('book_from_to', e.target.value)} />
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
-                <Box sx={{ borderRight: border }}>
-                  <Heading>Margin</Heading>
-                  <Box sx={{ p: 1 }}>
-                    <CheckList options={MARGIN_OPTIONS} value={sheet.margins} onChange={(v) => set('margins', v)} />
-                  </Box>
-                </Box>
-                <Box>
-                  <Heading>No Details</Heading>
-                  <Box sx={{ p: 1 }}>
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Serial No. From - To</Typography>
-                    <TextField variant="standard" size="small" fullWidth value={sheet.serial_from_to} onChange={(e) => set('serial_from_to', e.target.value)} />
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>Book No. From - To</Typography>
-                    <TextField variant="standard" size="small" fullWidth value={sheet.book_from_to} onChange={(e) => set('book_from_to', e.target.value)} />
-                  </Box>
-                </Box>
-              </Box>
+              )}
 
               {/* remarks */}
               <Box sx={{ p: 1.5 }}>
@@ -342,14 +370,25 @@ export default function JobCardSheet() {
             {/* payment details */}
             <Box>
               <Heading>Payment Details</Heading>
-              {PAYMENT_ROWS.map(([key, label], index) => (
-                <Box key={`${key}-${index}`} sx={{ display: 'grid', gridTemplateColumns: '105px 1fr', borderBottom: border }}>
-                  <Box sx={{ ...cell, borderBottom: 'none', fontSize: 13, fontWeight: 600 }}>{label}</Box>
+              {profile.payment_keys.map((key) => (
+                <Box key={key} sx={{ display: 'grid', gridTemplateColumns: '105px 1fr', borderBottom: border }}>
+                  <Box sx={{ ...cell, borderBottom: 'none', fontSize: 13, fontWeight: 600 }}>{PAYMENT_LABELS[key] ?? key}</Box>
                   <Box sx={{ px: 0.5, py: 0.75 }}>
                     <Plain value={sheet.payment[key]} onChange={(v) => setPayment(key, v)} />
                   </Box>
                 </Box>
               ))}
+              {meta.price_lines.length > 0 && (
+                <Box sx={{ p: 1 }} data-testid="sheet-price-list">
+                  <Typography sx={{ fontWeight: 700, fontSize: 12 }}>Price list</Typography>
+                  {meta.price_lines.map((l, i) => (
+                    <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, fontSize: 12 }}>
+                      <span>{l.label}</span>
+                      <b>{l.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+                    </Box>
+                  ))}
+                </Box>
+              )}
             </Box>
           </Box>
 
@@ -357,7 +396,7 @@ export default function JobCardSheet() {
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 230px', borderTop: border }}>
             <Stack direction="row" spacing={2} sx={{ alignItems: 'center', p: 1.5, borderRight: border }}>
               <Typography sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Job Position :</Typography>
-              <CheckList row options={POSITION_OPTIONS} value={sheet.job_position} onChange={(v) => set('job_position', v)} />
+              <CheckList row options={profile.position_options} value={sheet.job_position} onChange={(v) => set('job_position', v)} />
             </Stack>
             <Box sx={{ p: 1.5 }}>
               <Typography sx={{ fontSize: 14 }}>

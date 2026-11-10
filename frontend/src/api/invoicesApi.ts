@@ -1,5 +1,5 @@
 import api from '../utils/api';
-import type { Invoice, PaymentInput } from '../types/invoices';
+import type { DueRow, Invoice, PaymentInput } from '../types/invoices';
 import type { InvoiceStatus } from '../types/common';
 
 export type InvoicePrintFormat = 'a4' | 'thermal_58' | 'thermal_80';
@@ -26,6 +26,9 @@ export const invoicesApi = {
     (await api.put(`/invoices/${invoiceId}/status`, { status })).data,
   addPayment: async (invoiceId: number, data: PaymentInput): Promise<Invoice> =>
     (await api.post(`/invoices/${invoiceId}/payments`, data)).data,
+  dues: async (withinDays = 7): Promise<DueRow[]> => (await api.get('/invoices/dues', { params: { within_days: withinDays } })).data,
+  setPayBy: async (invoiceId: number, payBy: string | null): Promise<Invoice> =>
+    (await api.patch(`/invoices/${invoiceId}`, { pay_by_date: payBy })).data,
   removePayment: async (paymentId: number): Promise<void> => {
     await api.delete(`/payments/${paymentId}`);
   },

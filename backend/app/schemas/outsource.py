@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -44,6 +44,20 @@ class OutsourceUpdate(BaseModel):
 
 class OutsourcePayment(BaseModel):
     amount: float = Field(gt=0)
+    method: Optional[str] = None
+    reference_number: Optional[str] = None
+    upi_id: Optional[str] = None
+    bank_details: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class OutsourcePaymentOut(OutsourcePayment):
+    id: int
+    payment_date: Optional[date] = None
+    has_proof: bool = False
+
+    class Config:
+        from_attributes = True
 
 
 class OutsourceOut(BaseModel):
@@ -69,6 +83,7 @@ class OutsourceOut(BaseModel):
     # worked out for the screen
     margin: float = 0.0
     balance_to_pay: float = 0.0
+    payments: List[OutsourcePaymentOut] = []
 
     class Config:
         from_attributes = True

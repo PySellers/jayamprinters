@@ -38,6 +38,8 @@ class Invoice(Base):
     with_gst = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     invoice_date = Column(Date, default=lambda: datetime.utcnow().date())
     notes = Column(String, nullable=True)
+    # The customer promised to pay the balance by this day (the dashboard reminds the counter).
+    pay_by_date = Column(Date, nullable=True)
     # Discount taken off the order total (subtotal stays the gross amount before discount).
     discount_type = Column(String, nullable=True)
     discount_value = Column(Float, nullable=False, default=0.0, server_default="0")
@@ -91,8 +93,19 @@ class Payment(Base):
     amount = Column(Float)
     method = Column(Enum(PaymentMethod))
     reference_number = Column(String, nullable=True)
+    upi_id = Column(String, nullable=True)
+    bank_details = Column(String, nullable=True)
+    # True when this was taken as the advance while the order was placed.
+    is_advance = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     payment_date = Column(Date, default=lambda: datetime.utcnow().date())
     notes = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     invoice = relationship("Invoice", back_populates="payments")
+
+    @property
+    def has_proof(self) -> bool:
+        from sqlalchemy.orm import object_session
+        from app.models.payment_proof import has_proof_for
+        session = object_session(self)
+        return bool(session and has_proof_for(session, "sale", self.id))

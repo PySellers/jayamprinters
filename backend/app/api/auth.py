@@ -12,8 +12,8 @@ from app.models.user import User
 from app.schemas.auth import AuthResponse, UserRead
 from app.services.auth_service import authenticate_user, create_access_token, get_password_hash, verify_password
 
-APP_VERSION = "1.2.0"
-APP_RELEASE_DATE = "2026-11-09"
+APP_VERSION = "1.3.0"
+APP_RELEASE_DATE = "2026-11-10"
 
 
 class LoginRequest(BaseModel):

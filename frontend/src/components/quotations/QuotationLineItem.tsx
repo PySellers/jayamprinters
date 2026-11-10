@@ -42,12 +42,23 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
   // Two-level pick: Service (category) first, then the exact item within it, so the
   // list never repeats a service once per size/variant.
   const [serviceId, setServiceId] = useState<number | null>(lockedServiceId);
+  // sub-category of the item (Rubber Stamp: Polymer Stamp - A Series ...): asked before the item when the service has any
+  const [subCategory, setSubCategory] = useState<string>('');
   useEffect(() => {
     if (serviceId == null && categoryId != null) setServiceId(categoryId);
   }, [categoryId, serviceId]);
 
   // A service with a single item has nothing to choose between: the item is picked for the counter.
   const itemsOfService = (productsQuery.data ?? []).filter((p) => p.is_active && p.category_id === serviceId);
+  const namedSubs = Array.from(new Set(itemsOfService.map((p) => p.sub_category).filter((s): s is string => Boolean(s)))).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const hasSubCategories = namedSubs.length > 0;
+  // items without a sub-category are listed under "Other" so none is hidden
+  const subCategories = hasSubCategories && itemsOfService.some((p) => !p.sub_category) ? [...namedSubs, 'Other'] : namedSubs;
+  const inSub = (p: { sub_category?: string | null }) => (subCategory === 'Other' ? !p.sub_category : (p.sub_category ?? '') === subCategory);
+  // when the chosen item already has a sub-category (e.g. an order being edited) show it
+  useEffect(() => {
+    if (product && hasSubCategories && !subCategory) setSubCategory(product.sub_category || 'Other');
+  }, [product?.id, hasSubCategories]); // eslint-disable-line react-hooks/exhaustive-deps
   const singleItem = itemsOfService.length === 1 ? itemsOfService[0] : null;
   useEffect(() => {
     if (singleItem && !productId) setValue(`items.${index}.product_id`, singleItem.id);
@@ -58,7 +69,13 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
     queryFn: () => attributesApi.list(categoryId),
     enabled: Boolean(categoryId),
   });
-  const activeAttributes = (attributesQuery.data ?? []).filter((a) => a.is_active);
+  // Paper first: the paper (name, board, GSM, paper size) decides most of the price, so it is asked before the other options.
+  const isPaperAttr = (name: string) => /paper|board|gsm|stock|media|material/i.test(name);
+  const activeAttributes = (attributesQuery.data ?? [])
+    .filter((a) => a.is_active)
+    .map((a, i) => ({ a, i }))
+    .sort((x, y) => Number(isPaperAttr(y.a.name)) - Number(isPaperAttr(x.a.name)) || x.i - y.i)
+    .map((x) => x.a);
   const extraChargesQuery = useQuery({
     queryKey: ['extra-charges', categoryId],
     queryFn: () => extraChargesApi.list(categoryId),
@@ -155,9 +172,28 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
             />
           </Grid>
         )}
+        {/* the sub-category comes first (only for services that have them), then the item / size */}
+        {hasSubCategories && (
+          <Grid size={{ xs: 12, sm: lockedServiceId != null ? 4 : 4 }}>
+            <EntitySelect
+              label="Sub-category"
+              required
+              mode="list"
+              queryKey={`subcat-picker-${serviceId ?? 'none'}-${subCategories.join('|')}`}
+              fetchOptions={async () => subCategories.map((name, id) => ({ id: id + 1, name }))}
+              getOptionLabel={(o) => o.name}
+              value={subCategory ? subCategories.indexOf(subCategory) + 1 : null}
+              onChange={(id) => {
+                const next = id ? subCategories[id - 1] : '';
+                setSubCategory(next);
+                if (product && !(next === 'Other' ? !product.sub_category : product.sub_category === next)) setValue(`items.${index}.product_id`, 0);
+              }}
+            />
+          </Grid>
+        )}
         {/* the item / size is only asked when the service has more than one */}
         {!singleItem && (
-          <Grid size={{ xs: 12, sm: lockedServiceId != null ? 6 : 4 }}>
+          <Grid size={{ xs: 12, sm: lockedServiceId != null ? (hasSubCategories ? 4 : 6) : 4 }}>
             <Controller
               name={`items.${index}.product_id`}
               control={control}
@@ -167,14 +203,12 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
                   label="Item / Size"
                   required
                   mode="list"
-                  queryKey={`product-picker-${serviceId ?? 'none'}`}
-                  fetchOptions={async () =>
-                    (await productsApi.list()).filter((p) => p.is_active && p.category_id === serviceId)
-                  }
+                  queryKey={`product-picker-${serviceId ?? 'none'}-${subCategory}`}
+                  fetchOptions={async () => (await productsApi.list()).filter((p) => p.is_active && p.category_id === serviceId && (!hasSubCategories || inSub(p)))}
                   getOptionLabel={(p) => p.name}
                   value={field.value || null}
                   onChange={(id) => field.onChange(id ?? 0)}
-                  disabled={serviceId == null}
+                  disabled={serviceId == null || (hasSubCategories && !subCategory)}
                 />
               )}
             />
