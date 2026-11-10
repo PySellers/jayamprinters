@@ -1,7 +1,9 @@
 """Production workflow API: work centers, step templates, the steps of a job card, my work, the board and monitoring."""
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from datetime import date, timedelta
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -19,6 +21,8 @@ from app.schemas.workflow import (
     TemplateIn, TemplateOut, TemplateStepOut, WorkCenterIn, WorkCenterOut, WorkCenterUpdate,
 )
 from app.services import workflow_service as wf
+from app.services import work_log_service as wl
+from app.services.time_utils import today_ist
 
 admin_only = [Depends(require_role(UserRole.admin))]
 
@@ -271,6 +275,12 @@ def complete_step(step_id: int, data: NoteIn = NoteIn(), db: Session = Depends(g
     return _after(db, wf.complete_step(db, _step(db, step_id), user, data.note), user)
 
 
+@steps_router.post("/job-steps/{step_id}/update", response_model=StepOut)
+def update_step_progress(step_id: int, data: NoteIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """The person doing a task writes their own progress update on it."""
+    return _after(db, wf.add_update(db, _step(db, step_id), user, data.note or ""), user)
+
+
 @steps_router.post("/job-steps/{step_id}/hold", response_model=StepOut)
 def hold_step(step_id: int, data: HoldIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return _after(db, wf.hold_step(db, _step(db, step_id), user, data.reason), user)
@@ -332,3 +342,47 @@ def summary(db: Session = Depends(get_db), user: User = Depends(require_role(Use
     wf.ensure_defaults(db)
     db.commit()
     return wf.summary(db)
+
+
+# ---- the Work Log: one person's work taken out on its own -------------------------------------------------------------
+def _log_scope(person_id: Optional[int], user: User) -> Optional[int]:
+    """Managers may pull out anyone; everybody else only their own work."""
+    if wf.is_manager(user):
+        return person_id
+    if person_id is not None and person_id != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only see your own work.")
+    return user.id
+
+
+@production_router.get("/work-log")
+def get_work_log(
+    person_id: Optional[int] = Query(None), start: Optional[date] = Query(None), end: Optional[date] = Query(None),
+    state: str = Query("all"), db: Session = Depends(get_db), user: User = Depends(get_current_user),
+):
+    """With person_id: every task that person took, started or finished in the period (+ their updates). Managers without
+    person_id get one summary line per employee instead."""
+    today = today_ist()
+    start, end = start or (today - timedelta(days=6)), end or today
+    scope = _log_scope(person_id, user)
+    if scope is None:
+        return {"start": start.isoformat(), "end": end.isoformat(), "team": wl.team_summary(db, start, end)}
+    if state not in ("all", "done", "open"):
+        state = "all"
+    return wl.work_log(db, scope, start, end, state)
+
+
+@production_router.get("/work-log/export")
+def export_work_log(
+    person_id: int = Query(...), start: Optional[date] = Query(None), end: Optional[date] = Query(None),
+    state: str = Query("all"), db: Session = Depends(get_db), user: User = Depends(get_current_user),
+):
+    today = today_ist()
+    start, end = start or (today - timedelta(days=6)), end or today
+    scope = _log_scope(person_id, user)
+    data = wl.work_log(db, scope, start, end, state if state in ("all", "done", "open") else "all")
+    name = (data["person"] or {"name": "work"})["name"].replace(" ", "-")
+    return Response(
+        content=wl.work_log_excel(data),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="work-log-{name}-{start.isoformat()}-to-{end.isoformat()}.xlsx"'},
+    )

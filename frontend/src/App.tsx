@@ -31,6 +31,7 @@ import Purchases from './pages/Purchases';
 import Inventory from './pages/Inventory';
 import CashLedger from './pages/CashLedger';
 import BillingCounter from './pages/BillingCounter';
+import WorkLog from './pages/WorkLog';
 import Profile from './pages/Profile';
 import Manual from './pages/Manual';
 import Contacts from './pages/Contacts';
@@ -73,6 +74,14 @@ export default function App() {
             <Route path="about" element={<About />} />
             <Route path="my-work" element={<MyWork />} />
             <Route path="production" element={<ProductionBoard />} />
+            <Route
+              path="work-log"
+              element={
+                <ProtectedRoute roles={['admin', 'counter', 'production']}>
+                  <WorkLog />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="work-centers"
               element={

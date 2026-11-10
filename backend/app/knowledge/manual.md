@@ -130,6 +130,16 @@ Keywords: workflow, steps, production, sections, work center, work centre, stage
 Link: /production
 Every job follows a list of steps (for example Design, Proof, Printing, Binding, Packing, Delivery). Each step belongs to a section (work center) and is done by one person. The Production Board shows what is waiting in each section. The Admin manages the sections under Work Centers and the step lists under Workflows.
 
+## Work Log - take out one person's work
+Keywords: work log, one person, employee work, person wise, individual work, who did what, employee report, work report, each worker, separate, extract, history of work, tasks done by
+Link: /work-log
+Work Log shows the work of ONE person on its own. The Admin and the Counter open Work Log in the menu, choose the employee (or leave "Everyone" to see one line per employee, then click a name) and choose the days: today, last 7 days, this month or custom dates. The list shows every task that person took, started or finished - job, customer, task, section, started and finished times, how long it took, the notes and the updates they wrote. Filter Finished or Still open, and press Excel to download only that person's work. An employee opens Work Log and sees only their own work.
+
+## Writing your own update on a task
+Keywords: update, progress update, add update, my update, note on task, progress note, work update, update my work, daily update, write update
+Link: /my-work
+Each worker updates their own work separately. Take the task, then press "Add update" on it (in My Work, or in the Tasks panel of the job card) and write what is done so far, for example "printed 600 of 1000". The update is saved under your name in the job's trail and in your Work Log. Only the person doing the task (or the Admin / Counter) can write updates on it. Press Done when the task is finished.
+
 ## My Work (employees)
 Keywords: my work, my tasks, employee page, production worker, assigned to me
 Link: /my-work

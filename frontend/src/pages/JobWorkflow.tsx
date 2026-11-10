@@ -24,6 +24,7 @@ const ACTION_TEXT: Record<string, string> = {
   started: 'Started',
   resumed: 'Resumed',
   completed: 'Finished',
+  update: 'Progress update',
   handoff: 'Handed over',
   delivered: 'Delivered',
   on_hold: 'Put on hold',

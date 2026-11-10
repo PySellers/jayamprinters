@@ -37,6 +37,21 @@ export const workflowApi = {
   reopen: async (id: number, note?: string): Promise<JobStep> => (await api.post(`/job-steps/${id}/reopen`, { note })).data,
   skip: async (id: number, note?: string): Promise<JobStep> => (await api.post(`/job-steps/${id}/skip`, { note })).data,
   assign: async (id: number, userId: number | null): Promise<JobStep> => (await api.post(`/job-steps/${id}/assign`, { user_id: userId })).data,
+  /** The person doing a task writes their own progress update on it. */
+  addUpdate: async (id: number, note: string): Promise<JobStep> => (await api.post(`/job-steps/${id}/update`, { note })).data,
+  workLog: async (params: { person_id?: number; start?: string; end?: string; state?: string }) =>
+    (await api.get('/production/work-log', { params })).data,
+  downloadWorkLog: async (params: { person_id: number; start?: string; end?: string; state?: string }): Promise<void> => {
+    const response = await api.get('/production/work-log/export', { params, responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `work-log-${params.person_id}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
   claim: async (id: number): Promise<JobStep> => (await api.post(`/job-steps/${id}/claim`)).data,
   move: async (id: number, direction: 'up' | 'down'): Promise<JobStep> => (await api.post(`/job-steps/${id}/move`, { direction })).data,
   sendOut: async (id: number, data: SendOutInput): Promise<JobStep> => (await api.post(`/job-steps/${id}/send-out`, data)).data,

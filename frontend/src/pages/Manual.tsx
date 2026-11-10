@@ -148,6 +148,14 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: 'worklog', title: '10b. Work Log: each person\'s own work', who: 'Everyone (employees see their own)',
+    steps: [
+      'Every worker updates their own work: take a task, Start it, press "Add update" to write what is done so far ("printed 600 of 1000"), and press Done when finished. The update is saved under your name.',
+      'Work Log (menu): the Admin and the Counter choose an employee and the days (today, last 7 days, this month, custom) and get only that person\'s work - every task they took, started or finished, with the times, how long each took, notes and updates. Leave "Everyone" to see one line per employee and click a name to open theirs.',
+      'Filter Finished or Still open, and press Excel to download just that person\'s work. An employee sees only their own Work Log.',
+    ],
+  },
+  {
     id: 'v13', title: '11. New in version 1.3', who: 'Everyone',
     steps: [
       {
@@ -215,6 +223,7 @@ const ROLE_ROWS: [string, string, string, string, string][] = [
   ['Customers, quotations, orders, invoices, job cards', 'Yes', 'Yes', 'Yes', 'Yes'],
   ['Take / start / finish tasks', 'Yes', 'Yes', 'Yes', 'No'],
   ['Assign tasks, change task order, skip', 'Yes', 'Yes', 'No', 'No'],
+  ['Work Log: pull out one person\'s work', 'Yes', 'Yes', 'Own only', 'No'],
   ['Add a task to a job', 'Yes', 'Yes', 'Only on a job they hold', 'No'],
   ['Delete invoices, job cards or payments', 'Yes', 'No', 'No', 'Payments only'],
   ['Outsource', 'Yes', 'Yes', 'No', 'Yes'],

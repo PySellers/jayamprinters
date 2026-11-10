@@ -144,10 +144,10 @@ export async function round4Tests(browser) {
     await shot(ap, 'r4-manual');
   }, ap, aprob);
 
-  await run('UI-R4P', M2, 'About: version, release, developer and support details', 'Version 1.3.0; PySellers contact, phone and website', async () => {
+  await run('UI-R4P', M2, 'About: version, release, developer and support details', 'Version 1.3.1; PySellers contact, phone and website', async () => {
     await go(ap, '/about');
     const t = await bodyText(ap);
-    expect((await ap.getByTestId('about-version').innerText()).trim() === '1.3.0', 'version is not 1.3.0');
+    expect((await ap.getByTestId('about-version').innerText()).trim() === '1.3.1', 'version is not 1.3.1');
     expect(t.includes('Developed by PySellers Services Pvt Ltd'), 'developer line missing');
     expect(t.includes('any support request'), 'support wording missing');
     expect((await ap.getByTestId('about-phone').innerText()).trim() === '8838587824', 'phone');

@@ -322,6 +322,24 @@ def complete_step(db: Session, step: JobStep, user: User, note: Optional[str] = 
     return step
 
 
+def add_update(db: Session, step: JobStep, user: User, text: str) -> JobStep:
+    """A progress note ("printed 600 of 1000") written by the person who holds the task (or by a manager). It goes into the
+    job's activity trail under their name, and into their Work Log."""
+    _require_act(db, user, step)
+    if not (text or "").strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Write the update first")
+    if step.assigned_to is None:
+        raise _conflict("Take the task first - then you can write updates on it")
+    if step.assigned_to != user.id and not is_manager(user):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"This task is being done by {step.assignee.name}.")
+    if step.status in ("waiting", "skipped"):
+        raise _conflict(f"'{step.name}' is not being worked on")
+    log(db, _job_of(step), step, user, "update", text.strip()[:500])
+    db.commit()
+    db.refresh(step)
+    return step
+
+
 def hold_step(db: Session, step: JobStep, user: User, reason: str) -> JobStep:
     _require_act(db, user, step)
     if not reason or not reason.strip():
