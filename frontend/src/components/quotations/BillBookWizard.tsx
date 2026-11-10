@@ -322,17 +322,6 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
             onChange={(id) => setOption(copiesAttr, id)}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <TextField
-            fullWidth
-            required
-            size="small"
-            label="Quantity (Nos)"
-            type="number"
-            disabled={!s2}
-            {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
-          />
-        </Grid>
       </Grid>
 
       {/* Paper of each copy: the Original copy first, then Duplicate ... -------------------- */}
@@ -406,6 +395,18 @@ export default function BillBookWizard({ index, categoryId }: BillBookWizardProp
       {/* Printing --------------------------------------------------------- */}
       <GroupHeading>Printing</GroupHeading>
       <Grid container spacing={1.5}>
+        {/* the paper comes first; the quantity follows it */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <TextField
+            fullWidth
+            required
+            size="small"
+            label="Quantity (Nos)"
+            type="number"
+            disabled={!s2}
+            {...register(`items.${index}.quantity`, { required: true, valueAsNumber: true, min: 1 })}
+          />
+        </Grid>
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <SearchSelect
             label="Print side"

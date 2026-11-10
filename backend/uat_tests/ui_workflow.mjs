@@ -312,7 +312,7 @@ export async function workflowTests(browser) {
   await run('UI-WFB', M4, '"Only overdue" shows only late jobs, and the overdue job is among them', 'Every card is overdue', async () => {
     const page = pages.accounts.page;
     await page.getByLabel('Only overdue').check();
-    await page.waitForTimeout(3200);
+    await page.waitForTimeout(9000);
     for (const b of await page.getByRole('button', { name: /^Show \d+ more$/ }).all()) await b.click();
     await page.waitForTimeout(500);
     const cards = page.locator('[data-testid="work-card"]');
@@ -327,7 +327,7 @@ export async function workflowTests(browser) {
   await run('UI-WFB', M4, 'The Monitor tab shows the tiles, departments, employees, overdue orders and outside work', 'All sections present', async () => {
     const page = pages.accounts.page;
     await page.getByRole('tab', { name: 'Monitor' }).click();
-    await page.waitForTimeout(1800);
+    await page.waitForTimeout(7000);
     const t = await bodyText(page);
     for (const l of ['Orders in production', 'Overdue', 'Due today', 'On hold', 'Delivered today', 'Work in each department', 'Who is doing what',
       'Steps finished, last 7 days', 'Overdue orders', 'Waiting the longest to be started', 'With outside companies']) expect(t.includes(l), `"${l}" missing`);

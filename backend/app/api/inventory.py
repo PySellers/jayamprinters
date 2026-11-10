@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.core.database import get_db
 from app.core.security import require_role
@@ -14,22 +14,30 @@ write_roles = [Depends(require_role(UserRole.admin, UserRole.accounts))]
 
 
 def _to_out(item: InventoryItem) -> InventoryItemOut:
+    qty = item.current_qty or 0.0
     return InventoryItemOut(
-        id=item.id, name=item.name, unit=item.unit, current_qty=item.current_qty,
+        id=item.id, name=item.name, unit=item.unit, current_qty=qty,
         reorder_threshold=item.reorder_threshold, notes=item.notes,
-        low_stock=item.current_qty <= item.reorder_threshold,
+        customer_id=item.customer_id, customer_name=item.customer.name if item.customer is not None else None,
+        low_stock=qty <= item.reorder_threshold,
+        stock_state="empty" if qty <= 0 else ("low" if qty <= item.reorder_threshold else "ok"),
     )
 
 
 @router.get("/", response_model=List[InventoryItemOut])
-def get_inventory_items(db: Session = Depends(get_db)):
-    return [_to_out(i) for i in db.query(InventoryItem).order_by(InventoryItem.name).all()]
+def get_inventory_items(customer_id: Optional[int] = None, db: Session = Depends(get_db)):
+    query = db.query(InventoryItem)
+    if customer_id is not None:
+        query = query.filter(InventoryItem.customer_id == customer_id)
+    return [_to_out(i) for i in query.order_by(InventoryItem.name).all()]
 
 
 @router.get("/low-stock", response_model=List[InventoryItemOut])
 def get_low_stock_items(db: Session = Depends(get_db)):
-    items = db.query(InventoryItem).all()
-    return [_to_out(i) for i in items if i.current_qty <= i.reorder_threshold]
+    """Everything at or under its reorder level (or empty): the shop's own stock only - a customer's own material is
+    not something the shop buys."""
+    items = db.query(InventoryItem).filter(InventoryItem.customer_id.is_(None)).all()
+    return sorted((_to_out(i) for i in items if (i.current_qty or 0) <= i.reorder_threshold), key=lambda o: (o.current_qty, o.name))
 
 
 @router.get("/{item_id}", response_model=InventoryItemOut)

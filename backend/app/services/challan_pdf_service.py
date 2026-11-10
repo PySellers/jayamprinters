@@ -44,13 +44,14 @@ def _draw_page(c, shop, challan, chunk, start_index, page_no, page_count):
     m = 5 * mm
     gap = 1.6 * mm
 
-    # Thick blue frame, white panels on top of it (like the printed book).
-    c.setFillColor(BAND)
-    c.rect(m, m, W - 2 * m, H - 2 * m, fill=1, stroke=0)
+    # A white form with blue outlines only: it is printed on the book's yellow paper, so no colour is filled in.
+    c.setStrokeColor(LINE)
+    c.setLineWidth(2.2)
+    c.rect(m, m, W - 2 * m, H - 2 * m, fill=0, stroke=1)
     x0, x1 = m + gap, W - m - gap
 
     title_h = 9 * mm
-    c.setFillColor(colors.white)
+    c.setFillColor(BAND)
     c.setFont("Helvetica-Bold", 12)
     c.drawCentredString(W / 2, H - m - 6.2 * mm, "DELIVERY CHALLAN")
 
@@ -63,8 +64,9 @@ def _draw_page(c, shop, challan, chunk, start_index, page_no, page_count):
     block_h = row1_h + gap + to_h
 
     def panel(x, y, w, h):
-        c.setFillColor(colors.white)
-        c.rect(x, y, w, h, fill=1, stroke=0)
+        c.setStrokeColor(LINE)
+        c.setLineWidth(1.0)
+        c.rect(x, y, w, h, fill=0, stroke=1)
 
     # ---- S.No. and Date -----------------------------------------------------
     sno_w = 38 * mm

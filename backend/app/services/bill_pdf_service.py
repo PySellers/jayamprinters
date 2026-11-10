@@ -28,7 +28,9 @@ LOGO_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "logo.png")
 LINE = colors.HexColor("#3b4a9c")
 BAND = colors.HexColor("#3d4fa3")
 TINT = colors.HexColor("#e9ebf7")
-PAGE_TINT = colors.HexColor("#f4f3fb")
+PAGE_TINT = colors.HexColor("#aeaad9")  # the lavender of the printed bill books
+PANEL_EDGE = colors.HexColor("#cfcdea")
+PANEL_MID = colors.HexColor("#fbfbfe")
 BRAND_RED = colors.HexColor("#c0392b")
 INK = colors.HexColor("#111111")
 GREY = colors.HexColor("#666666")
@@ -74,6 +76,22 @@ def _fit(c, text, x, y, width, font="Helvetica", size=9.0, align="left", min_siz
         c.drawString(x, y, text)
 
 
+def _grad(c, x, y, w, h):
+    """A panel filled like the printed bill: light in the middle, lavender towards the sides."""
+    c.saveState()
+    path = c.beginPath()
+    path.rect(x, y, w, h)
+    c.clipPath(path, stroke=0, fill=0)
+    c.linearGradient(x, y, x + w, y, (PANEL_EDGE, PANEL_MID, PANEL_EDGE), (0, 0.5, 1))
+    c.restoreState()
+
+
+def _panel(c, x, y, w, h):
+    """A gradient panel with the current line colour as its border."""
+    _grad(c, x, y, w, h)
+    c.rect(x, y, w, h, fill=0, stroke=1)
+
+
 def _money(value: float) -> str:
     return f"{value:.2f}"
 
@@ -109,6 +127,12 @@ def _particulars_lines(product: Optional[Product], item, font: str, size: float,
     """Wrapped (text, is_note) lines for a bill row: description first, then the specification if there is room."""
     description, notes = _item_text(product, item)
     lines = [(t, False) for t in simpleSplit(description, font, size, width)]
+    extras = []
+    for part in getattr(item, "price_breakdown", None) or []:
+        if part.get("kind") in ("charge", "custom") and part.get("label"):
+            extras.append(str(part["label"]))
+    if extras:
+        lines += [(t, True) for t in simpleSplit("+ " + ", ".join(extras), "Helvetica-Oblique", size - 0.8, width)]
     if notes:
         lines += [(t, True) for t in simpleSplit(notes, "Helvetica-Oblique", size - 0.8, width)]
     if len(lines) > max_lines:
@@ -240,8 +264,8 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
 
     c.setLineWidth(0.8)
     c.setFillColor(colors.white)
-    c.rect(x0, top - logo_h, left_w, logo_h, fill=1)                      # logo / name box
-    c.rect(x0, header_bottom, left_w, header_h - logo_h, fill=1)          # "To" box
+    _panel(c, x0, top - logo_h, left_w, logo_h)                      # logo / name box
+    _panel(c, x0, header_bottom, left_w, header_h - logo_h)          # "To" box
     c.setFillColor(INK)
 
     text_x = x0 + 3 * mm
@@ -272,7 +296,7 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
     cy = top - band_h
     for i, (label, value) in enumerate(cells):
         c.setFillColor(colors.white)
-        c.rect(right_x, cy - (i + 1) * cell_h, right_w, cell_h, fill=1)
+        _panel(c, right_x, cy - (i + 1) * cell_h, right_w, cell_h)
         c.setFillColor(INK)
         base = cy - (i + 1) * cell_h + 2.7 * mm
         c.setFont("Helvetica", 8.5)
@@ -296,13 +320,16 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
     table_top = header_bottom - 2 * mm
     head_h = 11 * mm
     body_top = table_top - head_h
-    footer_h = 46 * mm
+    discount = float(getattr(invoice, "discount_amount", 0.0) or 0.0)
+    advance = float(invoice.amount_paid or 0.0)
+    n_total_rows = (4 if discount <= 0 else 6) + (2 if advance > 0 else 0)
+    footer_h = {4: 46, 6: 50, 8: 60}[n_total_rows] * mm
     footer_bottom = m + pad
     body_bottom = footer_bottom + footer_h
     row_h = (body_top - body_bottom) / GST_ROWS_PER_PAGE
 
-    c.setFillColor(colors.white)
-    c.rect(x0, body_bottom, iw, body_top - body_bottom, fill=1, stroke=0)
+    for i in range(len(cols)):
+        _grad(c, xs[i], body_bottom, cols[i], body_top - body_bottom)
     c.setFillColor(TINT)
     c.rect(x0, body_top, iw, head_h, fill=1, stroke=0)
     c.setFillColor(INK)
@@ -350,9 +377,9 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
         pct = f"{row['rate'] / 2:g}"
         c.setFillColor(INK)
         _fit(c, start_index + i + 1, xs[0], base, cols[0], "Helvetica", 8.5, "center")
-        for k, (line, is_note) in enumerate(_particulars_lines(row["product"], item, "Helvetica", 7.4, cols[1] - 3 * mm, 3)):
+        for k, (line, is_note) in enumerate(_particulars_lines(row["product"], item, "Helvetica", 7.4, cols[1] - 3 * mm, 4)):
             c.setFont("Helvetica-Oblique" if is_note else "Helvetica", 6.6 if is_note else 7.4)
-            c.drawString(xs[1] + 1.5 * mm, base - k * 3.0 * mm, line)
+            c.drawString(xs[1] + 1.5 * mm, base - k * 2.9 * mm, line)
         _fit(c, item.hsn_code or "", xs[2], base, cols[2], "Helvetica", 8, "center")
         _fit(c, item.quantity, xs[3], base, cols[3], "Helvetica", 8.5, "center")
         _fit(c, _money(item.unit_price), xs[4] + 1 * mm, base, cols[4] - 2.5 * mm, "Helvetica", 8.5, "right")
@@ -384,14 +411,13 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
         for k, line in enumerate(shop.bank_lines):
             _fit(c, line, xs[1] + 1.5 * mm, by - (k + 1) * 3.4 * mm, cols[1] + cols[2] - 3 * mm, "Helvetica-Bold" if k == 0 else "Helvetica", 7.5)
 
-    discount = float(getattr(invoice, "discount_amount", 0.0) or 0.0)
-    box_h = 8 * mm if discount <= 0 else 7 * mm
     rb_w = 85 * mm
     rb_x = x1 - rb_w
     f_top = footer_bottom + footer_h
-    n_rows = 4 if discount <= 0 else 6
+    n_rows = n_total_rows
+    box_h = {4: 8, 6: 7, 8: 6.4}[n_rows] * mm
     c.setFillColor(colors.white)
-    c.rect(x0, f_top - n_rows * box_h, rb_x - x0, n_rows * box_h, fill=1)
+    _panel(c, x0, f_top - n_rows * box_h, rb_x - x0, n_rows * box_h)
     c.setFillColor(INK)
     c.setFont("Helvetica", 8.5)
     c.drawString(x0 + 2 * mm, f_top - 5.5 * mm, "Rupees Inwords :")
@@ -399,6 +425,9 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
     for k, line in enumerate(simpleSplit(words, "Helvetica-Oblique", 9, rb_x - x0 - 6 * mm)[:3]):
         c.setFont("Helvetica-Oblique", 9)
         c.drawString(x0 + 3 * mm, f_top - 11 * mm - k * 4.5 * mm, line)
+    if advance > 0 and getattr(invoice, "pay_by_date", None) and invoice.grand_total - advance > 0.004:
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(x0 + 3 * mm, f_top - n_rows * box_h + 3 * mm, f"Balance to be paid by {invoice.pay_by_date.strftime('%d-%m-%Y')}")
 
     if discount > 0:
         totals = [
@@ -416,12 +445,15 @@ def _draw_gst_page(c, shop, invoice, customer, chunk, start_index, page_no, page
             ("Tax Amount (GST)", invoice.tax_amount, False),
             ("Total Amount After Tax", invoice.grand_total, True),
         ]
+    if advance > 0:
+        balance = max(round(invoice.grand_total - advance, 2), 0.0)
+        totals += [("Less: Advance Paid", -advance, False), ("Balance Due", balance, True)]
     label_w = 57 * mm
     for i, (label, value, bold) in enumerate(totals):
         y_row = f_top - (i + 1) * box_h
         c.setFillColor(colors.white)
-        c.rect(rb_x, y_row, label_w, box_h, fill=1)
-        c.rect(rb_x + label_w, y_row, rb_w - label_w, box_h, fill=1)
+        _panel(c, rb_x, y_row, label_w, box_h)
+        _panel(c, rb_x + label_w, y_row, rb_w - label_w, box_h)
         c.setFillColor(INK)
         font = "Helvetica-Bold" if bold else "Helvetica"
         _fit(c, label, rb_x, y_row + 2.6 * mm, label_w - 2 * mm, font, 8.5, "right")
@@ -480,7 +512,7 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
     band_h = 10 * mm
     c.setLineWidth(0.8)
     c.setFillColor(colors.white)
-    c.rect(x0, top - header_h, left_w, header_h, fill=1)
+    _panel(c, x0, top - header_h, left_w, header_h)
 
     c.setFillColor(INK)
     _fit(c, f"GSTIN : {shop.gstin}", x0 + 3 * mm, top - 5 * mm, left_w - 6 * mm, "Helvetica-Bold", 8.5, "right")
@@ -497,7 +529,7 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
     c.setFont("Helvetica-Bold", 15)
     c.drawCentredString(right_x + right_w / 2, top - band_h + 3.2 * mm, "CASH BILL")
     c.setFillColor(colors.white)
-    c.rect(right_x, top - header_h, right_w, header_h - band_h, fill=1)
+    _panel(c, right_x, top - header_h, right_w, header_h - band_h)
     c.setFillColor(INK)
     c.setFont("Helvetica-Bold", 11)
     c.drawString(right_x + 3 * mm, top - band_h - 6.5 * mm, "Mob :")
@@ -508,8 +540,8 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
     to_top = top - header_h
     to_h = 20 * mm
     c.setFillColor(colors.white)
-    c.rect(x0, to_top - to_h, left_w, to_h, fill=1)
-    c.rect(right_x, to_top - to_h, right_w, to_h, fill=1)
+    _panel(c, x0, to_top - to_h, left_w, to_h)
+    _panel(c, right_x, to_top - to_h, right_w, to_h)
     c.setFillColor(INK)
     c.setFont("Helvetica", 9.5)
     c.drawString(x0 + 3 * mm, to_top - 6 * mm, "To")
@@ -539,8 +571,8 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
     body_bottom = m + pad + bottom_block_h + 2 * mm + totals_h
     row_h = (body_top - body_bottom) / CASH_ROWS_PER_PAGE
 
-    c.setFillColor(colors.white)
-    c.rect(x0, body_bottom, iw, body_top - body_bottom, fill=1, stroke=0)
+    for i in range(len(cols)):
+        _grad(c, xs[i], body_bottom, cols[i], body_top - body_bottom)
     c.setFillColor(TINT)
     c.rect(x0, body_top, iw, head_h, fill=1, stroke=0)
     c.setFillColor(INK)
@@ -580,9 +612,9 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
         base = row_top - 4.6 * mm
         c.setFillColor(INK)
         _fit(c, start_index + i + 1, xs[0], base, cols[0], "Helvetica", 9.5, "center")
-        for k, (line, is_note) in enumerate(_particulars_lines(row["product"], item, "Helvetica", 9, cols[1] - 4 * mm, 2)):
+        for k, (line, is_note) in enumerate(_particulars_lines(row["product"], item, "Helvetica", 9, cols[1] - 4 * mm, 3)):
             c.setFont("Helvetica-Oblique" if is_note else "Helvetica", 7.8 if is_note else 9)
-            c.drawString(xs[1] + 2 * mm, base - k * 3.9 * mm, line)
+            c.drawString(xs[1] + 2 * mm, base - k * 3.6 * mm, line)
         _fit(c, item.quantity, xs[2], base, cols[2], "Helvetica", 9.5, "center")
         _fit(c, _money(item.unit_price), xs[3], base, cols[3] - 3 * mm, "Helvetica", 9.5, "right")
         rs, p = _rs_p(item.total_price)
@@ -605,16 +637,16 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
     advance = invoice.amount_paid or 0.0
     balance = max(total - advance, 0.0)
     c.setFillColor(colors.white)
-    c.rect(x0, body_bottom - totals_h, xs[2] - x0, totals_h, fill=1)
+    _panel(c, x0, body_bottom - totals_h, xs[2] - x0, totals_h)
     rows = [("Total", total, True), ("Advance", advance, False), ("Balance", balance, True)]
     if discount > 0:
         rows = [("Sub Total", invoice.subtotal, False), (_discount_label(invoice).replace("Less: ", "Less "), -discount, False)] + rows
     for i, (label, value, bold) in enumerate(rows):
         y_row = body_bottom - (i + 1) * box_h
         c.setFillColor(colors.white)
-        c.rect(xs[2], y_row, xs[4] - xs[2], box_h, fill=1)
-        c.rect(xs[4], y_row, rs_w, box_h, fill=1)
-        c.rect(xs[4] + rs_w, y_row, cols[4] - rs_w, box_h, fill=1)
+        _panel(c, xs[2], y_row, xs[4] - xs[2], box_h)
+        _panel(c, xs[4], y_row, rs_w, box_h)
+        _panel(c, xs[4] + rs_w, y_row, cols[4] - rs_w, box_h)
         c.setFillColor(INK)
         font = "Helvetica-Bold" if bold else "Helvetica"
         _fit(c, label, xs[2], y_row + 2.5 * mm, xs[4] - xs[2] - 4 * mm, font, 10, "right")
@@ -624,8 +656,8 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
 
     bb_top = bottom_y + bottom_block_h
     c.setFillColor(colors.white)
-    c.rect(x0, bottom_y, left_w, bottom_block_h, fill=1)
-    c.rect(right_x, bottom_y, right_w, bottom_block_h, fill=1)
+    _panel(c, x0, bottom_y, left_w, bottom_block_h)
+    _panel(c, right_x, bottom_y, right_w, bottom_block_h)
     c.setFillColor(INK)
     c.setFont("Helvetica", 8)
     c.drawString(x0 + 3 * mm, bb_top - 5 * mm, "Rupees")
@@ -633,6 +665,10 @@ def _draw_cash_page(c, shop, invoice, customer, chunk, start_index, page_no, pag
     for k, line in enumerate(simpleSplit(words, "Helvetica-Oblique", 9, left_w - 24 * mm)[:2]):
         c.setFont("Helvetica-Oblique", 9)
         c.drawString(x0 + 17 * mm, bb_top - 5 * mm - k * 4.4 * mm, line)
+    if getattr(invoice, "pay_by_date", None) and balance > 0.004:
+        c.setFont("Helvetica-Bold", 8.5)
+        c.setFillColor(INK)
+        c.drawString(x0 + 3 * mm, bottom_y + 2.5 * mm, f"Balance to be paid by {invoice.pay_by_date.strftime('%d-%m-%Y')}")
     c.setFont("Helvetica-Bold", 8.5)
     c.drawString(right_x + 3 * mm, bottom_y + 5.5 * mm, "For")
     c.setFillColor(BRAND_RED)

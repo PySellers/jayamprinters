@@ -26,6 +26,9 @@ export interface InventoryItem {
   reorder_threshold: number;
   notes?: string | null;
   low_stock: boolean;
+  stock_state?: 'ok' | 'low' | 'empty';
+  customer_id?: number | null;
+  customer_name?: string | null;
 }
 
 export interface InventoryItemInput {
@@ -34,18 +37,21 @@ export interface InventoryItemInput {
   current_qty: number;
   reorder_threshold: number;
   notes?: string | null;
+  customer_id?: number | null;
 }
 
 export interface PurchaseItem {
   id: number;
-  inventory_item_id: number;
+  inventory_item_id?: number | null;
+  custom_name?: string | null;
   quantity: number;
   unit_price: number;
   total_price: number;
 }
 
 export interface PurchaseItemInput {
-  inventory_item_id: number;
+  inventory_item_id?: number | null;
+  custom_name?: string | null;
   quantity: number;
   unit_price: number;
 }
@@ -55,6 +61,9 @@ export interface PurchasePayment {
   amount: number;
   method?: PaymentMethod | null;
   reference_number?: string | null;
+  upi_id?: string | null;
+  bank_details?: string | null;
+  has_proof?: boolean;
   notes?: string | null;
   payment_date: string;
   created_at: string;
@@ -64,6 +73,8 @@ export interface PurchasePaymentInput {
   amount: number;
   method?: PaymentMethod | null;
   reference_number?: string | null;
+  upi_id?: string | null;
+  bank_details?: string | null;
   notes?: string | null;
 }
 

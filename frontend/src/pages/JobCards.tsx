@@ -5,8 +5,9 @@ import { useForm, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, Tooltip, Chip, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent,
-  DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText,
+  DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText, Menu,
 } from '@mui/material';
+import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -25,6 +26,7 @@ import EntitySelect from '../components/pickers/EntitySelect';
 import DeliveryChallanDialog from '../components/jobcards/DeliveryChallanDialog';
 
 const machinesApi = createMasterApi('/machines');
+
 
 const STATUS_OPTIONS: JobCardStatus[] = ['pending', 'design', 'approval', 'printing', 'binding', 'packing', 'delivered'];
 const STATUS_COLORS: Record<string, 'default' | 'info' | 'success' | 'warning' | 'primary'> = {
@@ -45,6 +47,7 @@ const PRIORITY_COLORS: Record<string, 'default' | 'info' | 'warning' | 'error'> 
 };
 
 export default function JobCards() {
+  const [printMenu, setPrintMenu] = useState<{ anchor: HTMLElement; id: number } | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [assigning, setAssigning] = useState<JobCard | null>(null);
@@ -190,6 +193,11 @@ export default function JobCards() {
                       >
                         DC{dcNumberOf(jc.id) ? ` ${dcNumberOf(jc.id)}` : ''}
                       </Button>
+                    </Tooltip>
+                    <Tooltip title="Print the paper job card">
+                      <IconButton size="small" aria-label="Print job card" data-testid="list-print" onClick={(e) => setPrintMenu({ anchor: e.currentTarget, id: jc.id })}>
+                        <PrintIcon fontSize="small" />
+                      </IconButton>
                     </Tooltip>
                     <Tooltip title="Track steps - who is working on it">
                       <IconButton size="small" aria-label="Track job" onClick={() => navigate(`/job-cards/${jc.id}/track`)}>
@@ -348,6 +356,10 @@ export default function JobCards() {
         </form>
       </Dialog>
 
+      <Menu anchorEl={printMenu?.anchor} open={Boolean(printMenu)} onClose={() => setPrintMenu(null)}>
+        <MenuItem data-testid="list-print-plain" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, false); setPrintMenu(null); }}>Paper job card (without price)</MenuItem>
+        <MenuItem data-testid="list-print-price" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, true); setPrintMenu(null); }}>Paper job card (with price)</MenuItem>
+      </Menu>
       <DeliveryChallanDialog jobCard={challanFor} onClose={() => setChallanFor(null)} />
     </Box>
   );

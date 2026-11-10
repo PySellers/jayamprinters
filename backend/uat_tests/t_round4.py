@@ -188,9 +188,9 @@ def run_all():
         expect(rows[0]["range"] == "Excel Bond" and rows[0]["kgs"] == "80 GSM", rows[0])
         expect(rows[1]["range"] == "Excel Bond" and rows[1]["kgs"] == "80 GSM", rows[1])
         expect(rows[0]["qty"] == "500" and rows[1]["qty"] == "500", [r["qty"] for r in rows])
-        expect(rows[2]["range"] == "" and rows[3]["range"] == "", "unused copy rows should stay empty")
+        expect(len(rows) == 2, "the form has one row per copy (no unused copy rows any more)")
         expect(sh["cutting_size"] == "1/4", sh["cutting_size"])
-        return "Paper range, GSM and quantity are filled for each of the 2 copies; copies 3 and 4 stay blank"
+        return "Paper range, GSM and quantity are filled for each of the 2 copies; no unused copy rows"
     run("R4J", M_SHT, "Paper table: range, GSM and quantity of every copy", "One row per copy", t)
 
     def t():
@@ -205,7 +205,7 @@ def run_all():
         det = api("GET", f"/job-cards/{job['id']}/detail?with_price=true", token=admin()).data
         rate = det["price"]["rate"]
         expect(abs(float(sh["payment"]["rate"].replace(",", "")) - rate) < 0.01, (sh["payment"]["rate"], rate))
-        expect(sh["payment"]["first"].startswith("Bill total"), sh["payment"]["first"])
+        expect(abs(float(sh["payment"]["first"].replace(",", "")) - inv["grand_total"]) < 0.01, sh["payment"]["first"])
         expect(abs(float(sh["payment"]["balance1"].replace(",", "")) - inv["grand_total"]) < 0.01, (sh["payment"]["balance1"], inv["grand_total"]))
         expect(sh["payment"]["advance"] == "", sh["payment"]["advance"])
         return f"Rate {sh['payment']['rate']} and balance {sh['payment']['balance1']} match the bill; no advance yet"

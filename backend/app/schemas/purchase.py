@@ -37,6 +37,8 @@ class InventoryItemCreate(BaseModel):
     current_qty: float = 0.0
     reorder_threshold: float = 0.0
     notes: Optional[str] = None
+    # Set when this is the customer's own material kept in the shop.
+    customer_id: Optional[int] = None
 
 
 class InventoryItemUpdate(BaseModel):
@@ -45,18 +47,24 @@ class InventoryItemUpdate(BaseModel):
     current_qty: Optional[float] = None
     reorder_threshold: Optional[float] = None
     notes: Optional[str] = None
+    customer_id: Optional[int] = None
 
 
 class InventoryItemOut(InventoryItemCreate):
     id: int
     low_stock: bool
+    # 'ok' | 'low' (at or under the reorder level) | 'empty' (none left)
+    stock_state: str = 'ok'
+    customer_name: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 
 class PurchaseItemIn(BaseModel):
-    inventory_item_id: int
+    # Either a stock item, or custom_name for a one-time item that is NOT kept in stock.
+    inventory_item_id: Optional[int] = None
+    custom_name: Optional[str] = None
     quantity: float = Field(gt=0)
     unit_price: float = Field(ge=0)
 
@@ -82,11 +90,14 @@ class PurchasePaymentCreate(BaseModel):
     amount: float
     method: Optional[PaymentMethod] = None
     reference_number: Optional[str] = None
+    upi_id: Optional[str] = None
+    bank_details: Optional[str] = None
     notes: Optional[str] = None
 
 
 class PurchasePaymentOut(PurchasePaymentCreate):
     id: int
+    has_proof: bool = False
     payment_date: date
     created_at: datetime
 

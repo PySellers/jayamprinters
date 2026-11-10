@@ -7,6 +7,7 @@ import {
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import { useAuth } from '../context/AuthContext';
 import InsightsPanel from '../components/reports/InsightsPanel';
+import AccountStatementPanel from '../components/reports/AccountStatementPanel';
 import DownloadIcon from '@mui/icons-material/Download';
 import { reportsApi } from '../api/reportsApi';
 import type { StatementGroup } from '../types/reports';
@@ -238,7 +239,7 @@ function StatementPanel() {
 export default function Reports() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  const [tab, setTab] = useState<'statement' | 'insights'>('statement');
+  const [tab, setTab] = useState<'statement' | 'ledger' | 'insights'>('statement');
 
   return (
     <Box sx={{ p: 3 }}>
@@ -250,11 +251,12 @@ export default function Reports() {
         <Paper sx={{ borderRadius: 2, mb: 3 }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)}>
             <Tab value="statement" label="Financial statement" data-testid="tab-statement" />
+            <Tab value="ledger" label="Account statement" data-testid="tab-ledger" />
             <Tab value="insights" icon={<AutoGraphIcon fontSize="small" />} iconPosition="start" label="AI Insights" data-testid="tab-insights" />
           </Tabs>
         </Paper>
       )}
-      {tab === 'insights' && isAdmin ? <InsightsPanel /> : <StatementPanel />}
+      {tab === 'insights' && isAdmin ? <InsightsPanel /> : tab === 'ledger' && isAdmin ? <AccountStatementPanel /> : <StatementPanel />}
     </Box>
   );
 }

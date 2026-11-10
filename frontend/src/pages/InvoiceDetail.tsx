@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, Chip, CircularProgress, Grid, Stack,
@@ -20,8 +20,10 @@ import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { productsApi } from '../api/productsApi';
 import type { PaymentInput } from '../types/invoices';
-import type { PaymentMethod } from '../types/common';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PaymentDetailsFields, { detailsPayload, emptyPaymentDetails, type PaymentDetails } from '../components/PaymentDetailsFields';
+import { paymentProofApi } from '../api/extraApi';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import OrderProduction from '../components/workflow/OrderProduction';
 import { RateInfo } from '../components/quotations/PriceBreakdown';
 
@@ -30,7 +32,6 @@ const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
   partially_paid: 'warning',
   paid: 'success',
 };
-const PAYMENT_METHODS: PaymentMethod[] = ['cash', 'upi', 'card', 'credit', 'bank_transfer'];
 
 const PRINT_FORMATS: { format: InvoicePrintFormat; label: string; hint: string; icon: React.ReactNode }[] = [
   { format: 'a4', label: 'A4 Invoice', hint: 'Office / laser printer, full page', icon: <DescriptionIcon fontSize="small" /> },
@@ -44,6 +45,8 @@ export default function InvoiceDetail() {
   const queryClient = useQueryClient();
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(null);
+  const [details, setDetails] = useState<PaymentDetails>(emptyPaymentDetails());
+  const [payBy, setPayBy] = useState('');
   const [printMenuAnchor, setPrintMenuAnchor] = useState<null | HTMLElement>(null);
   const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
 
@@ -53,17 +56,33 @@ export default function InvoiceDetail() {
 
   const productName = (pid: number) => productsQuery.data?.find((p) => p.id === pid)?.name ?? `#${pid}`;
 
-  const { control, register, handleSubmit, reset, formState: { errors } } = useForm<PaymentInput>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<PaymentInput>({
     defaultValues: { amount: 0, method: 'cash', reference_number: '', notes: '' },
   });
 
   const paymentMutation = useMutation({
-    mutationFn: (data: PaymentInput) => invoicesApi.addPayment(invoiceId, data),
+    mutationFn: async (data: PaymentInput) => {
+      const before = new Set((invoiceQuery.data?.payments ?? []).map((x) => x.id));
+      const updated = await invoicesApi.addPayment(invoiceId, { ...data, ...detailsPayload(details) });
+      const created = updated.payments.find((x) => !before.has(x.id));
+      if (created && details.file) await paymentProofApi.upload('sale', created.id, details.file);
+      return updated;
+    },
     onSuccess: () => {
+      setDetails(emptyPaymentDetails());
       queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       setPaymentDialogOpen(false);
       reset({ amount: 0, method: 'cash', reference_number: '', notes: '' });
+    },
+  });
+
+  const payByMutation = useMutation({
+    mutationFn: (value: string | null) => invoicesApi.setPayBy(invoiceId, value),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-dues'] });
     },
   });
 
@@ -271,12 +290,28 @@ export default function InvoiceDetail() {
                 </Button>
               )}
             </Box>
+            {balance > 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }} data-testid="pay-by-box">
+                <TextField
+                  size="small" type="date" label="Balance will be paid by" slotProps={{ inputLabel: { shrink: true }, htmlInput: { 'data-testid': 'pay-by-date' } }}
+                  value={payBy || invoice.pay_by_date || ''} onChange={(e) => setPayBy(e.target.value)}
+                />
+                <Button size="small" variant="outlined" disabled={payByMutation.isPending || !(payBy || invoice.pay_by_date)} data-testid="pay-by-save"
+                  onClick={() => payByMutation.mutate(payBy || invoice.pay_by_date || null)}>
+                  Save date
+                </Button>
+                {invoice.pay_by_date && (
+                  <Button size="small" onClick={() => { setPayBy(''); payByMutation.mutate(null); }}>Clear</Button>
+                )}
+                <Typography variant="caption" color="text.secondary">The Dashboard reminds you when it is due.</Typography>
+              </Box>
+            )}
             <Table size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>Date</TableCell>
                   <TableCell>Method</TableCell>
-                  <TableCell>Reference</TableCell>
+                  <TableCell>Details</TableCell>
                   <TableCell>Amount</TableCell>
                   <TableCell align="right" />
                 </TableRow>
@@ -286,9 +321,17 @@ export default function InvoiceDetail() {
                   <TableRow key={p.id}>
                     <TableCell>{p.payment_date}</TableCell>
                     <TableCell>{p.method.replace('_', ' ')}</TableCell>
-                    <TableCell>{p.reference_number || '-'}</TableCell>
+                    <TableCell>
+                      {[p.upi_id && `UPI ${p.upi_id}`, p.bank_details, p.reference_number].filter(Boolean).join(' · ') || '-'}
+                      {p.is_advance && <Chip size="small" label="Advance" sx={{ ml: 0.75 }} />}
+                    </TableCell>
                     <TableCell>₹{p.amount.toFixed(2)}</TableCell>
                     <TableCell align="right">
+                      {p.has_proof && (
+                        <IconButton size="small" aria-label="Open receipt" data-testid="open-receipt" onClick={() => paymentProofApi.open('sale', p.id)}>
+                          <AttachFileIcon fontSize="small" />
+                        </IconButton>
+                      )}
                       <IconButton size="small" onClick={() => setDeletingPaymentId(p.id)}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -327,20 +370,7 @@ export default function InvoiceDetail() {
                 helperText={errors.amount ? `Enter an amount between ₹0.01 and the balance due (₹${balance.toFixed(2)})` : `Balance due ₹${balance.toFixed(2)}`}
                 {...register('amount', { required: true, valueAsNumber: true, min: 0.01, max: Number(balance.toFixed(2)) })}
               />
-              <Controller
-                name="method"
-                control={control}
-                render={({ field }) => (
-                  <TextField label="Method" select fullWidth {...field}>
-                    {PAYMENT_METHODS.map((m) => (
-                      <MenuItem key={m} value={m}>
-                        {m.replace('_', ' ')}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                )}
-              />
-              <TextField label="Reference Number" fullWidth {...register('reference_number')} />
+              <PaymentDetailsFields value={details} onChange={setDetails} idPrefix="inv-pay" />
               <TextField label="Notes" fullWidth multiline rows={2} {...register('notes')} />
             </Stack>
           </DialogContent>

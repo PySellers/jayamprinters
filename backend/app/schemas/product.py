@@ -47,6 +47,7 @@ class ProductCreate(BaseModel):
     fixed_price: Optional[float] = None
     hsn_id: Optional[int] = None
     min_quantity: Optional[int] = None
+    sub_category: Optional[str] = None
     is_active: bool = True
 
 
@@ -58,6 +59,7 @@ class ProductUpdate(BaseModel):
     fixed_price: Optional[float] = None
     hsn_id: Optional[int] = None
     min_quantity: Optional[int] = None
+    sub_category: Optional[str] = None
     is_active: Optional[bool] = None
 
 

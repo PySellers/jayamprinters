@@ -24,6 +24,54 @@ PAPER_ATTRIBUTES = ("Paper Name", "Paper/GSM Type", "Paper/Board Type", "Board /
 SIDE_ATTRIBUTES = ("Print Side", "Side")
 
 
+STATIONERY = {"Bill Books & Stationery", "Register", "Transfer Certificate", "Application Form"}
+LARGE_FORMAT = {"Digital Banner", "Stickers", "Board & Paper Printing (13x19)"}
+POSITION_ALL = ["1st Proof", "2nd Proof", "Proof OK", "Printing", "Binding", "Ready", "Delivery", "Half Payment", "Full Payment"]
+POSITION_PLAIN = ["Printing", "Binding", "Ready", "Delivery", "Half Payment", "Full Payment"]
+PAPER_LABELS = {"range": "Range", "kgs": "K.gs", "colour": "Colour", "qty": "Qty", "printing": "Printing"}
+
+
+def sheet_profile(service: str, copy_count: int = 0) -> Dict[str, Any]:
+    """Which parts of the paper job card matter for this service. Everything else is left off the form and the print,
+    so a Xerox job does not carry offset ink colours, margins, proofs or 1st/2nd copy rows."""
+    if service == "Xerox / Photocopy":
+        kind = "xerox"
+    elif service == "Printout":
+        kind = "printout"
+    elif service in OFFSET_SERVICES:
+        kind = "offset"
+    elif service in LARGE_FORMAT:
+        kind = "large"
+    elif service == "Rubber Stamp":
+        kind = "stamp"
+    elif service == "Binding Services":
+        kind = "binding"
+    else:
+        kind = "generic"
+    plain = kind in ("xerox", "printout", "binding")
+    labels = dict(PAPER_LABELS)
+    if kind in ("xerox", "printout"):
+        labels = {"range": "Paper / size", "kgs": "GSM", "colour": "B/W or colour", "qty": "Copies", "printing": "Sides"}
+    elif kind == "binding":
+        labels = {"range": "Material", "kgs": "", "colour": "", "qty": "Qty", "printing": "Wrapper print"}
+    return {
+        "kind": kind,
+        "type_options": {
+            "offset": ["Offset", "Multi Colour", "Screen"], "xerox": ["Xerox"], "printout": ["B/W Printout", "Colour Printout"],
+            "large": ["Multi Colour"],
+        }.get(kind, []),
+        "show_colours": kind == "offset",
+        "show_margin": service in STATIONERY,
+        "show_numbering": service in ("Bill Books & Stationery", "Register"),
+        "show_cutting": kind in ("offset", "large", "generic"),
+        "show_proofs": not plain,
+        "copy_rows": max(1, min(copy_count, 4)) if service == "Bill Books & Stationery" else 1,
+        "paper_labels": labels,
+        "position_options": POSITION_PLAIN if plain else POSITION_ALL,
+        "payment_keys": ["first", "rate", "advance", "balance1"],
+    }
+
+
 def _money(value: Optional[float]) -> str:
     if value is None:
         return ""
@@ -51,6 +99,8 @@ def _type_of_printing(service: str, specs: Dict[str, str]) -> List[str]:
 
 
 INK_OPTIONS = ["Royal Blue", "Peacock Blue", "Green", "Red", "Mejentha", "Merun", "Brown", "Black"]
+COLOUR_NAMES = INK_OPTIONS
+MARGIN_NAMES = ["Centre", "Top", "Left", "Right"]
 
 
 def _ink_colours(notes_text: str, ink_attribute: str) -> List[str]:
@@ -65,7 +115,7 @@ def _payment_rows(detail: Dict[str, Any], invoice: Optional[Invoice]) -> Dict[st
     rows = {key: "" for key in PAYMENT_KEYS}
     price = detail.get("price")
     if price:
-        rows["first"] = f"Bill total {_money(invoice.grand_total)}" if invoice is not None and invoice.grand_total else f"Total {_money(price['amount'])}"
+        rows["first"] = _money(invoice.grand_total) if invoice is not None and invoice.grand_total else _money(price["amount"])
         rows["rate"] = _money(price["rate"])
         buckets = {"dtp": 0.0, "proof": 0.0, "printing": 0.0, "binding": 0.0, "packing": 0.0, "delivery": 0.0}
         for part in price.get("breakdown") or []:
@@ -178,7 +228,9 @@ def prefilled_sheet(db: Session, job: JobCard) -> Dict[str, Any]:
             "kgs": specs.get("Paper/GSM Type", "") if specs.get("Paper Name") else "",
             "colour": paper_colour, "qty": qty_text, "printing": printing_text,
         })
-    while len(paper_rows) < 4:
+    profile = sheet_profile(service, len(copies))
+    paper_rows = paper_rows[: profile["copy_rows"]]
+    while len(paper_rows) < profile["copy_rows"]:
         paper_rows.append({"range": "", "kgs": "", "colour": "", "qty": "", "printing": ""})
 
     # ---- proofs ----
@@ -210,7 +262,7 @@ def prefilled_sheet(db: Session, job: JobCard) -> Dict[str, Any]:
         "mobile": detail["customer"].get("phone") or "",
         "job_name": job_name,
         "size": size,
-        "type_of_printing": _type_of_printing(service, specs),
+        "type_of_printing": [t for t in _type_of_printing(service, specs) if t in profile["type_options"]],
         "proof1_date": str(proof_date(1, "due_date") or (quotation.proof1_date if quotation is not None and quotation.proof1_date else "")),
         "proof1_time": proof_date(1, "due_time") or ((quotation.proof1_time or "") if quotation is not None else ""),
         "proof2_date": str(proof_date(2, "due_date") or (quotation.proof2_date if quotation is not None and quotation.proof2_date else "")),
@@ -218,15 +270,29 @@ def prefilled_sheet(db: Session, job: JobCard) -> Dict[str, Any]:
         "delivery_date": str(job.delivery_date or (quotation.delivery_date if quotation is not None and quotation.delivery_date else "")),
         "delivery_time": (detail.get("delivery_time") or ""),
         "paper": paper_rows,
-        "cutting_size": size,
-        "printing_colours": _ink_colours(" ".join(detail.get("notes") or []), ink),
+        "more_proofs": [],
+        "cutting_size": size if profile["show_cutting"] else "",
+        "printing_colours": _ink_colours(" ".join(detail.get("notes") or []), ink) if profile["show_colours"] else [],
         "margins": [],
-        "serial_from_to": serial,
-        "book_from_to": book,
+        "serial_from_to": serial if profile["show_numbering"] else "",
+        "book_from_to": book if profile["show_numbering"] else "",
         "payment": _payment_rows(detail, invoice),
         "remarks": "\n".join(remarks),
-        "job_position": _position_ticks(detail, invoice),
+        "job_position": [t for t in _position_ticks(detail, invoice) if t in profile["position_options"]],
     }
+
+
+def sheet_extras(db: Session, job: JobCard) -> Dict[str, Any]:
+    """What goes with the form but is never stored on it: the service profile and the price list of the order."""
+    detail = job_card_detail(db, job, with_price=True)
+    service = detail["job"].get("service") or ""
+    price = detail.get("price") or {}
+    lines = [{"label": p.get("label", ""), "detail": p.get("detail", ""), "amount": float(p.get("amount") or 0)} for p in price.get("breakdown") or []]
+    if price.get("discount"):
+        lines.append({"label": "Discount (this job's share)", "detail": "", "amount": -float(price["discount"])})
+    if price.get("with_gst") and price.get("tax"):
+        lines.append({"label": "GST", "detail": "", "amount": float(price["tax"])})
+    return {"profile": sheet_profile(service, len(detail.get("copies") or [])), "price_lines": lines}
 
 
 def merge_saved(base: Dict[str, Any], saved: Optional[Dict[str, Any]]) -> Dict[str, Any]:

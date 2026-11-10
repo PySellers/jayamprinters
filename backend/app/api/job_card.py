@@ -18,6 +18,7 @@ from app.services import proof_service
 from app.services.company_service import get_company
 from app.services.job_card_detail_service import job_card_detail
 from app.services.job_card_pdf_service import generate_job_card_pdf
+from app.services.job_sheet_pdf_service import generate_job_sheet_pdf
 from sqlalchemy.orm import joinedload
 
 router = APIRouter(prefix="/job-cards", tags=["job-cards"])
@@ -113,6 +114,19 @@ def job_card_pdf(job_card_id: int, with_price: bool = False, db: Session = Depen
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
     pdf = generate_job_card_pdf(job_card_detail(db, job_card, with_price), get_company(db))
     suffix = "with-price" if with_price else "no-price"
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="{job_card.job_number}-{suffix}.pdf"'})
+
+
+@router.get("/{job_card_id}/sheet-pdf")
+def job_sheet_pdf(job_card_id: int, with_price: bool = False, db: Session = Depends(get_db)):
+    """The paper job card (landscape A4), with only the parts that belong to the job's service, filled from the order
+    and whatever staff saved on the form. with_price adds the payment column and the price list."""
+    job_card = db.query(JobCard).filter(JobCard.id == job_card_id).first()
+    if not job_card:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
+    pdf = generate_job_sheet_pdf(get_job_card_sheet(db, job_card), get_company(db), with_price)
+    suffix = "paper-card-with-price" if with_price else "paper-card"
     return Response(content=pdf, media_type="application/pdf",
                     headers={"Content-Disposition": f'inline; filename="{job_card.job_number}-{suffix}.pdf"'})
 

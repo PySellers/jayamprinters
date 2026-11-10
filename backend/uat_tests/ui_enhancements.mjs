@@ -158,7 +158,7 @@ export async function enhancementTests(browser) {
   const M5 = 'Bill book order (screen)';
   const bb = cat('Bill Books & Stationery');
   const bcust = await mkCustomer('BillBook');
-  await run('UI-BBK', M5, 'Quantity sits in the first row with the document type; Copies per set start at 1', 'Quantity beside Document type; first copy choice is 1', async () => {
+  await run('UI-BBK', M5, 'Quantity comes after the paper of each copy; Copies per set start at 1', 'Paper first, then quantity; first copy choice is 1', async () => {
     await go(orderUrl(bcust, bb.id));
     await pick(page, 'Document type', 'Bill Book');
     await page.getByLabel('Paper size', { exact: false }).first().click();
@@ -167,7 +167,8 @@ export async function enhancementTests(browser) {
     const docBox = await page.getByLabel('Document type', { exact: false }).first().boundingBox();
     const qtyBox = await page.getByLabel('Quantity (Nos)').boundingBox();
     expect(docBox && qtyBox, 'document type or quantity field not found');
-    expect(Math.abs(docBox.y - qtyBox.y) < 20, `quantity is not on the same row as the document type (y ${docBox.y} vs ${qtyBox.y})`);
+    const paperBox = await page.getByLabel('Paper name', { exact: false }).first().boundingBox();
+    expect(paperBox && paperBox.y > docBox.y && qtyBox.y > paperBox.y, `paper must come before the quantity (document ${docBox.y}, paper ${paperBox && paperBox.y}, quantity ${qtyBox.y})`);
     await page.getByLabel('Copies per set').click();
     const first = (await page.getByRole('option').first().innerText()).trim();
     await page.keyboard.press('Escape');

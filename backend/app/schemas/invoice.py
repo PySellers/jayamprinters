@@ -32,11 +32,15 @@ class PaymentCreate(BaseModel):
     amount: float
     method: PaymentMethod
     reference_number: Optional[str] = None
+    upi_id: Optional[str] = None
+    bank_details: Optional[str] = None
     notes: Optional[str] = None
+    is_advance: bool = False
 
 
 class PaymentOut(PaymentCreate):
     id: int
+    has_proof: bool = False
     payment_date: date
     created_at: datetime
 
@@ -62,9 +66,15 @@ class InvoiceOut(BaseModel):
     with_gst: bool = False
     invoice_date: date
     notes: Optional[str]
+    pay_by_date: Optional[date] = None
     created_at: datetime
     items: List[InvoiceItemOut]
     payments: List[PaymentOut]
 
     class Config:
         from_attributes = True
+
+class InvoicePatch(BaseModel):
+    """What can be changed on an invoice after it is made: the day the customer promised to pay the balance."""
+    pay_by_date: Optional[date] = None
+    notes: Optional[str] = None

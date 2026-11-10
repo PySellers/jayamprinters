@@ -4,12 +4,13 @@ from io import BytesIO
 from typing import Any, Dict, Optional
 
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
 
 from app.models.company import CompanySettings
+from app.services.job_sheet_service import sheet_profile
 from app.services.bill_pdf_service import BAND, BRAND_RED, GREY, INK, LINE, TINT, Shop, _draw_logo, _fit
 from app.services.time_utils import now_ist, utc_naive_to_ist
 
@@ -33,9 +34,9 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
     shop = Shop(company)
     with_price = bool(detail.get("with_price"))
     buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
+    c = canvas.Canvas(buffer, pagesize=landscape(A4))
     c.setTitle(f"Job card {detail['job_number']}")
-    W, H = A4
+    W, H = landscape(A4)
     left, right = 12 * mm, W - 12 * mm
     width = right - left
     bottom = 16 * mm
@@ -141,7 +142,8 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
             state["y"] -= h
 
     def table(headers, widths_mm, rows, size=8.2, bold_first=False):
-        widths = [w * mm for w in widths_mm]
+        scale = width / (sum(widths_mm) * mm)  # the page is landscape: stretch the columns to the full width
+        widths = [w * mm * scale for w in widths_mm]
         need(6 * mm + 5.5 * mm)
         c.setFillColor(TINT)
         c.rect(left, state["y"] - 5.5 * mm, width, 5.5 * mm, fill=1, stroke=0)
@@ -201,23 +203,29 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
         section("Instructions / details")
         kv_rows([(f"{i + 1}.", n) for i, n in enumerate(detail["notes"])], label_w=8 * mm)
 
-    # ---- proofs -------------------------------------------------------------
-    section("Design proofs")
-    if detail["proofs"]:
+    # ---- proofs and delivery (a service without design proofs, like Xerox, just shows the delivery) -------
+    profile = sheet_profile(job["service"] or "", len(detail.get("copies") or []))
+    delivery_text = f"{_date(detail['delivery_date']) or '-'}{(' ' + detail['delivery_time']) if detail.get('delivery_time') else ''}"
+    section("Design proofs and delivery" if (profile["show_proofs"] or detail["proofs"]) else "Delivery")
+    if not (profile["show_proofs"] or detail["proofs"]):
+        pass
+    elif detail["proofs"]:
         table(["Proof", "Due", "Status", "Looked after by"], [26, 50, 50, 60],
               [[p["label"], f"{_date(p['due_date'])} {p['due_time'] or ''}".strip() or "-",
                 (p["status_label"] + ("  (late)" if p["overdue"] else ""), BRAND_RED if p["overdue"] else (GREEN if p["status"] == "approved" else INK)),
                 p["handled_by_name"] or "Design team"] for p in detail["proofs"]], bold_first=True)
     else:
         kv_rows([("Proofs", "None planned")])
+    kv_rows([("Delivery date", delivery_text)])
 
-    # ---- production steps ---------------------------------------------------
-    section("Production steps")
-    table(["#", "Step", "Team / person", "Status", "Finished"], [8, 56, 50, 36, 36],
-          [[str(n), s["name"] + (" (outside)" if s["kind"] == "outsource" else ""),
-            (s["assigned_to_name"] or s["work_center_name"] or "-"),
-            (STEP_STATUS_LABEL.get(s["status"], s["status"]), GREEN if s["status"] == "done" else (AMBER if s["status"] in ("in_progress", "on_hold") else INK)),
-            _dt(s["completed_at"])] for n, s in enumerate(detail["steps"], start=1)])
+    # ---- production steps: left off the priced copy (that one goes to the customer / accounts) -----
+    if not with_price:
+        section("Production steps")
+        table(["#", "Step", "Team / person", "Status", "Finished"], [8, 56, 50, 36, 36],
+              [[str(n), s["name"] + (" (outside)" if s["kind"] == "outsource" else ""),
+                (s["assigned_to_name"] or s["work_center_name"] or "-"),
+                (STEP_STATUS_LABEL.get(s["status"], s["status"]), GREEN if s["status"] == "done" else (AMBER if s["status"] in ("in_progress", "on_hold") else INK)),
+                _dt(s["completed_at"])] for n, s in enumerate(detail["steps"], start=1)])
 
     # ---- price --------------------------------------------------------------
     if with_price and detail.get("price"):

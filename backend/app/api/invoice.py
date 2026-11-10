@@ -9,7 +9,8 @@ from app.models.invoice import Invoice, InvoiceStatus
 from app.models.customer import Customer
 from app.models.product import Product
 from app.models.user import User, UserRole
-from app.schemas.invoice import InvoiceOut, InvoiceStatusUpdate, PaymentCreate
+from app.schemas.invoice import InvoiceOut, InvoicePatch, InvoiceStatusUpdate, PaymentCreate
+from app.services.time_utils import today_ist
 from app.services.invoice_service import create_invoice_from_quotation, record_payment, delete_payment, set_invoice_status
 from app.services.pdf_service import generate_invoice_pdf, generate_invoice_thermal_pdf, THERMAL_WIDTHS_MM
 from app.services.bill_pdf_service import generate_gst_bill_pdf, generate_cash_bill_pdf
@@ -29,6 +30,31 @@ def create_from_quotation(quotation_id: int, db: Session = Depends(get_db)):
 @invoice_router.get("/", response_model=List[InvoiceOut])
 def get_invoices(skip: int = 0, limit: int = 5000, db: Session = Depends(get_db)):
     return db.query(Invoice).order_by(Invoice.id.desc()).offset(skip).limit(limit).all()
+
+
+@invoice_router.get("/dues")
+def payments_due(within_days: int = Query(7, ge=0, le=90), db: Session = Depends(get_db)):
+    """Unpaid balances the customer promised to pay by a day: overdue first, then today, then the next few days.
+    The counter calls or messages them (the dashboard shows this list)."""
+    from datetime import timedelta
+    today = today_ist()
+    rows = []
+    for inv in db.query(Invoice).filter(Invoice.pay_by_date.isnot(None), Invoice.pay_by_date <= today + timedelta(days=within_days)).all():
+        balance = round((inv.grand_total or 0.0) - (inv.amount_paid or 0.0), 2)
+        if balance <= 0.004:
+            continue
+        customer = db.query(Customer).filter(Customer.id == inv.customer_id).first()
+        days = (inv.pay_by_date - today).days
+        rows.append({
+            "invoice_id": inv.id, "invoice_number": inv.invoice_number, "bill_no": inv.bill_no,
+            "customer_id": inv.customer_id, "customer_name": customer.billing_person_name or customer.name if customer else "",
+            "phone": (customer.whatsapp_number or customer.phone) if customer else None,
+            "grand_total": round(inv.grand_total or 0.0, 2), "paid": round(inv.amount_paid or 0.0, 2), "balance": balance,
+            "pay_by_date": inv.pay_by_date.isoformat(), "days_left": days,
+            "state": "overdue" if days < 0 else ("today" if days == 0 else "upcoming"),
+        })
+    rows.sort(key=lambda r: (r["days_left"], r["invoice_id"]))
+    return rows
 
 
 @invoice_router.get("/{invoice_id}", response_model=InvoiceOut)
@@ -131,6 +157,19 @@ def update_invoice_status(
             detail="Only admin or accounts can move an invoice back to unpaid.",
         )
     return set_invoice_status(db, invoice_id, payload.status)
+
+
+@invoice_router.patch("/{invoice_id}", response_model=InvoiceOut)
+def patch_invoice(invoice_id: int, payload: InvoicePatch, db: Session = Depends(get_db)):
+    """Set (or clear) the day the customer will pay the balance."""
+    invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
+    if not invoice:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        setattr(invoice, key, value)
+    db.commit()
+    db.refresh(invoice)
+    return invoice
 
 
 @invoice_router.post("/{invoice_id}/payments", response_model=InvoiceOut)

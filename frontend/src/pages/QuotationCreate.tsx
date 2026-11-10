@@ -22,6 +22,9 @@ import QuotationLineItem from '../components/quotations/QuotationLineItem';
 import BillBookWizard from '../components/quotations/BillBookWizard';
 import ServiceItemPicker from '../components/quotations/ServiceItemPicker';
 import { productsApi, productCategoriesApi } from '../api/productsApi';
+import CustomerHistoryPanel from '../components/quotations/CustomerHistoryPanel';
+import PaymentDetailsFields, { detailsPayload, emptyPaymentDetails, type PaymentDetails } from '../components/PaymentDetailsFields';
+import { paymentProofApi } from '../api/extraApi';
 
 const emptyItem: QuotationItemInput = {
   product_id: 0,
@@ -85,6 +88,11 @@ export default function QuotationCreate() {
   const withGst = methods.watch('with_gst');
 
   // ---- discount on the whole order (taken off before GST) ----------------------------------------
+  // ---- advance taken now + the day the balance will be paid ---------------------------------------
+  const [advance, setAdvance] = useState('');
+  const [advDetails, setAdvDetails] = useState<PaymentDetails>(emptyPaymentDetails());
+  const [payBy, setPayBy] = useState('');
+  const [advanceError, setAdvanceError] = useState<string | null>(null);
   const [discountType, setDiscountType] = useState<DiscountType | 'none'>('none');
   const [discountValue, setDiscountValue] = useState('');
   const discountNumber = Math.max(0, Number(discountValue) || 0);
@@ -227,6 +235,19 @@ export default function QuotationCreate() {
       if (isQuick) {
         await quotationsApi.convert(quotation.id);
         const invoice = await invoicesApi.createFromQuotation(quotation.id);
+        const advanceNow = Math.max(0, Number(advance) || 0);
+        try {
+          if (advanceNow > 0) {
+            const before = new Set(invoice.payments.map((x) => x.id));
+            const paid = await invoicesApi.addPayment(invoice.id, { amount: Math.min(advanceNow, invoice.grand_total), ...detailsPayload(advDetails), is_advance: true });
+            const made = paid.payments.find((x) => !before.has(x.id));
+            if (made && advDetails.file) await paymentProofApi.upload('sale', made.id, advDetails.file);
+          }
+          if (payBy) await invoicesApi.setPayBy(invoice.id, payBy);
+        } catch {
+          /* the invoice and job card exist; the payment can be added again on the invoice page */
+        }
+        queryClient.invalidateQueries({ queryKey: ['invoice-dues'] });
         queryClient.invalidateQueries({ queryKey: ['job-cards'] });
         queryClient.invalidateQueries({ queryKey: ['invoices'] });
         navigate(`/invoices/${invoice.id}`);
@@ -237,7 +258,14 @@ export default function QuotationCreate() {
     },
   });
 
+  const orderTotal = Math.max(0, (preview?.subtotal ?? 0) - discountAmount + gstAmount);
+  const advanceNumber = Math.max(0, Number(advance) || 0);
   const onSubmit = (data: QuotationCreateInput) => {
+    if (isQuick && advanceNumber > orderTotal + 0.009 && orderTotal > 0) {
+      setAdvanceError(`The advance cannot be more than the order total (₹${orderTotal.toFixed(2)})`);
+      return;
+    }
+    setAdvanceError(null);
     createMutation.mutate({
       ...data,
       // An unfilled <input type="date">/<input type="time"> registers as "" in
@@ -626,6 +654,25 @@ export default function QuotationCreate() {
             </Paper>
           )}
 
+          {isQuick && (
+            <Paper variant="outlined" sx={{ p: 2, mb: 2, maxWidth: 560, ml: 'auto' }} data-testid="advance-box">
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1a237e', mb: 1 }}>Advance received now (optional)</Typography>
+              <Stack spacing={1.5}>
+                <TextField
+                  size="small" type="number" label="Advance amount" value={advance} onChange={(e) => { setAdvance(e.target.value); setAdvanceError(null); }}
+                  error={Boolean(advanceError)} helperText={advanceError ?? (advanceNumber > 0 && orderTotal > 0 ? `Balance after the advance: ₹${Math.max(orderTotal - advanceNumber, 0).toFixed(2)}` : 'Leave empty if nothing was paid yet')}
+                  slotProps={{ input: { startAdornment: <InputAdornment position="start">₹</InputAdornment> }, htmlInput: { min: 0, step: 'any', 'data-testid': 'advance-amount' } }}
+                />
+                {advanceNumber > 0 && <PaymentDetailsFields value={advDetails} onChange={setAdvDetails} idPrefix="adv" />}
+                <TextField
+                  size="small" type="date" label="Balance will be paid by (optional)" value={payBy} onChange={(e) => setPayBy(e.target.value)}
+                  slotProps={{ inputLabel: { shrink: true }, htmlInput: { 'data-testid': 'order-pay-by' } }}
+                  helperText="If the customer will pay the rest later: the Dashboard reminds you on that day and the bill shows it."
+                />
+              </Stack>
+            </Paper>
+          )}
+
           <Stack direction="row" spacing={2}>
             <Button
               type="submit"
@@ -641,6 +688,7 @@ export default function QuotationCreate() {
           </Stack>
         </form>
       </FormProvider>
+      <CustomerHistoryPanel customerId={isQuick ? (initialCustomerId ? Number(initialCustomerId) : null) : selectedCustomer?.id} />
     </Box>
   );
 }

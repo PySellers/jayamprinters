@@ -55,6 +55,8 @@ export async function round3Tests(browser) {
     expect(strip && strip.height < 80, `statistics strip is ${strip && strip.height}px tall`);
     const formH = await page.locator('h6:has-text("Start New Order")').evaluate((el) => el.closest('.MuiPaper-root').getBoundingClientRect().height);
     expect(formH < 1000, `the order form is ${Math.round(formH)}px tall`);
+    expect(await page.getByTestId('live-board').count() === 0, 'the live board is still beside the order form');
+    await page.getByTestId('live-switch').click();
     const board = await page.getByTestId('live-board').boundingBox();
     expect(board && board.y < 200, `live jobs start ${board && Math.round(board.y)}px down the page`);
     await shot(page, 'r3-dashboard');
@@ -120,7 +122,7 @@ export async function round3Tests(browser) {
   };
 
   await run('UI-R3L', M2, 'The board shows every status: seven stage chips with counts, and each job its own status', 'All 7 statuses named', async () => {
-    await go('/dashboard');
+    await go('/dashboard?view=live');
     const legend = await page.getByTestId('status-legend').innerText();
     for (const s of ['Waiting to start', 'Design', 'Proof approval', 'Printing', 'Binding / finishing', 'Packing & handover', 'Delivered']) {
       expect(legend.includes(s), `status "${s}" missing from the board`);
@@ -132,7 +134,7 @@ export async function round3Tests(browser) {
   }, page, live);
 
   await run('UI-R3L', M2, 'An urgent job is bold with a red URGENT badge and sits at the top of the board', 'First row urgent; badge visible', async () => {
-    await go('/dashboard');
+    await go('/dashboard?view=live');
     const rows = page.getByTestId('live-job');
     expect((await rows.first().getAttribute('data-urgent')) === 'true', 'the first job on the board is not urgent');
     await find(urgentJob);
@@ -147,7 +149,7 @@ export async function round3Tests(browser) {
   }, page, live);
 
   await run('UI-R3L', M2, 'Clicking a job on the board opens that job', 'Goes to /job-cards/<id>/track', async () => {
-    await go('/dashboard');
+    await go('/dashboard?view=live');
     await find(normalJob);
     await row(normalJob).click();
     await page.waitForURL(new RegExp(`/job-cards/${normalJob.id}/track`), { timeout: 8000 });
@@ -157,7 +159,7 @@ export async function round3Tests(browser) {
 
   await run('UI-R3L', M2, 'Changing the job status is reflected on the board (stage chip and stepper)', 'Printing chip + stepper', async () => {
     await api('PATCH', `/job-cards/${normalJob.id}/status`, { status: 'printing' });
-    await go('/dashboard');
+    await go('/dashboard?view=live');
     await find(normalJob);
     const r = row(normalJob);
     await r.waitFor({ timeout: 8000 });
@@ -167,7 +169,7 @@ export async function round3Tests(browser) {
   }, page, live);
 
   await run('UI-R3L', M2, 'The Urgent / Overdue filters and the stage chips narrow the list', 'Only matching jobs', async () => {
-    await go('/dashboard');
+    await go('/dashboard?view=live');
     await page.getByTestId('filter-urgent').click();
     await page.waitForTimeout(300);
     const flags = await page.getByTestId('live-job').evaluateAll((els) => els.map((e) => e.getAttribute('data-urgent')));
@@ -180,7 +182,7 @@ export async function round3Tests(browser) {
   }, page, live);
 
   await run('UI-R3L', M2, 'The proof to watch is shown on each running job', 'Proof 1 text on the job row', async () => {
-    await go('/dashboard');
+    await go('/dashboard?view=live');
     await page.getByTestId('filter-urgent').click();
     await find(urgentJob);
     const chip = row(urgentJob).getByTestId('proof-chip');

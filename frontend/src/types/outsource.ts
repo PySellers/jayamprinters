@@ -1,5 +1,17 @@
 export type OutsourceStatus = 'sent' | 'in_progress' | 'received' | 'delivered' | 'cancelled';
 
+export interface OutsourcePayment {
+  id: number;
+  amount: number;
+  method?: string | null;
+  reference_number?: string | null;
+  upi_id?: string | null;
+  bank_details?: string | null;
+  notes?: string | null;
+  payment_date?: string | null;
+  has_proof?: boolean;
+}
+
 export interface OutsourceJob {
   id: number;
   job_number: string;
@@ -21,6 +33,7 @@ export interface OutsourceJob {
   notes?: string | null;
   margin: number;
   balance_to_pay: number;
+  payments?: OutsourcePayment[];
 }
 
-export type OutsourceInput = Partial<Omit<OutsourceJob, 'id' | 'job_number' | 'amount_paid' | 'margin' | 'balance_to_pay'>> & { service: string };
+export type OutsourceInput = Partial<Omit<OutsourceJob, 'id' | 'job_number' | 'amount_paid' | 'margin' | 'balance_to_pay' | 'payments'>> & { service: string };

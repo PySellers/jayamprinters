@@ -13,7 +13,7 @@ from app.models.delivery_challan import DeliveryChallan
 from app.services.time_utils import utc_naive_to_ist
 from app.services.workflow_service import create_steps_for_job
 from app.services.proof_service import create_proofs_from_order
-from app.services.job_sheet_service import merge_saved, prefilled_sheet
+from app.services.job_sheet_service import merge_saved, prefilled_sheet, sheet_extras
 
 
 def generate_job_number(db: Session) -> str:
@@ -113,6 +113,7 @@ def get_job_card_sheet(db: Session, job_card: JobCard) -> Dict[str, Any]:
         "invoice_time": utc_naive_to_ist(invoice.created_at).strftime("%I:%M %p") if invoice and invoice.created_at else None,
         "dc_number": challan.dc_number if challan else None,
         "sheet": sheet,
+        **sheet_extras(db, job_card),
     }
 
 

@@ -133,6 +133,7 @@ export interface JobCardSheetData {
   delivery_date: string;
   delivery_time: string;
   paper: SheetPaperRow[];
+  more_proofs?: { date: string; time: string }[];
   cutting_size: string;
   printing_colours: string[];
   margins: string[];
@@ -151,6 +152,23 @@ export interface JobCardSheet {
   invoice_time?: string | null;
   dc_number?: number | null;
   sheet: JobCardSheetData;
+  /** Which parts of the form belong to this job's service. */
+  profile: SheetProfile;
+  price_lines: { label: string; detail: string; amount: number }[];
+}
+
+export interface SheetProfile {
+  kind: string;
+  type_options: string[];
+  show_colours: boolean;
+  show_margin: boolean;
+  show_numbering: boolean;
+  show_cutting: boolean;
+  show_proofs: boolean;
+  copy_rows: number;
+  paper_labels: { range: string; kgs: string; colour: string; qty: string; printing: string };
+  position_options: string[];
+  payment_keys: SheetPaymentKey[];
 }
 
 export interface JobCardComment {

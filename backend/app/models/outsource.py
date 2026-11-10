@@ -45,3 +45,27 @@ class OutsourceJob(Base):
 
     vendor = relationship("Vendor")
     customer = relationship("Customer")
+    payments = relationship("OutsourcePayment", cascade="all, delete-orphan", order_by="OutsourcePayment.id")
+
+
+class OutsourcePayment(Base):
+    """One payment made to the outside company for an outsourced job (the job's amount_paid is their sum)."""
+    __tablename__ = "outsource_payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    job_id = Column(Integer, ForeignKey("outsource_jobs.id"), nullable=False, index=True)
+    amount = Column(Float, nullable=False)
+    method = Column(String, nullable=True)
+    reference_number = Column(String, nullable=True)
+    upi_id = Column(String, nullable=True)
+    bank_details = Column(String, nullable=True)
+    payment_date = Column(Date, default=lambda: datetime.utcnow().date())
+    notes = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    @property
+    def has_proof(self) -> bool:
+        from sqlalchemy.orm import object_session
+        from app.models.payment_proof import has_proof_for
+        session = object_session(self)
+        return bool(session and has_proof_for(session, "outsource", self.id))

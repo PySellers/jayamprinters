@@ -29,6 +29,20 @@ export const jobCardsApi = {
       throw error;
     }
   },
+  // Opens the paper job card (landscape, only the parts of this job's service) in a new tab.
+  printSheet: async (id: number, withPrice: boolean): Promise<void> => {
+    const popup = window.open('', '_blank');
+    try {
+      const response = await api.get(`/job-cards/${id}/sheet-pdf`, { params: { with_price: withPrice }, responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      if (popup) popup.location.href = url;
+      else window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      popup?.close();
+      throw error;
+    }
+  },
   proofs: async (id: number): Promise<JobProof[]> => (await api.get(`/job-cards/${id}/proofs`)).data,
   addProof: async (id: number, data: { due_date?: string | null; due_time?: string | null; notes?: string | null; handled_by?: number | null }): Promise<JobProof> =>
     (await api.post(`/job-cards/${id}/proofs`, data)).data,

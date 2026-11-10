@@ -51,3 +51,6 @@ __all__ = [
 from .workflow import WorkCenter, WorkflowTemplate, WorkflowTemplateStep, JobStep, JobEvent, user_work_centers
 from .print_charge import PrintChargeBand
 from .job_proof import JobProof
+from .payment_proof import PaymentProof
+from .job_material import JobMaterial
+from .outsource import OutsourcePayment
