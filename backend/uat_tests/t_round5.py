@@ -457,7 +457,7 @@ def run_all():
             expect("Keywords:" in sec and "Link:" in sec, f"topic without keywords / link: {sec[:50]}")
         routes = set(re.findall(r"^Link: (/\S*)$", text, re.M))
         known = {"/dashboard", "/profile", "/pricing-setup", "/quotations/new", "/invoices", "/job-cards", "/production", "/my-work", "/purchases", "/inventory",
-                 "/outsource", "/cash-ledger", "/reports", "/customers", "/quotations", "/users", "/company", "/about"}
+                 "/outsource", "/cash-ledger", "/reports", "/customers", "/quotations", "/users", "/company", "/about", "/work-log"}
         expect(routes <= known, routes - known)
         return f"The manual has {len(titles)} topics, each with keywords and a page link that exists"
     run("R5B", M_BOT, "The knowledge file is well formed", "Every topic has keywords and a real page", t)

@@ -9,6 +9,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import PauseIcon from '@mui/icons-material/Pause';
 import BackHandIcon from '@mui/icons-material/BackHand';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import { workflowApi } from '../../api/workflowApi';
 import { vendorsApi } from '../../api/vendorsApi';
 import { getErrorMessage } from '../../utils/api';
@@ -62,6 +63,8 @@ export function StepActionBar({ step, compact = false, onChanged }: { step: JobS
   const [doneOpen, setDoneOpen] = useState(false);
   const [holdOpen, setHoldOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const [updateText, setUpdateText] = useState('');
   const [note, setNote] = useState('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +81,8 @@ export function StepActionBar({ step, compact = false, onChanged }: { step: JobS
       setError(null);
       setDoneOpen(false);
       setHoldOpen(false);
+      setUpdateOpen(false);
+      setUpdateText('');
       setNote('');
       setReason('');
       refresh();
@@ -114,6 +119,11 @@ export function StepActionBar({ step, compact = false, onChanged }: { step: JobS
             {isOutside ? 'Received - done' : 'Done'}
           </Button>
         )}
+        {step.can_act && mine && ['in_progress', 'on_hold', 'ready'].includes(step.status) && (
+          <Button size={size} variant="outlined" startIcon={<EditNoteIcon />} onClick={() => { setError(null); setUpdateOpen(true); }} data-testid="add-update">
+            Add update
+          </Button>
+        )}
         {step.can_act && step.status !== 'on_hold' && (
           <Button size={size} variant="outlined" color="warning" startIcon={<PauseIcon />} onClick={() => { setError(null); setHoldOpen(true); }}>
             Hold
@@ -135,6 +145,19 @@ export function StepActionBar({ step, compact = false, onChanged }: { step: JobS
         <DialogActions>
           <Button onClick={() => setDoneOpen(false)}>Cancel</Button>
           <Button variant="contained" color="success" disabled={run.isPending} onClick={() => run.mutate(() => workflowApi.complete(step.id, note))}>Mark done</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={updateOpen} onClose={() => setUpdateOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Update on "{step.name}"</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>Your own progress note. It is saved under your name in the job's trail and in your Work Log.</Typography>
+          {error && <Alert severity="error" sx={{ mb: 1.5 }}>{error}</Alert>}
+          <TextField label="What is done so far?" required fullWidth autoFocus multiline minRows={2} placeholder="e.g. printed 600 of 1000" value={updateText} onChange={(e) => setUpdateText(e.target.value)} slotProps={{ htmlInput: { 'data-testid': 'update-text', maxLength: 500 } }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUpdateOpen(false)}>Cancel</Button>
+          <Button variant="contained" disabled={!updateText.trim() || run.isPending} data-testid="update-save" onClick={() => run.mutate(() => workflowApi.addUpdate(step.id, updateText))}>Save update</Button>
         </DialogActions>
       </Dialog>
 

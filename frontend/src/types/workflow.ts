@@ -136,3 +136,54 @@ export interface SendOutInput {
   expected_date?: string | null;
   description?: string | null;
 }
+
+
+export interface WorkLogRow {
+  step_id: number;
+  job_card_id: number;
+  job_number: string;
+  customer: string;
+  item: string;
+  step: string;
+  section: string;
+  status: StepStatus;
+  status_label: string;
+  part: 'finished' | 'started' | 'taken';
+  date?: string | null;
+  started: string;
+  finished: string;
+  minutes?: number | null;
+  note: string;
+  hold_reason: string;
+  updates: { at: string; text: string }[];
+}
+
+export interface WorkLogSummary {
+  finished: number;
+  in_progress: number;
+  on_hold: number;
+  waiting_to_start: number;
+  total_minutes: number;
+  average_minutes?: number | null;
+  updates: number;
+  jobs: number;
+  by_day: { date: string; finished: number }[];
+  by_section: { section: string; finished: number }[];
+}
+
+/** One person's work, taken out on its own. */
+export interface WorkLog {
+  person: { id: number; name: string; role: string; phone?: string | null } | null;
+  start: string;
+  end: string;
+  state: string;
+  summary: WorkLogSummary;
+  rows: WorkLogRow[];
+}
+
+/** The whole team in one summary (Admin / Counter). */
+export interface WorkLogTeam {
+  start: string;
+  end: string;
+  team: { id: number; name: string; role: string; finished: number; in_progress: number; on_hold: number; waiting_to_start: number; total_minutes: number; average_minutes?: number | null; updates: number; jobs: number }[];
+}
