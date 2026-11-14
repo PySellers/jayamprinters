@@ -348,7 +348,8 @@ export async function round5Tests(browser) {
     await ap.getByTestId('ledger-row').first().waitFor({ timeout: 10000 });
     const head = await ap.getByTestId('ledger-table').locator('thead').innerText();
     for (const h of ['Sr.No', 'Date', 'Particulars', 'Debit', 'Credit', 'Balance']) expect(head.includes(h), 'column ' + h);
-    expect(await ap.getByTestId('ledger-period').count() >= 1 && /\d+ sales/.test(await ap.getByTestId('ledger-period').first().innerText()), 'day summary: ' + await ap.getByTestId('ledger-period').first().innerText());
+    const periods = await ap.getByTestId('ledger-period').allInnerTexts();
+    expect(periods.length >= 1 && periods.every((t) => /\d+ [a-z ]+/.test(t)) && periods.some((t) => /\d+ sales/.test(t)), 'day summaries: ' + periods.slice(0, 3).join(' | '));
     expect(/GRAND TOTAL/.test(await ap.getByTestId('ledger-grand-total').innerText()), 'no grand total');
     await ap.getByTestId('ledger-week').click();
     await ap.waitForTimeout(1200);

@@ -35,12 +35,27 @@ def find_price_matrix_cell(
         .all()
     )
 
-    selected_set = set(selected_options)
+    # An item is priced by the options its own rate cells use (e.g. a book cover by its paper, a binding by its material).
+    # Choices the item has no rate for - another required drop-down of the same service - do not block its price.
+    used = product_price_attribute_ids(db, product_id)
+    selected_set = {(a, o) for a, o in selected_options if a in used}
     for cell in candidates:
         cell_set = {(o.attribute_id, o.attribute_option_id) for o in cell.options}
         if cell_set == selected_set:
             return cell
     return None
+
+
+def product_price_attribute_ids(db: Session, product_id: int) -> set:
+    """The attributes that appear in this item's price cells (what its price depends on)."""
+    rows = (
+        db.query(PriceMatrixCellOption.attribute_id)
+        .join(PriceMatrixCell, PriceMatrixCellOption.price_matrix_cell_id == PriceMatrixCell.id)
+        .filter(PriceMatrixCell.product_id == product_id, PriceMatrixCell.is_active.is_(True))
+        .distinct()
+        .all()
+    )
+    return {r[0] for r in rows}
 
 
 

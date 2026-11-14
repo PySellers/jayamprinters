@@ -194,7 +194,8 @@ export default function Layout() {
           </Toolbar>
         </AppBar>
 
-        <Box sx={{ flexGrow: 1, minWidth: 0, bgcolor: '#f5f5f5', overflowX: 'auto' }}>
+        {/* room at the bottom so the round help button never sits on top of the last row's buttons */}
+        <Box sx={{ flexGrow: 1, minWidth: 0, bgcolor: '#f5f5f5', overflowX: 'auto', pb: 9 }}>
           <Outlet />
         </Box>
 

@@ -42,6 +42,8 @@ export interface Product {
   min_quantity?: number | null;
   /** Groups the items of a service in the order form (e.g. Rubber Stamp: Polymer Stamp series, Printer / Dater). */
   sub_category?: string | null;
+  /** The attributes this item's price depends on; other drop-downs of the service do not block its price. */
+  price_attribute_ids?: number[];
   is_active: boolean;
   created_at: string;
 }

@@ -7,7 +7,8 @@ from app.core.database import get_db
 from app.core.security import require_role
 from app.models.invoice import InvoiceItem
 from app.models.job_card import JobCard
-from app.models.price_matrix import PriceMatrixCell
+from app.models.price_matrix import PriceMatrixCell, PriceMatrixCellOption
+from app.services import pricing_service
 from app.models.product import ProductCategory, Product
 from app.models.quotation import QuotationItem
 from app.models.user import UserRole
@@ -78,7 +79,17 @@ def get_products(skip: int = 0, limit: int = 2000, db: Session = Depends(get_db)
     # small, but once it grew past 100 products, some became invisible in
     # the picker with no indication anything was missing. Raised well above
     # any realistic catalog size instead of adding pagination UI nobody asked for.
-    return db.query(Product).offset(skip).limit(limit).all()
+    products = db.query(Product).offset(skip).limit(limit).all()
+    used: dict = {}
+    for product_id, attribute_id in (
+        db.query(PriceMatrixCell.product_id, PriceMatrixCellOption.attribute_id)
+        .join(PriceMatrixCellOption, PriceMatrixCellOption.price_matrix_cell_id == PriceMatrixCell.id)
+        .filter(PriceMatrixCell.is_active.is_(True)).distinct().all()
+    ):
+        used.setdefault(product_id, []).append(attribute_id)
+    for product in products:
+        product.price_attribute_ids = sorted(used.get(product.id, []))
+    return products
 
 
 @product_router.get("/{product_id}", response_model=ProductOut)
@@ -86,6 +97,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    product.price_attribute_ids = sorted(pricing_service.product_price_attribute_ids(db, product.id))
     return product
 
 

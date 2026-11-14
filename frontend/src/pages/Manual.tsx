@@ -53,6 +53,7 @@ const SECTIONS: Section[] = [
       'Choose the item and options (paper, size, colour, sides ...). Fields marked with * must be answered. For finishing choices (for example cutting, foiling, lamination) pick None, one of the options, or Custom to type your own text and price.',
       'Bill books and multi-copy sets: every copy has its own Paper name, GSM and Paper size. Set the top (primary) copy first, then the others.',
       'The price appears as you choose. Tap "Why this rate?" to see how it was worked out and, for the Admin, a link straight to the place in Pricing Setup where that rate is set.',
+      'The price panel at the top right of the order screen shows the price in big figures with every part listed separately (rate, each extra, printing charge, minimum charge, discount, CGST / SGST) and updates as you choose each option; until the item can be priced it lists what is still to be chosen. The owner presses "change" beside a part to correct that rate.',
       'Discount: type a percentage or an amount in the Discount box. It is spread over the lines, GST is worked out after it, and it is printed on the bill.',
       'Mark Urgent for rush jobs - the job shows in red everywhere until it is delivered.',
       'Choose the proof dates (Proof 1, Proof 2) and the delivery date and time, then press "Generate Invoice & Job Card". The invoice and the job card are created together and the job starts moving through its steps.',
