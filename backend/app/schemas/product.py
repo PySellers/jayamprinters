@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 from app.models.product import ProductPricingType
 
@@ -66,6 +66,8 @@ class ProductUpdate(BaseModel):
 class ProductOut(ProductCreate):
     id: int
     created_at: datetime
+    # The attributes this item's price depends on (the ones its rate cells use). Others do not block the price.
+    price_attribute_ids: List[int] = []
 
     class Config:
         from_attributes = True

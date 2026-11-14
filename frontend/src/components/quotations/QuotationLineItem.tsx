@@ -71,6 +71,10 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
   });
   // Paper first: the paper (name, board, GSM, paper size) decides most of the price, so it is asked before the other options.
   const isPaperAttr = (name: string) => /paper|board|gsm|stock|media|material/i.test(name);
+  // A drop-down is required for this item only when its price depends on it (e.g. a cover priced by its paper does not
+  // need the size to be chosen to get a price); the others stay available to describe the job.
+  const requiredHere = (attr: { id: number; is_required: boolean; in_price_matrix?: boolean }) =>
+    attr.is_required && (attr.in_price_matrix === false || !product?.price_attribute_ids?.length || product.price_attribute_ids.includes(attr.id));
   const activeAttributes = (attributesQuery.data ?? [])
     .filter((a) => a.is_active)
     .map((a, i) => ({ a, i }))
@@ -295,7 +299,7 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
               rules={{
                 validate: (value) => {
                   const missing = activeAttributes
-                    .filter((attr) => attr.is_required)
+                    .filter((attr) => requiredHere(attr))
                     .filter((attr) => !value?.some((v) => v.attribute_id === attr.id));
                   return missing.length === 0 || `Missing required: ${missing.map((a) => a.name).join(', ')}`;
                 },
@@ -308,7 +312,7 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
                       return (
                         <Grid size={{ xs: 6, sm: 3 }} key={attr.id}>
                           <EntitySelect
-                            label={attr.is_required ? `${attr.name} *` : attr.name}
+                            label={requiredHere(attr) ? `${attr.name} *` : attr.name}
                             mode="list"
                             queryKey={`attribute-option-picker-${attr.id}`}
                             fetchOptions={async () => attr.options.filter((o) => o.is_active)}

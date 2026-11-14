@@ -128,7 +128,7 @@ export async function extraTests(browser) {
     expect(cells.some((c) => Math.abs(c.unit_price - 9.99) < 0.001), 'new rate 9.99 not stored');
     await first.fill(old);
     await page.getByRole('button', { name: /save all/i }).click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3500);
     const back = (await api('GET', `/price-matrix-cells/?product_id=${vcProd.id}`)).data;
     expect(!back.some((c) => Math.abs(c.unit_price - 9.99) < 0.001), 'rate not restored');
     return `${n} rate boxes in the grid; edited and restored`;

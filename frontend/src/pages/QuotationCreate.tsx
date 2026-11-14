@@ -23,6 +23,7 @@ import BillBookWizard from '../components/quotations/BillBookWizard';
 import ServiceItemPicker from '../components/quotations/ServiceItemPicker';
 import { productsApi, productCategoriesApi } from '../api/productsApi';
 import CustomerHistoryPanel from '../components/quotations/CustomerHistoryPanel';
+import PricePanel from '../components/quotations/PricePanel';
 import PaymentDetailsFields, { detailsPayload, emptyPaymentDetails, type PaymentDetails } from '../components/PaymentDetailsFields';
 import { paymentProofApi } from '../api/extraApi';
 
@@ -40,6 +41,11 @@ const formatDay = (d?: string | null) =>
 
 // Screen-only fields (the answers of the required-extras dropdowns) are never sent to the server.
 const sendable = ({ extras_choices: _choices, ...item }: QuotationItemInput): QuotationItemInput => item;
+// the live price leaves out a custom charge whose name is not typed yet (the server would refuse it while the counter is still typing)
+const previewable = (item: QuotationItemInput): QuotationItemInput => ({
+  ...sendable(item),
+  custom_charges: (item.custom_charges ?? []).filter((c) => (c.label ?? '').trim().length > 0),
+});
 
 // Errors thrown by our own code carry a message; server errors carry response.data.detail.
 const errorText = (err: unknown, fallback: string) =>
@@ -117,7 +123,7 @@ export default function QuotationCreate() {
       // Keep line positions: an unpicked line is sent as nothing and shown as "not priced yet".
       const picked = lines.filter((l): l is QuotationItemInput => l !== null);
       quotationsApi
-        .preview({ tax_id: watchedTaxId, with_gst: Boolean(withGst), ...activeDiscount, items: picked.map(sendable) })
+        .preview({ tax_id: watchedTaxId, with_gst: Boolean(withGst), ...activeDiscount, items: picked.map(previewable) })
         .then((result) => {
           let k = 0;
           const items = lines.map((l) => (l ? result.items[k++] : { unit_price: 0, total_price: 0, priceable: false }));
@@ -322,6 +328,8 @@ export default function QuotationCreate() {
         </Alert>
       )}
 
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) 390px' }, gap: 3, alignItems: 'start' }}>
+      <Box sx={{ minWidth: 0 }}>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Collapse in={!isQuick || showDetails}>
@@ -689,6 +697,18 @@ export default function QuotationCreate() {
         </form>
       </FormProvider>
       <CustomerHistoryPanel customerId={isQuick ? (initialCustomerId ? Number(initialCustomerId) : null) : selectedCustomer?.id} />
+      </Box>
+      {/* the price, always in view on the right: each part separately, updated as the options are chosen */}
+      <Box sx={{ position: { lg: 'sticky' }, top: { lg: 76 }, order: { xs: -1, lg: 0 } }}>
+        <PricePanel
+          preview={preview}
+          items={watchedItems ?? []}
+          withGst={Boolean(withGst)}
+          discountLabel={activeDiscount.discount_type === 'percent' ? `Discount (${activeDiscount.discount_value}%)` : 'Discount'}
+          advance={isQuick ? advanceNumber : 0}
+        />
+      </Box>
+      </Box>
     </Box>
   );
 }

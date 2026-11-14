@@ -60,6 +60,16 @@ Keywords: pricing setup, price, rate, slab, quantity slab, minimum charge, print
 Link: /pricing-setup
 Only the Admin can open Pricing Setup. Choose the service button, then use the tabs: Attributes (the options and their extra prices), Quantity Slabs (the price bands), Extra Charges (finishing and binding), Items (sizes and sub-categories) and Printing & Tax (printing charge bands, HSN and GST). "Why this rate?" on an order line shows where its rate comes from and links to the place to change it.
 
+## The price panel on the order screen
+Keywords: price panel, price, total, right side, right corner, price parts, breakdown, price not showing, no price, price not available, rate, change rate, how the price is made, starting price
+Link: /quotations/new
+On the order screen the box at the top right ("PRICE OF THIS ORDER") shows the price in big figures and every part of the price separately: the rate, each extra, the printing charge, any minimum charge, the discount and the GST (CGST and SGST), then the total and, if an advance was taken, the balance to pay. It changes as you choose each option. Until the item can be priced it lists what is still to be chosen. The owner presses "change" next to any part to open the place where that rate is set (Price Matrix, Extra Charges or Printing & Tax) and corrects it.
+
+## Starting prices and changing a rate
+Keywords: starting price, default price, market price, set price, update price, change price, rate, check price, price not updating, wrong price, price list, price matrix, owner price
+Link: /pricing-setup
+Every service comes with a starting price (Chennai market rates) so that no order shows "no price". They are for the owner to check and change: on any order press "change" next to a part of the price in the price panel, or open Pricing Setup, choose the service and edit Quantity Slabs / Extra Charges / Printing & Tax, or open the item's price grid (Products > Price Matrix) for the rate of each option and quantity band. Changes apply to new orders; bills already made keep their price.
+
 ## Discount
 Keywords: discount, percentage, amount, offer, less
 Link: /quotations/new
