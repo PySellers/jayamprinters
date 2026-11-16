@@ -18,12 +18,17 @@ At the top right is a round button with your initials. It opens a menu: Edit pro
 ## The Dashboard and the Live Jobs button
 Keywords: dashboard, home, live jobs, live job, red button, job board, running jobs, order online, home page
 Link: /dashboard
-The Dashboard opens on the order form (Start New Order). In the strip at the top the big red "Live Jobs" button shows how many jobs are running. Click it and the page changes to the Live Jobs board, with every job in one page and its status, the person who has it, and its due date. The button then reads "Order online"; click it to go back to the order form. The blue buttons Quotations, Job Cards and Invoices next to it open those lists.
+The Dashboard opens on the order form (Start New Order). In the strip at the top the big red "Live Jobs" button shows how many jobs are running. Click it and the page changes to the Live Jobs board: every job on one page, grouped by service (Bill Books, Xerox, Visiting Card, Binding ...), each with its status, the person who has it and its due date. The button then reads "Order online"; click it to go back to the order form. The blue buttons Quotations, Job Cards and Invoices next to it open those lists.
 
 ## Live Jobs board - statuses, urgent, overdue
 Keywords: live jobs, status, urgent, overdue, stage, who is working, filter, search job, not taken yet
 Link: /dashboard
-Each job shows its stage (Design, Proof approval, Printing, Binding / finishing, Packing & handover, Delivered), who has it now and which step. If nobody has taken the step it says "not taken yet". Urgent jobs are red and listed first. Overdue jobs show OVERDUE. Click a stage chip to see only the jobs in that stage; use the search box for a job number, customer or product. Click a job to open its tracking page. The board refreshes by itself every 20 seconds.
+The board is grouped by service: every service that has jobs has its own titled section (for example Bill Books & Stationery, Xerox / Photocopy, Binding Services) and a service with no jobs is not shown. Inside a section the jobs are in priority order for today: urgent first, then overdue, then the others by due date. Each job shows its stage (Design, Proof approval, Printing, Binding / finishing, Packing & handover, Delivered), who has it now and which step. If nobody has taken the step it says "not taken yet". Urgent jobs are red and listed first. Overdue jobs show OVERDUE. Click a stage chip to see only the jobs in that stage; use the search box for a job number, customer or product. Click a job to open its tracking page. The board refreshes by itself every 20 seconds.
+
+## Live Jobs grouped by service (Bill Books, Xerox, Binding ...)
+Keywords: grouped, group by service, by product, section, bill book jobs, xerox jobs, binding jobs, service wise, product wise, separate, titled, jobs of one service, only bill book, find bill book orders, fold, collapse, jump
+Link: /dashboard
+On the Live Jobs board every service has its own titled section, for example "Bill Books & Stationery", "Xerox / Photocopy", "Visiting Card" or "Binding Services". Only services that have jobs are shown. Inside a section the orders are in priority order as of today: urgent first, then overdue, then running jobs, then the rest by due date. The section title shows how many jobs there are and how many are urgent or overdue; the sections with urgent or overdue work come first. Click a section title to fold or open it, use "Fold all / Open all", or press a service button above the list to jump straight to that section. The Running / Urgent / Overdue / Delivered buttons, the stage chips and the search box work as before and the sections follow them.
 
 ## Taking an order (Start New Order)
 Keywords: new order, order, place order, start order, quotation, service, customer phone, item, generate invoice

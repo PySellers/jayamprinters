@@ -1,13 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Box, Typography, Paper, Chip, Stack, CircularProgress, Button, LinearProgress, TextField } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import PersonIcon from '@mui/icons-material/Person';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { jobCardsApi } from '../../api/jobCardsApi';
 import { customersApi } from '../../api/customersApi';
-import { productsApi } from '../../api/productsApi';
+import { productCategoriesApi, productsApi } from '../../api/productsApi';
 import type { JobCard } from '../../types/jobCards';
 import type { JobCardStatus } from '../../types/common';
 
@@ -136,7 +138,12 @@ export default function LiveJobStatusBoard() {
   const jobCardsQuery = useQuery({ queryKey: ['job-cards'], queryFn: jobCardsApi.list, refetchInterval: 20000 });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
+  const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
   const [filter, setFilter] = useState<Filter>('active');
+  // sections the counter has folded away, and how many jobs of a section are opened beyond the first page
+  const [folded, setFolded] = useState<Record<string, boolean>>({});
+  const [more, setMore] = useState<Record<string, boolean>>({});
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [search, setSearch] = useState('');
 
   const customerName = (id: number) => customersQuery.data?.find((c) => c.id === id)?.name ?? `#${id}`;
@@ -183,6 +190,41 @@ export default function LiveJobStatusBoard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, filter, search, customersQuery.data, productsQuery.data]);
 
+  /**
+   * The jobs grouped by SERVICE (Bill Books, Xerox, Binding ...): one titled section per service that has jobs - a service with no
+   * job is not shown at all. Inside a section the jobs keep the priority order (urgent, overdue, running, due date). The sections
+   * with the most pressing work (urgent, then overdue, then the most jobs) come first.
+   */
+  const sections = useMemo(() => {
+    const serviceOf = (j: JobCard) => {
+      const product = productsQuery.data?.find((p) => p.id === j.product_id);
+      const cat = categoriesQuery.data?.find((c) => c.id === product?.category_id);
+      return { id: cat?.id ?? 0, name: cat?.name ?? 'Other jobs' };
+    };
+    const map = new Map<number, { id: number; name: string; jobs: JobCard[] }>();
+    for (const j of shown) {
+      const svc = serviceOf(j);
+      if (!map.has(svc.id)) map.set(svc.id, { ...svc, jobs: [] });
+      map.get(svc.id)!.jobs.push(j);
+    }
+    const open = (list: JobCard[]) => list.filter((j) => j.status !== 'delivered');
+    return Array.from(map.values())
+      .map((g) => ({
+        ...g,
+        urgent: open(g.jobs).filter((j) => j.priority === 'urgent').length,
+        overdue: open(g.jobs).filter((j) => j.overdue).length,
+        running: open(g.jobs).length,
+      }))
+      .sort((a, b) => (b.urgent > 0 ? 1 : 0) - (a.urgent > 0 ? 1 : 0) || (b.overdue > 0 ? 1 : 0) - (a.overdue > 0 ? 1 : 0) || b.running - a.running || a.name.localeCompare(b.name));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown, productsQuery.data, categoriesQuery.data]);
+
+  const PAGE = 25;
+  const jump = (id: number) => {
+    setFolded((f) => ({ ...f, [id]: false }));
+    window.setTimeout(() => sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  };
+
   const chip = (key: Filter, label: string, count: number, color?: 'error' | 'warning') => (
     <Chip
       key={key}
@@ -202,7 +244,7 @@ export default function LiveJobStatusBoard() {
       <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#1a237e', lineHeight: 1.2 }}>Live Jobs</Typography>
-          <Typography variant="caption" color="text.secondary">Running jobs first · click a job to open it · refreshes every 20 seconds</Typography>
+          <Typography variant="caption" color="text.secondary">Grouped by service, urgent and running jobs first · click a job to open it · refreshes every 20 seconds</Typography>
         </Box>
         <Button size="small" onClick={() => navigate('/job-cards')}>All job cards</Button>
       </Stack>
@@ -245,14 +287,60 @@ export default function LiveJobStatusBoard() {
       ) : shown.length === 0 ? (
         <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>No jobs here.</Typography>
       ) : (
-        <Stack spacing={0.9} sx={{ maxHeight: { xs: 'none', lg: 'calc(100vh - 290px)' }, minHeight: 200, overflowY: 'auto', pr: 0.5 }} data-testid="live-job-list">
-          {shown.slice(0, 60).map((job) => (
-            <JobRow key={job.id} job={job} customer={customerName(job.customer_id)} product={productName(job.product_id)} />
-          ))}
-          {shown.length > 60 && (
-            <Button size="small" onClick={() => navigate('/job-cards')}>Showing 60 of {shown.length} - open all job cards</Button>
+        <>
+          {/* one button per service that has jobs: jump straight to its section */}
+          {sections.length > 1 && (
+            <Stack direction="row" sx={{ gap: 0.5, flexWrap: 'wrap', mb: 1 }} data-testid="service-jump">
+              {sections.map((g) => (
+                <Chip
+                  key={g.id} clickable size="small" variant="outlined" onClick={() => jump(g.id)} data-testid="jump-chip"
+                  label={`${g.name} ${g.jobs.length}`}
+                  sx={{ fontWeight: 700, borderColor: g.urgent ? '#c62828' : g.overdue ? '#ef6c00' : '#c5cae9', color: g.urgent ? '#c62828' : g.overdue ? '#ef6c00' : '#1a237e' }}
+                />
+              ))}
+              <Button size="small" sx={{ ml: 'auto', minWidth: 0, py: 0 }} data-testid="fold-all"
+                onClick={() => setFolded(Object.fromEntries(sections.map((g) => [g.id, !sections.every((x) => folded[x.id])])))}>
+                {sections.every((g) => folded[g.id]) ? 'Open all' : 'Fold all'}
+              </Button>
+            </Stack>
           )}
-        </Stack>
+          <Stack spacing={1.5} sx={{ maxHeight: { xs: 'none', lg: 'calc(100vh - 340px)' }, minHeight: 200, overflowY: 'auto', pr: 0.5 }} data-testid="live-job-list">
+            {sections.map((g) => {
+              const isFolded = Boolean(folded[g.id]);
+              const list = more[g.id] ? g.jobs : g.jobs.slice(0, PAGE);
+              return (
+                <Box key={g.id} ref={(el: HTMLDivElement | null) => { sectionRefs.current[g.id] = el; }} data-testid="live-section" data-service={g.name}>
+                  <Box
+                    role="button" tabIndex={0} aria-expanded={!isFolded} data-testid="section-toggle"
+                    onClick={() => setFolded((f) => ({ ...f, [g.id]: !isFolded }))}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFolded((f) => ({ ...f, [g.id]: !isFolded })); } }}
+                    sx={{
+                      position: 'sticky', top: 0, zIndex: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', cursor: 'pointer', mb: 0.75,
+                      px: 1.25, py: 0.6, borderRadius: 1.5, bgcolor: '#e8eaf6', borderLeft: `5px solid ${g.urgent ? '#c62828' : g.overdue ? '#ef6c00' : '#1a237e'}`,
+                      '&:hover': { bgcolor: '#dfe3f5' },
+                    }}
+                  >
+                    {isFolded ? <ChevronRightIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                    <Typography sx={{ fontWeight: 900, color: '#1a237e', fontSize: 15.5 }} data-testid="section-title">{g.name}</Typography>
+                    <Chip size="small" label={`${g.jobs.length} job${g.jobs.length === 1 ? '' : 's'}`} sx={{ height: 22, fontWeight: 700 }} data-testid="section-count" />
+                    {g.urgent > 0 && <Chip size="small" color="error" label={`${g.urgent} urgent`} sx={{ height: 22, fontWeight: 800 }} data-testid="section-urgent" />}
+                    {g.overdue > 0 && <Chip size="small" color="warning" label={`${g.overdue} overdue`} sx={{ height: 22, fontWeight: 800 }} data-testid="section-overdue" />}
+                  </Box>
+                  {!isFolded && (
+                    <Stack spacing={0.9}>
+                      {list.map((job) => (
+                        <JobRow key={job.id} job={job} customer={customerName(job.customer_id)} product={productName(job.product_id)} />
+                      ))}
+                      {g.jobs.length > PAGE && !more[g.id] && (
+                        <Button size="small" onClick={() => setMore((m) => ({ ...m, [g.id]: true }))} data-testid="section-more">Show all {g.jobs.length} {g.name} jobs ({g.jobs.length - PAGE} more)</Button>
+                      )}
+                    </Stack>
+                  )}
+                </Box>
+              );
+            })}
+          </Stack>
+        </>
       )}
     </Paper>
   );
