@@ -36,6 +36,8 @@ const SECTIONS: Section[] = [
       {
         head: 'Live Jobs',
         items: [
+          'The board is grouped by service: every service that has jobs (Bill Books & Stationery, Xerox / Photocopy, Visiting Card, Binding Services ...) has its own titled section, and a service with no jobs is not shown. The title says how many jobs there are and how many are urgent or overdue; the sections with urgent or overdue work come first.',
+          'Inside a section the jobs are in today\'s priority order: urgent first, then overdue, then the rest by due date. Click a section title to fold or open it, press "Fold all" / "Open all", or press a service button above the list to jump to that section.',
           'Click any job to open its tracking page.',
           'Urgent jobs are red and bold with an URGENT tag, and are listed first. Overdue jobs show OVERDUE in red.',
           'The coloured chips (Design, Proof approval, Printing, Binding / finishing, Packing & handover, Delivered) show how many jobs are in each stage - click one to see only those.',

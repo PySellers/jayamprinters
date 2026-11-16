@@ -17,6 +17,7 @@ try {
   if (all || which.includes('round5')) { const m = await import('./ui_round5.mjs'); await m.round5Tests(browser); }
   if (all || which.includes('round6')) { const m = await import('./ui_round6.mjs'); await m.round6Tests(browser); }
   if (all || which.includes('services')) { const m = await import('./ui_services.mjs'); await m.serviceTests(browser); }
+  if (all || which.includes('round8')) { const m = await import('./ui_round8.mjs'); await m.round8Tests(browser); }
   if (all || which.includes('enhancements')) { const m = await import('./ui_enhancements.mjs'); await m.enhancementTests(browser); }
 } finally {
   await browser.close();
