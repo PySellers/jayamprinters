@@ -68,6 +68,12 @@ DEFECTS = [
     ("High", "Register / Transfer Certificate (round 7)", "The order screen started at quantity 1, where these have no rate (first band starts at 32 / 50), so it showed 'no rate'.", "The first band is now their minimum order, so the screen starts at a priced quantity and says 'Minimum order'."),
     ("Medium", "Xerox binding options (round 7)", "Rexine, Tape and Pin Binding were at Rs 0, so adding them looked like the price was not included.", "Starting rates Rs 120 / Rs 20 / Rs 5 per set."),
     ("High", "Order screen price display (round 7)", "The price was a small line inside each item and the totals box sat far below, so the customer felt the price was missing.", "A price panel at the top right (sticky): the total in big figures, every part listed separately with a 'change' link for the owner, GST, discount, advance and balance; it lists what is still to be chosen until the item can be priced."),
+    ("Medium", "Financial statement and AI Insights (round 9)", "With a typed final amount (round off) the invoice total no longer equalled sales + GST in the profit statement, and the insights split by service did not add up to the sales.", "Round off counts as part of the sales; the insights share it out over the lines of the invoice. Both tests replay the independent sums."),
+    ("Medium", "Invoice rows (round 9)", "The rows of an invoice had no fixed order, so after adding a row on the Edit invoice window the rows could come back in a different order (and print in it).", "Invoice rows are always listed in the order they were made."),
+    ("Medium", "Edit invoice (round 9)", "A row with only spaces as particulars was accepted.", "The particulars of a row cannot be empty (checked on screen and by the server)."),
+    ("Medium", "Price grid (round 9)", "The new item-only drop-downs (Screen Print, Method, Size) would have multiplied the rate grid of the invitation items with combinations that carry no price.", "Drop-downs that are not part of the price grid are left out of the grid and of the rate-cell form."),
+    ("Low", "Job card print on A5 (round 9)", "On the smaller page the Printing Colour tick boxes ran into the Remarks, the Cutting Size heading touched its neighbour and a section heading of the detailed card could be left alone at the bottom of a page.", "The colour / margin block grows to hold its boxes, headings shrink to their column, section headings travel with their first row; long remarks and long price lists are fitted or noted instead of cut."),
+    ("Low", "Credit / Debit (round 9)", "The browser's own 'Please fill out this field' bubble covered the screen's messages for an empty name or amount.", "The form shows the screen's own messages."),
 ]
 
 
@@ -101,12 +107,12 @@ all_rows = api + ui
 passed = sum(r["status"] == "PASS" for r in all_rows)
 ws.append(["Sri Jayam ERP - Test Report"])
 ws["A1"].font = Font(bold=True, size=16)
-ws.append([f"Test cycle: {date.today():%d %B %Y} (version 1.4.0)"])
+ws.append([f"Test cycle: {date.today():%d %B %Y} (version 1.5.0)"])
 ws.append([])
 facts = [
     ("Result", f"{passed} of {len(all_rows)} tests passed" + ("" if passed == len(all_rows) else f" ({len(all_rows) - passed} failed - see the test sheets)")),
     ("Pricing check", "Every one of the 17 services was walked the way a counter does: every option combination of every item at every quantity band (and a 50,000 order) was priced through the same engine the order screen uses - see the sheet 'Price coverage by service'. In the browser each service was ordered on the real order screen: the price panel, its parts, GST, discount, advance and the generated invoice were compared (sheet 'Browser tests')."),
-    ("Application", "Sri Jayam ERP billing system (web app: order entry, quotations, invoices & payments, job cards with a step-by-step production workflow (My Work, board, monitor, outside work), delivery challans, customers, purchases & vendors, inventory, cash ledger & cheques, reports, pricing setup, users & roles; order discount, price breakdown with links to Pricing Setup, printing-charge bands, required extras with Custom, paper of every copy, design proofs, urgent jobs, live dashboard board, printable job card with / without price)"),
+    ("Application", "Sri Jayam ERP billing system (web app: order entry, quotations, invoices & payments, job cards with a step-by-step production workflow (My Work, board, monitor, outside work), delivery challans, customers, purchases & vendors, inventory, cash ledger & cheques, reports, pricing setup, users & roles; order discount, price breakdown with links to Pricing Setup, printing-charge bands, required extras with Custom, paper of every copy, design proofs, urgent jobs, live dashboard board, printable job card with / without price; round 9: Customer Name, editable final amount, Edit invoice, Credit / Debit book, Edit job card, A5 job card print, Wedding Invitation screen print / offset)"),
     ("How it was tested", "Automated tests drive the real application the way staff do: every API action directly, and every screen in a real Chrome browser (typing, clicking, downloading). Each order is also priced independently from the raw rate tables and compared with what the system shows."),
     ("Test data", "14 customers, 33 orders (every one of the 14 services), 4 quotations, invoices that are paid / part-paid / unpaid (GST and cash bills), job cards in every stage, delivery challans, vendors, stock (3 items below reorder level), purchases, cash ledger entries and cheques, plus staff logins for each role."),
     ("Environment", "Identical application code and the same demo data as the UAT site. Tests that create and delete records ran on a separate copy, so the UAT site's data was left untouched."),
@@ -180,6 +186,7 @@ if shots and os.path.isdir(shots):
             "purchase-added", "cash-ledger", "reports", "layout-1366x768", "layout-menu-390x844",
             "company-details", "hsn-codes", "printing-and-tax", "order-gst-breakdown", "bill-book-wizard", "bill-book-copies", "outsource-list",
             "purchase-upload", "financial-statement", "quotation-estimated-delivery",
+            "r9-customer-name", "r9-final-amount", "r9-invoice-round-off", "r9-screen-print", "r9-screen-print-amounts", "r9-offset", "r9-edit-invoice", "r9-invoice-edited", "r9-credit-debit-entries", "r9-credit-debit-filter", "r9-edit-job-card", "r9-pricing-setup",
             "r3-dashboard", "r3-live-board-urgent", "r3-order-visiting-card", "r3-extras-required", "r3-extras-custom", "r3-why-this-rate", "r3-discount", "r3-invoice-discount", "r3-bill-book-copies", "r3-job-card-copies", "r3-print-bands", "r3-extras-setup", "r3-product-min-qty", "r3-job-card-detail", "r3-proofs", "r3-job-cards-list", "r3-phone-dashboard",
             "my-work-designer", "my-work-on-hold", "job-tracking-delivered", "job-tracking-outside", "production-board", "production-monitor", "work-centers", "workflows", "my-work-phone"]
     for k in KEEP:

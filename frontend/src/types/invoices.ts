@@ -4,7 +4,7 @@ import type { BreakdownRow } from './quotations';
 
 export interface InvoiceItem {
   id: number;
-  product_id: number;
+  product_id?: number | null;
   quantity: number;
   unit_price: number;
   total_price: number;
@@ -13,6 +13,13 @@ export interface InvoiceItem {
   tax_rate?: number;
   tax_amount?: number;
   discount_amount?: number;
+  /** Edited on the invoice */
+  particulars?: string | null;
+  option_texts?: Record<string, string> | null;
+  cgst_rate?: number | null;
+  sgst_rate?: number | null;
+  cgst_amount?: number | null;
+  sgst_amount?: number | null;
   price_breakdown?: BreakdownRow[] | null;
 }
 
@@ -40,6 +47,7 @@ export interface Invoice {
   discount_type?: 'percent' | 'amount' | null;
   discount_value?: number;
   discount_amount?: number;
+  adjustment_amount?: number;
   tax_amount: number;
   grand_total: number;
   amount_paid: number;
@@ -48,6 +56,12 @@ export interface Invoice {
   invoice_date: string;
   notes?: string | null;
   pay_by_date?: string | null;
+  bill_to_name?: string | null;
+  bill_to_address?: string | null;
+  bill_to_gstin?: string | null;
+  bill_to_phone?: string | null;
+  last_edited_at?: string | null;
+  last_edited_by?: string | null;
   created_at: string;
   items: InvoiceItem[];
   payments: Payment[];
@@ -76,4 +90,69 @@ export interface DueRow {
   pay_by_date: string;
   days_left: number;
   state: 'overdue' | 'today' | 'upcoming';
+}
+
+/** One row of the Edit Invoice window. */
+export interface InvoiceEditLine {
+  id?: number | null;
+  particulars: string;
+  hsn_code?: string | null;
+  quantity: number;
+  unit_price: number;
+  cgst_rate: number;
+  sgst_rate: number;
+}
+
+export interface InvoiceEditRequest {
+  bill_to_name?: string | null;
+  bill_to_address?: string | null;
+  bill_to_gstin?: string | null;
+  bill_to_phone?: string | null;
+  invoice_date?: string | null;
+  notes?: string | null;
+  final_amount?: number | null;
+  items: InvoiceEditLine[];
+}
+
+export interface InvoiceEditLineOut {
+  id?: number | null;
+  particulars: string;
+  hsn_code?: string | null;
+  quantity: number;
+  unit_price: number;
+  amount: number;
+  discount_amount: number;
+  cgst_rate: number;
+  sgst_rate: number;
+  cgst_amount: number;
+  sgst_amount: number;
+  total: number;
+}
+
+export interface InvoiceEditPreview {
+  lines: InvoiceEditLineOut[];
+  subtotal: number;
+  discount_amount: number;
+  taxable_amount: number;
+  tax_amount: number;
+  computed_total: number;
+  adjustment_amount: number;
+  grand_total: number;
+  amount_paid: number;
+  balance: number;
+}
+
+export interface InvoiceEditForm {
+  invoice_id: number;
+  with_gst: boolean;
+  bill_to_name: string;
+  bill_to_address: string;
+  bill_to_gstin: string;
+  bill_to_phone: string;
+  invoice_date: string;
+  notes?: string | null;
+  final_amount?: number | null;
+  amount_paid: number;
+  items: InvoiceEditLine[];
+  history: { edited_at?: string | null; edited_by?: string | null; summary?: string | null }[];
 }

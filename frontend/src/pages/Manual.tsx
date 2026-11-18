@@ -190,7 +190,7 @@ const SECTIONS: Section[] = [
       {
         head: 'Job cards and bills',
         items: [
-          'Every line of the Job Cards list has a Print button at its end for the paper job card (with or without price). It prints on A4 landscape.',
+          'Every line of the Job Cards list has a Print button at its end for the paper job card (with or without price). Since version 1.5 it prints on A5 landscape.',
           'The paper job card shows only what belongs to the service: Xerox and Printout have no ink colours, margins, proofs or copy rows; bill books have a row per copy, margins and numbering; offset jobs have colours and proofs. Add more proof lines with "Add proof".',
           'The job card printed "with price" leaves out the production steps and shows the price list, advance and balance, the design proofs and the delivery date.',
           'The GST invoice and the cash bill follow the printed bill books (lavender page, logo, particulars with every option chosen, advance and balance). The delivery challan prints as a white form with blue outlines, ready for the yellow challan paper.',
@@ -212,7 +212,42 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    id: 'help', title: '12. Something not working?', who: 'Everyone',
+    id: 'v15', title: '12. New in version 1.5', who: 'Everyone',
+    steps: [
+      {
+        head: 'Taking an order',
+        items: [
+          'Start New Order > Customer now has its own Customer Name box. The name you type there is the name printed on the bill and the job card; leave it blank and the billing person\'s name is used.',
+          'The Total on the order screen can be changed: type the amount the customer will really be billed in "Final amount" (blank = the calculated total). The difference is kept as "Round off / adjustment" and shows on the price panel, the quotation, the invoice and the bills. The arrow beside the box goes back to the calculated total.',
+          'Wedding Invitation - Screen Print: choose the Screen Print occasion (Wedding Invitation, House Warming, Baby Shower, Birthday or Custom - type it) and the Method (Invitation, Thamboolam Bag, Visiting Card, Pen, Diary or Custom - type it). Paper/Board Type can be Nil.',
+          'Wedding Invitation - Screen Print and Offset: type the Printing Charge and the Card Amount yourself. The card amount is per card or for the whole order (the Per card / Whole order switch). Total = card amount + printing charge, and the same total goes to the quotation, the billing summary and the final invoice. Wedding Invitation - Offset also asks for the Size (A5, A4 or Custom - type it).',
+        ],
+      },
+      {
+        head: 'Invoices',
+        items: [
+          'Invoices > Edit (or the Edit button inside an invoice) opens the invoice for changes: customer name, phone, address, GSTIN, invoice date and every row - particulars, HSN / SAC, quantity, rate, CGST % and SGST %. Amounts, CGST / SGST and the total are worked out again while you type. You can also add or remove rows and type a Final amount. Save, and the PDF and the print show the edited bill. Money already received is kept; the invoice cannot be made smaller than what was paid.',
+          'The GST invoice is printed in larger lettering, and Grand TOTAL and Total Amount After Tax stand out in dark bands.',
+        ],
+      },
+      {
+        head: 'Job cards',
+        items: [
+          'Job Cards > the pencil button (Edit job card) opens the job card form. Change the party, mobile, job name, size, type of printing, proof dates and times, delivery date and time, paper details, printing colour, margin, serial and book numbers and remarks, then Save. For the copy with price you can also edit the price list (change a line, add or remove a line). "Back to the order\'s list" undoes your price edits.',
+          'Both job cards (with price and without price) now print on A5 landscape, sized to fit the page completely, and the print shows exactly what you saved.',
+        ],
+      },
+      {
+        head: 'Credit / Debit',
+        items: [
+          'The new Credit / Debit menu keeps money received (Credit) and money paid out (Debit) against a name. Type the Name, Amount and an optional Note, choose the date (today is filled in) and press Add credit or Add debit. Credit and debit entries are kept apart in two tables.',
+          'Filter by name and by date (from - to). The totals and the balance of every name follow the filter. Edit an entry with the pencil; the Admin and Accounts can also delete. "Download Excel" saves what you see.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'help', title: '13. Something not working?', who: 'Everyone',
     steps: [
       'The sign-in page appeared by itself: your 3 hours were up - sign in again.',
       '"This step belongs to ...": someone else has taken that task. Ask the Admin or Counter to reassign it.',
@@ -231,6 +266,8 @@ const ROLE_ROWS: [string, string, string, string, string][] = [
   ['Delete invoices, job cards or payments', 'Yes', 'No', 'No', 'Payments only'],
   ['Outsource', 'Yes', 'Yes', 'No', 'Yes'],
   ['Purchases, Cash Ledger', 'Yes', 'No', 'No', 'Yes'],
+  ['Credit / Debit book (add, edit)', 'Yes', 'Yes', 'No', 'Yes'],
+  ['Edit an invoice', 'Yes', 'Yes', 'No', 'Yes'],
   ['Pricing Setup (incl. items and sub-categories), Users, Masters, Work Centers, Workflows', 'Yes', 'No', 'No', 'No'],
   ['Export contacts (Customers page)', 'Yes', 'No', 'No', 'No'],
   ['Reports (sales, profit, account statement) and AI Insights', 'Yes', 'No', 'No', 'No'],

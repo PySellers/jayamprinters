@@ -126,10 +126,21 @@ def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by
 
     # ---- discount -------------------------------------------------------------
     discount = float(getattr(quotation, "discount_amount", 0.0) or 0.0)
-    if discount > 0:
+    adjustment = float(getattr(quotation, "adjustment_amount", 0.0) or 0.0)
+    has_adjustment = abs(adjustment) > 0.004
+    if discount > 0 or has_adjustment:
         label = f"Less: Discount ({quotation.discount_value:g}%)" if quotation.discount_type == "percent" else "Less: Discount"
-        for text, value, bold in (("Sub Total", quotation.total_amount, False), (label, -discount, False),
-                                  ("Total", quotation.total_amount - discount, True)):
+        summary = [("Sub Total", quotation.total_amount, False)]
+        if discount > 0:
+            summary.append((label, -discount, False))
+        if has_adjustment:
+            # a typed final amount: the total is the amount the customer will be billed (GST, if any, is inside it)
+            if quotation.with_gst and quotation.tax_amount:
+                summary.append(("GST", quotation.tax_amount, False))
+            summary += [("Round off / Adjustment", adjustment, False), ("Total", quotation.grand_total, True)]
+        else:
+            summary.append(("Total", quotation.total_amount - discount, True))
+        for text, value, bold in summary:
             if y - 7 * mm < bottom_limit:
                 footer()
                 c.showPage()
@@ -145,7 +156,9 @@ def generate_quotation_pdf(quotation: Quotation, customer: Customer, products_by
 
     # ---- terms & conditions ----------------------------------------------------
     terms = []
-    if quotation.with_gst:
+    if quotation.with_gst and has_adjustment:
+        terms.append("*GST is included in the total")
+    elif quotation.with_gst:
         rates = sorted({float(i.tax_rate) for i in quotation.items if i.tax_rate})
         if rates:
             terms.append("*GST " + " / ".join(f"{r:g}%" for r in rates) + " Extra (as per the HSN of each item)")

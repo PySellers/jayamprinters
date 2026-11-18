@@ -299,6 +299,8 @@ def merge_saved(base: Dict[str, Any], saved: Optional[Dict[str, Any]]) -> Dict[s
     """What staff saved wins; a blank saved cell falls back to the order's value. Job Position ticks are topped up."""
     result = dict(base)
     for key, value in (saved or {}).items():
+        if key == "price_lines":
+            continue  # the price list is not part of the form; it is read separately (see job_card_service)
         if key == "paper" and isinstance(value, list):
             rows = []
             for index, row in enumerate(base["paper"]):

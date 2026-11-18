@@ -45,7 +45,8 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
         discount_value=quotation.discount_value or 0.0,
         discount_amount=quotation.discount_amount or 0.0,
         tax_amount=quotation.tax_amount if with_gst else 0.0,
-        grand_total=quotation.grand_total if with_gst else round(quotation.total_amount - (quotation.discount_amount or 0.0), 2),
+        adjustment_amount=quotation.adjustment_amount or 0.0,
+        grand_total=quotation.grand_total if with_gst else round(quotation.total_amount - (quotation.discount_amount or 0.0) + (quotation.adjustment_amount or 0.0), 2),
         with_gst=with_gst,
         bill_no=take_bill_number(db, with_gst),
         status=InvoiceStatus.unpaid,
@@ -67,6 +68,10 @@ def create_invoice_from_quotation(db: Session, quotation_id: int) -> Invoice:
             tax_amount=item.tax_amount,
             discount_amount=item.discount_amount or 0.0,
             price_breakdown=item.price_breakdown,
+            card_amount=item.card_amount,
+            card_amount_mode=item.card_amount_mode,
+            printing_charge_manual=item.printing_charge_manual,
+            option_texts=item.option_texts,
         )
         db.add(invoice_item)
         db.flush()

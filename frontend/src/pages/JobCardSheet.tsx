@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, Paper, Stack, TextField, Typography,
+  Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, IconButton, Paper, Stack, TextField, Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import PrintIcon from '@mui/icons-material/Print';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { getErrorMessage } from '../utils/api';
-import type { JobCardSheetData, SheetPaymentKey } from '../types/jobCards';
+import type { JobCardSheetData, PriceLine, SheetPaymentKey } from '../types/jobCards';
 import JobDetailPanel from '../components/jobcards/JobDetailPanel';
 import { useAuth } from '../context/AuthContext';
 
@@ -103,16 +104,22 @@ export default function JobCardSheet() {
 
   const [sheet, setSheet] = useState<JobCardSheetData | null>(null);
   const [saveNote, setSaveNote] = useState<string | null>(null);
+  // the price list of the job card (with-price copy): starts as the order's list, can be edited by hand
+  const [priceLines, setPriceLines] = useState<PriceLine[] | null>(null);
 
   // Load once; later refetches must not wipe what is being typed.
   useEffect(() => {
-    if (sheetQuery.data && sheet === null) setSheet(sheetQuery.data.sheet);
+    if (sheetQuery.data && sheet === null) {
+      setSheet(sheetQuery.data.sheet);
+      setPriceLines(sheetQuery.data.price_lines.map((l) => ({ ...l })));
+    }
   }, [sheetQuery.data, sheet]);
 
   const saveMutation = useMutation({
-    mutationFn: (data: JobCardSheetData) => jobCardsApi.saveSheet(jobCardId, data),
+    mutationFn: (data: JobCardSheetData) => jobCardsApi.saveSheet(jobCardId, data, priceLines),
     onSuccess: (result) => {
       setSheet(result.sheet);
+      setPriceLines(result.price_lines.map((l) => ({ ...l })));
       queryClient.setQueryData(['job-card-sheet', jobCardId], result);
       queryClient.invalidateQueries({ queryKey: ['job-cards'] });
       setSaveNote('Job card saved.');
@@ -123,6 +130,7 @@ export default function JobCardSheet() {
     mutationFn: () => jobCardsApi.resetSheet(jobCardId),
     onSuccess: (result) => {
       setSheet(result.sheet);
+      setPriceLines(result.price_lines.map((l) => ({ ...l })));
       queryClient.setQueryData(['job-card-sheet', jobCardId], result);
       setSaveNote('The form is filled from the order again.');
     },
@@ -135,6 +143,10 @@ export default function JobCardSheet() {
   const setPaper = (index: number, field: keyof JobCardSheetData['paper'][number], value: string) => {
     setSaveNote(null);
     setSheet((s) => s && { ...s, paper: s.paper.map((row, i) => (i === index ? { ...row, [field]: value } : row)) });
+  };
+  const setLine = (index: number, patch: Partial<PriceLine>) => {
+    setSaveNote(null);
+    setPriceLines((ls) => (ls ?? []).map((l, i) => (i === index ? { ...l, ...patch } : l)));
   };
   const setPayment = (key: SheetPaymentKey, value: string) => {
     setSaveNote(null);
@@ -172,8 +184,8 @@ export default function JobCardSheet() {
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/job-cards')}>
           Back to Job Cards
         </Button>
-        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-          Job Card — {meta.job_number}
+        <Typography variant="h5" sx={{ fontWeight: 'bold' }} data-testid="sheet-title">
+          Edit job card — {meta.job_number}
         </Typography>
         <Button variant="outlined" onClick={() => navigate(`/job-cards/${id}/track`)}>
           Track progress
@@ -208,7 +220,9 @@ export default function JobCardSheet() {
         <Box sx={{ flexGrow: 1 }}>
           <Typography variant="h6" sx={{ fontWeight: 800, color: INK }}>Printing job card</Typography>
           <Typography variant="caption" color="text.secondary">
-            Filled in from the order. Change anything here and press Save, or print it and write by hand.
+            Filled in from the order. Edit anything here (party, job, size, proofs, delivery, paper, colours, remarks
+            {priceLines !== null ? ' and, for the copy with price, the price list' : ''}) and press Save. The printed job card — with or
+            without price (A5) — shows what you saved.
           </Typography>
         </Box>
         <Button
@@ -378,15 +392,51 @@ export default function JobCardSheet() {
                   </Box>
                 </Box>
               ))}
-              {meta.price_lines.length > 0 && (
+              {priceLines !== null && (
                 <Box sx={{ p: 1 }} data-testid="sheet-price-list">
-                  <Typography sx={{ fontWeight: 700, fontSize: 12 }}>Price list</Typography>
-                  {meta.price_lines.map((l, i) => (
-                    <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, fontSize: 12 }}>
-                      <span>{l.label}</span>
-                      <b>{l.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+                  <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: 12 }}>
+                      Price list (printed on the copy with price){meta.price_edited ? ' - edited' : ''}
+                    </Typography>
+                  </Stack>
+                  {priceLines.map((l, i) => (
+                    <Box key={i} sx={{ display: 'grid', gridTemplateColumns: '1fr 86px 24px', gap: 0.5, alignItems: 'center', mt: 0.5 }} data-testid={`price-line-${i}`}>
+                      <TextField variant="standard" size="small" value={l.label} placeholder="Item" onChange={(e) => setLine(i, { label: e.target.value })}
+                        slotProps={{ htmlInput: { maxLength: 120, 'data-testid': `price-label-${i}`, style: { fontSize: 12 } } }} />
+                      <TextField variant="standard" size="small" type="number" value={Number.isFinite(l.amount) ? l.amount : ''} onChange={(e) => setLine(i, { amount: e.target.value === '' ? 0 : Number(e.target.value) })}
+                        slotProps={{ htmlInput: { step: 'any', 'data-testid': `price-amount-${i}`, style: { fontSize: 12, textAlign: 'right' } } }} />
+                      <IconButton size="small" aria-label="Remove price line" data-testid={`price-remove-${i}`} onClick={() => { setSaveNote(null); setPriceLines((ls) => (ls ?? []).filter((_, k) => k !== i)); }}>
+                        <DeleteIcon sx={{ fontSize: 15 }} />
+                      </IconButton>
                     </Box>
                   ))}
+                  <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mt: 0.75 }}>
+                    <Button size="small" startIcon={<AddIcon />} data-testid="price-add" onClick={() => { setSaveNote(null); setPriceLines((ls) => [...(ls ?? []), { label: '', detail: '', amount: 0 }]); }}>
+                      Add a line
+                    </Button>
+                    <Typography sx={{ fontSize: 12 }} data-testid="price-lines-total">
+                      Total <b>₹{priceLines.reduce((sum, l) => sum + (Number(l.amount) || 0), 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+                    </Typography>
+                  </Stack>
+                  <Stack direction="row" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', rowGap: 0.5 }}>
+                    <Button size="small" variant="outlined" data-testid="price-use-total"
+                      onClick={() => setPayment('first', String(Math.round(priceLines.reduce((sum, l) => sum + (Number(l.amount) || 0), 0) * 100) / 100))}>
+                      Use total as Bill total
+                    </Button>
+                    {meta.price_edited && (
+                      <Button size="small" data-testid="price-back" onClick={() => {
+                        if (window.confirm("Go back to the order's own price list? Your edited price lines will be dropped.")) {
+                          jobCardsApi.saveSheet(jobCardId, sheet, null).then((result) => {
+                            queryClient.setQueryData(['job-card-sheet', jobCardId], result);
+                            setPriceLines(result.price_lines.map((l) => ({ ...l })));
+                            setSaveNote("The price list follows the order again.");
+                          });
+                        }
+                      }}>
+                        Back to the order's list
+                      </Button>
+                    )}
+                  </Stack>
                 </Box>
               )}
             </Box>

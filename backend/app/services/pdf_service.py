@@ -73,7 +73,18 @@ def amount_in_words(amount: float) -> str:
     return words + " Only"
 
 
+def _row_label(product, item) -> str:
+    """One-line text of an invoice row: as edited on the invoice, else the item name with its chosen options."""
+    from app.services.bill_pdf_service import _item_text
+    if getattr(item, "particulars", None):
+        return ", ".join(l.strip() for l in item.particulars.splitlines() if l.strip())
+    description, _ = _item_text(product, item)
+    return description
+
+
 def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: dict[int, Product]) -> bytes:
+    from app.services.invoice_edit_service import bill_to
+    who = bill_to(invoice, customer)
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer, pagesize=A4,
@@ -93,14 +104,14 @@ def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: d
     header_data = [
         [Paragraph(f"<b>Invoice #:</b> {invoice.invoice_number}", styles["Normal"]),
          Paragraph(f"<b>Date:</b> {invoice.invoice_date.strftime('%d %b %Y')}", right_style)],
-        [Paragraph(f"<b>Bill To:</b> {customer.name}", styles["Normal"]),
+        [Paragraph(f"<b>Bill To:</b> {who['name']}", styles["Normal"]),
          Paragraph(f"<b>Status:</b> {invoice.status.value.replace('_', ' ').title()}", right_style)],
-        [Paragraph(f"Phone: {customer.phone}", styles["Normal"]), ""],
+        [Paragraph(f"Phone: {who['phone']}", styles["Normal"]), ""],
     ]
-    if customer.address:
-        header_data.append([Paragraph(f"Address: {customer.address}", styles["Normal"]), ""])
-    if customer.gstin:
-        header_data.append([Paragraph(f"GSTIN: {customer.gstin}", styles["Normal"]), ""])
+    if who["address"]:
+        header_data.append([Paragraph(f"Address: {who['address']}", styles["Normal"]), ""])
+    if who["gstin"]:
+        header_data.append([Paragraph(f"GSTIN: {who['gstin']}", styles["Normal"]), ""])
 
     header_table = Table(header_data, colWidths=[100 * mm, 60 * mm])
     header_table.setStyle(TableStyle([
@@ -113,7 +124,7 @@ def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: d
     item_rows = [["Product", "Qty", "Unit Price", "Total"]]
     for item in invoice.items:
         product = products_by_id.get(item.product_id)
-        product_name = product.name if product else f"Product #{item.product_id}"
+        product_name = Paragraph(_row_label(product, item), styles["Normal"])
         item_rows.append([
             product_name,
             str(item.quantity),
@@ -141,6 +152,8 @@ def generate_invoice_pdf(invoice: Invoice, customer: Customer, products_by_id: d
         *([[f"Discount{' (' + format(invoice.discount_value, 'g') + '%)' if getattr(invoice, 'discount_type', None) == 'percent' else ''}",
             f"- Rs. {invoice.discount_amount:.2f}"]] if getattr(invoice, "discount_amount", 0) else []),
         ["Tax", f"Rs. {invoice.tax_amount:.2f}"],
+        *([["Round off / adjustment", f"{'+' if invoice.adjustment_amount > 0 else '-'} Rs. {abs(invoice.adjustment_amount):.2f}"]]
+          if abs(getattr(invoice, "adjustment_amount", 0) or 0) > 0.004 else []),
         ["Paid", f"Rs. {invoice.amount_paid:.2f}"],
         ["Balance", f"Rs. {invoice.grand_total - invoice.amount_paid:.2f}"],
     ]
@@ -262,9 +275,11 @@ def generate_invoice_thermal_pdf(
     elements.append(Spacer(1, 2 * mm))
     elements.append(Paragraph(f"Invoice: {invoice.invoice_number}", small))
     elements.append(Paragraph(f"Date: {invoice.invoice_date.strftime('%d-%b-%Y')}", small))
-    elements.append(Paragraph(f"Customer: {customer.name}", small))
-    if customer.phone:
-        elements.append(Paragraph(f"Ph: {customer.phone}", small))
+    from app.services.invoice_edit_service import bill_to
+    who = bill_to(invoice, customer)
+    elements.append(Paragraph(f"Customer: {who['name']}", small))
+    if who["phone"]:
+        elements.append(Paragraph(f"Ph: {who['phone']}", small))
     elements.append(Spacer(1, 1.5 * mm))
 
     dash = "-" * 32
@@ -281,7 +296,7 @@ def generate_invoice_thermal_pdf(
     ]]
     for item in invoice.items:
         product = products_by_id.get(item.product_id)
-        name = product.name if product else f"#{item.product_id}"
+        name = _row_label(product, item)
         item_rows.append([
             Paragraph(name, small), Paragraph(str(item.quantity), small_right),
             Paragraph(f"{item.unit_price:.2f}", small_right), Paragraph(f"{item.total_price:.2f}", small_right),
@@ -300,6 +315,7 @@ def generate_invoice_thermal_pdf(
         ["Subtotal", f"Rs.{invoice.subtotal:.2f}"],
         *([["Discount", f"-Rs.{invoice.discount_amount:.2f}"]] if getattr(invoice, "discount_amount", 0) else []),
         ["Tax", f"Rs.{invoice.tax_amount:.2f}"],
+        *([["Round off", f"{invoice.adjustment_amount:+.2f}"]] if abs(getattr(invoice, "adjustment_amount", 0) or 0) > 0.004 else []),
         ["GRAND TOTAL", f"Rs.{invoice.grand_total:.2f}"],
         ["Paid", f"Rs.{invoice.amount_paid:.2f}"],
         ["Balance", f"Rs.{invoice.grand_total - invoice.amount_paid:.2f}"],

@@ -65,6 +65,8 @@ class JobCardSheetOut(BaseModel):
     sheet: Dict[str, Any]
     profile: Dict[str, Any] = {}
     price_lines: List[Dict[str, Any]] = []
+    # True when the price list was edited by hand on the job card (it no longer follows the order)
+    price_edited: bool = False
 
 
 class JobCardStatusUpdate(BaseModel):

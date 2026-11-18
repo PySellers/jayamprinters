@@ -1,5 +1,5 @@
 import api from '../utils/api';
-import type { DueRow, Invoice, PaymentInput } from '../types/invoices';
+import type { DueRow, Invoice, InvoiceEditForm, InvoiceEditPreview, InvoiceEditRequest, PaymentInput } from '../types/invoices';
 import type { InvoiceStatus } from '../types/common';
 
 export type InvoicePrintFormat = 'a4' | 'thermal_58' | 'thermal_80';
@@ -26,6 +26,11 @@ export const invoicesApi = {
     (await api.put(`/invoices/${invoiceId}/status`, { status })).data,
   addPayment: async (invoiceId: number, data: PaymentInput): Promise<Invoice> =>
     (await api.post(`/invoices/${invoiceId}/payments`, data)).data,
+  // Edit Invoice: the form as the invoice prints today, a live re-calculation, and the save.
+  editForm: async (id: number): Promise<InvoiceEditForm> => (await api.get(`/invoices/${id}/edit-form`)).data,
+  previewEdit: async (id: number, data: InvoiceEditRequest): Promise<InvoiceEditPreview> =>
+    (await api.post(`/invoices/${id}/edit/preview`, data)).data,
+  saveEdit: async (id: number, data: InvoiceEditRequest): Promise<Invoice> => (await api.put(`/invoices/${id}/edit`, data)).data,
   dues: async (withinDays = 7): Promise<DueRow[]> => (await api.get('/invoices/dues', { params: { within_days: withinDays } })).data,
   setPayBy: async (invoiceId: number, payBy: string | null): Promise<Invoice> =>
     (await api.patch(`/invoices/${invoiceId}`, { pay_by_date: payBy })).data,

@@ -105,6 +105,10 @@ def get_job_card_sheet(db: Session, job_card: JobCard) -> Dict[str, Any]:
     # the form is pre-filled from the order and the job's progress; whatever staff saved on it wins
     sheet = merge_saved(prefilled_sheet(db, job_card), job_card.sheet_data)
 
+    extras = sheet_extras(db, job_card)
+    saved_lines = (job_card.sheet_data or {}).get("price_lines")
+    if isinstance(saved_lines, list):
+        extras["price_lines"] = saved_lines  # edited by hand on the job card
     return {
         "job_card_id": job_card.id,
         "job_number": job_card.job_number,
@@ -113,8 +117,40 @@ def get_job_card_sheet(db: Session, job_card: JobCard) -> Dict[str, Any]:
         "invoice_time": utc_naive_to_ist(invoice.created_at).strftime("%I:%M %p") if invoice and invoice.created_at else None,
         "dc_number": challan.dc_number if challan else None,
         "sheet": sheet,
-        **sheet_extras(db, job_card),
+        "price_edited": isinstance(saved_lines, list),
+        **extras,
     }
+
+
+def _clean_price_lines(lines: Any) -> List[Dict[str, Any]]:
+    """The price list as typed on the job card: label, how it is worked out, amount (blank rows dropped)."""
+    if not isinstance(lines, list):
+        raise HTTPException(status_code=400, detail="The price list must be a list of lines")
+    if len(lines) > 40:
+        raise HTTPException(status_code=400, detail="A job card can carry at most 40 price lines")
+    cleaned = []
+    for row in lines:
+        if not isinstance(row, dict):
+            continue
+        label = str(row.get("label") or "").strip()[:120]
+        detail = str(row.get("detail") or "").strip()[:200]
+        try:
+            amount = round(float(row.get("amount") or 0), 2)
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail=f"The amount of '{label or 'a price line'}' is not a number")
+        if amount != amount or abs(amount) > 1_000_000_000:
+            raise HTTPException(status_code=400, detail=f"The amount of '{label or 'a price line'}' is not valid")
+        if not label and not amount:
+            continue
+        cleaned.append({"label": label or "Item", "detail": detail, "amount": amount})
+    return cleaned
+
+
+def apply_saved_price_lines(job_card: JobCard, detail: Dict[str, Any]) -> None:
+    """Printing the detail job card: if the price list was edited on the paper job card, print those lines."""
+    lines = (job_card.sheet_data or {}).get("price_lines")
+    if isinstance(lines, list) and detail.get("price"):
+        detail["price"]["breakdown"] = [{"label": l["label"], "detail": l.get("detail", ""), "amount": l["amount"], "kind": "custom"} for l in lines]
 
 
 def _only_changes(base: Dict[str, Any], sheet: Dict[str, Any]) -> Dict[str, Any]:
@@ -143,7 +179,22 @@ def _only_changes(base: Dict[str, Any], sheet: Dict[str, Any]) -> Dict[str, Any]
 
 
 def save_job_card_sheet(db: Session, job_card: JobCard, sheet: Dict[str, Any]) -> Dict[str, Any]:
-    job_card.sheet_data = _only_changes(prefilled_sheet(db, job_card), sheet)
+    sheet = dict(sheet)
+    sent_price_lines = "price_lines" in sheet
+    typed_lines = sheet.pop("price_lines", None)
+    kept = _only_changes(prefilled_sheet(db, job_card), sheet)
+    if not sent_price_lines:
+        # the price list is not part of what was sent: whatever was saved before stays
+        previous = (job_card.sheet_data or {}).get("price_lines")
+        if isinstance(previous, list):
+            kept["price_lines"] = previous
+    elif typed_lines is not None:
+        cleaned = _clean_price_lines(typed_lines)
+        from_order = [{"label": l["label"], "detail": l.get("detail", ""), "amount": round(float(l["amount"]), 2)} for l in sheet_extras(db, job_card)["price_lines"]]
+        if cleaned != from_order:  # only a real change is kept; otherwise the list keeps following the order
+            kept["price_lines"] = cleaned
+    # price_lines sent as null: back to the order's own price list
+    job_card.sheet_data = kept
     # Keep the list-page "Delivery" column in step with the delivery date on the sheet.
     raw_delivery = sheet.get("delivery_date")
     if raw_delivery:

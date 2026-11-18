@@ -33,7 +33,7 @@ On the Live Jobs board every service has its own titled section, for example "Bi
 ## Taking an order (Start New Order)
 Keywords: new order, order, place order, start order, quotation, service, customer phone, item, generate invoice
 Link: /dashboard
-On the Dashboard choose the Service button (use the search box to find it), type the customer's phone number (saved customers fill in by themselves, new ones are saved), then press Start. On the next screen choose the item and the options, set the quantity, choose the proof and delivery dates and press "Generate Invoice & Job Card". The invoice and the job card are created together and the job starts moving through its steps.
+On the Dashboard choose the Service button (use the search box to find it), type the billing person's name and the customer's phone number (saved customers fill in by themselves, new ones are saved). The Customer Name box is the name printed on the bill and the job card; leave it empty to use the billing person's name. Then press Start. On the next screen choose the item and the options, set the quantity, choose the proof and delivery dates and press "Generate Invoice & Job Card". The invoice and the job card are created together and the job starts moving through its steps.
 
 ## Order options order - paper first, sub-category, item
 Keywords: paper, paper first, options order, sub category, subcategory, size, item, rubber stamp size, gsm, option
@@ -80,6 +80,16 @@ Keywords: discount, percentage, amount, offer, less
 Link: /quotations/new
 In the order screen, below the lines, the Discount box takes a percentage or an amount. It is taken off before GST and printed on the bill. Under it you will see the customer's earlier orders to decide how much discount a regular customer deserves.
 
+## Changing the total - final amount and round off
+Keywords: final amount, change total, edit total, round off, roundoff, adjust total, adjustment, total amount editable, bill amount, agreed price, reduce total, round the amount
+Link: /dashboard
+On the order screen the Total can be changed. Type the amount the customer will really be billed in "Final amount" under the total (leave it empty to use the calculated total). The difference is kept as "Round off / adjustment" and is shown on the price panel, the quotation, the invoice and the bills; the invoice total, advance and balance follow the final amount. The small arrow beside the box goes back to the calculated total. On an existing invoice use Edit and type the Final amount there.
+
+## Wedding invitations - printing charge, card amount, screen print occasion and size
+Keywords: wedding invitation, screen print, offset, card amount, printing charge, thamboolam bag, house warming, baby shower, birthday, method, nil, custom, invitation size, per card, whole order
+Link: /dashboard
+For "Wedding Invitation - Screen Print" choose the Screen Print occasion (Wedding Invitation, House Warming, Baby Shower, Birthday or Custom - type it) and the Method (Invitation, Thamboolam Bag, Visiting Card, Pen, Diary or Custom - type it); Paper/Board Type can be Nil. For "Wedding Invitation - Offset" choose the Size (A5, A4 or Custom - type it). Both items let you type the Printing Charge and the Card Amount: the card amount is per card or for the whole order (the Per card / Whole order switch). The total is card amount + printing charge, and the same total goes to the quotation, the billing summary and the final invoice. The Admin switches this on for other items in Pricing Setup > Items ("Counter types the Card Amount and Printing Charge").
+
 ## Customer's earlier orders
 Keywords: previous orders, earlier orders, history, frequent customer, regular customer, past jobs, order history
 Link: /quotations/new
@@ -103,7 +113,17 @@ If the customer will pay the remaining amount later, set "Balance will be paid b
 ## Invoices, GST bill, cash bill and printing
 Keywords: invoice, bill, gst bill, cash bill, print bill, pdf, download bill, a4, thermal, tax invoice, without gst
 Link: /invoices
-Invoices lists every bill. Open one to print the GST invoice or the cash bill (they follow Sri Jayam's printed bill books: lavender page, logo, customer box, items with HSN, CGST and SGST, totals, amount in words and the shop's bank details), the A4 or thermal version, to record payments and to set the pay-by date. The particulars of each line show the item with every option chosen, the extras and the notes. The bill shows Advance and Balance when an advance was taken.
+Invoices lists every bill. Open one to print the GST invoice or the cash bill (they follow Sri Jayam's printed bill books: lavender page, logo, customer box, items with HSN, CGST and SGST, totals, amount in words and the shop's bank details), the A4 or thermal version, to record payments and to set the pay-by date. The particulars of each line show the item with every option chosen, the extras and the notes. The bill shows Advance and Balance when an advance was taken. The GST invoice is printed in larger lettering and the Grand TOTAL and Total Amount After Tax stand out.
+
+## Editing an invoice (GST invoice and cash bill)
+Keywords: edit invoice, change invoice, correct invoice, edit gst invoice, change customer name on bill, change gstin, change hsn, change rate, change cgst, sgst, change date of invoice, edit bill, modify invoice, wrong bill, mistake in invoice
+Link: /invoices
+In Invoices press Edit on the line of the invoice (or the Edit button inside the invoice). You can change the customer name, phone, address, GSTIN, the invoice date and every row: particulars, HSN / SAC, quantity, rate, CGST % and SGST %. The amount, CGST, SGST, row total and the grand total are worked out again while you type; add or remove rows if needed, or type a Final amount to round off. Press Save and the invoice, its PDF and the print show the edited bill, and the invoice remembers who edited it. The payments already received stay; the new total cannot be less than the money already received (delete the extra payment first). The customer's own record is not changed.
+
+## Credit / Debit book
+Keywords: credit, debit, credit debit, credit entry, debit entry, money received, money paid, borrow, lend, name wise, udhar, note down amount, entry book, balance of a person, filter by name, filter by date, download excel credit
+Link: /credit-debit
+The Credit / Debit menu (Admin, Accounts and Counter) keeps simple money entries against a name. Type the Name, the Amount in rupees and an optional Note, check the date (today is filled in) and press Add credit or Add debit. Credit entries and debit entries are kept apart, each in its own table with Date, Name, Amount and Note. Use the filters to look at one name or a date range; the totals and "balance by name" follow the filter. Edit an entry with the pencil; the Admin and Accounts can delete one. "Download Excel" saves the credit sheet, the debit sheet and the balance of every name.
 
 ## Delivery challan
 Keywords: challan, dc, delivery challan, delivery note, dispatch, yellow, white challan
@@ -111,9 +131,14 @@ Link: /job-cards
 In Job Cards press the DC button of a job to make its delivery challan. The printed challan is a white form with blue outlines, meant to be printed on the shop's yellow challan paper. It shows the number, date, the customer to deliver to and the particulars with quantities.
 
 ## Job cards list and printing the paper job card
-Keywords: job card, print job card, paper job card, printable, print, job sheet, printing job card
+Keywords: job card, print job card, paper job card, printable, print, job sheet, printing job card, a5, a4, page size, print size, what size, paper size of the job card
 Link: /job-cards
-In the Job Cards list every row has a Print button at the end of the line: it opens the paper job card ready to print. Next to it are the other buttons (Delivery challan, Track, Assign, Open). The paper job card is printed on A4 landscape and contains only the parts that belong to the job's service.
+In the Job Cards list every row has a Print button at the end of the line: it opens the paper job card ready to print. Next to it are the other buttons (Delivery challan, Track, Assign, Open). The paper job card is printed on A5 landscape (sized to fit the whole page, nothing cut off) and contains only the parts that belong to the job's service. The pencil button at the end of the line is Edit job card.
+
+## Editing a job card (with and without price)
+Keywords: edit job card, change job card, correct job card, job card edit, change proof date, change delivery date, change paper, change price on job card, edit price list, modify job card, update job card
+Link: /job-cards
+In Job Cards press the pencil (Edit job card) on the job. The form is filled from the order; change the party name, mobile, job name, size, type of printing, proof dates and times, delivery date and time, paper details, printing colour, margin, serial and book numbers or remarks and press Save. For the copy with price you can also edit the price list: change the text or amount of a line, add a line or remove one (the total of the lines is shown, and "Use total as Bill total" copies it to the payment column); "Back to the order's list" drops your price edits. Whatever you save is what both job cards print (A5 landscape, with price and without price). "Fill again from the order" throws the edits away.
 
 ## The paper job card form is different for each service
 Keywords: paper job card, form, fields, xerox job card, copies, proof, ink colour, margin, service specific, dynamic, landscape
@@ -123,7 +148,7 @@ The paper job card changes with the service. A Xerox or Printout job shows paper
 ## Print with price and without price
 Keywords: with price, without price, price, job card price, steps, production steps, delivery date, proofs
 Link: /job-cards
-"Print without price" is for the shop floor: it lists the production steps. "Print with price" is for the office: it shows the price breakdown, advance and balance and leaves out the production steps; the design proofs and the delivery date are taken from the job itself. Both print on A4 landscape and show the status as it is now.
+"Print without price" is for the shop floor: it lists the production steps. "Print with price" is for the office: it shows the price breakdown, advance and balance and leaves out the production steps; the design proofs and the delivery date are taken from the job itself. Both print on A5 landscape, fitted to the page without cut-off text, and show the status as it is now. Edit job card changes what they say.
 
 ## Tasks, taking a task and assigning an employee
 Keywords: task, take task, assign, employee, work, who is working, step, my work, take it, reassign

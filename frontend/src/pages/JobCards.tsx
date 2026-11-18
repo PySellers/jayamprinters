@@ -194,7 +194,7 @@ export default function JobCards() {
                         DC{dcNumberOf(jc.id) ? ` ${dcNumberOf(jc.id)}` : ''}
                       </Button>
                     </Tooltip>
-                    <Tooltip title="Print the paper job card">
+                    <Tooltip title="Print the job card (A5)">
                       <IconButton size="small" aria-label="Print job card" data-testid="list-print" onClick={(e) => setPrintMenu({ anchor: e.currentTarget, id: jc.id })}>
                         <PrintIcon fontSize="small" />
                       </IconButton>
@@ -209,8 +209,8 @@ export default function JobCards() {
                         <AssignmentIndIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Open job card">
-                      <IconButton size="small" onClick={() => navigate(`/job-cards/${jc.id}`)}>
+                    <Tooltip title="Edit job card">
+                      <IconButton size="small" aria-label="Edit job card" data-testid="list-edit" onClick={() => navigate(`/job-cards/${jc.id}`)}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -357,8 +357,8 @@ export default function JobCards() {
       </Dialog>
 
       <Menu anchorEl={printMenu?.anchor} open={Boolean(printMenu)} onClose={() => setPrintMenu(null)}>
-        <MenuItem data-testid="list-print-plain" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, false); setPrintMenu(null); }}>Paper job card (without price)</MenuItem>
-        <MenuItem data-testid="list-print-price" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, true); setPrintMenu(null); }}>Paper job card (with price)</MenuItem>
+        <MenuItem data-testid="list-print-plain" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, false); setPrintMenu(null); }}>Job card without price (A5)</MenuItem>
+        <MenuItem data-testid="list-print-price" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, true); setPrintMenu(null); }}>Job card with price (A5)</MenuItem>
       </Menu>
       <DeliveryChallanDialog jobCard={challanFor} onClose={() => setChallanFor(null)} />
     </Box>

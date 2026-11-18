@@ -4,9 +4,10 @@ import { useForm, useFieldArray, useWatch, Controller, FormProvider } from 'reac
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Autocomplete, Box, Typography, Paper, Button, TextField, Stack, Grid, Alert, ToggleButton, ToggleButtonGroup,
-  Chip, Collapse, InputAdornment, Link, Tooltip,
+  Chip, Collapse, IconButton, InputAdornment, Link, Tooltip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import UndoIcon from '@mui/icons-material/Undo';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import { useAuth } from '../context/AuthContext';
@@ -102,6 +103,9 @@ export default function QuotationCreate() {
   const [discountType, setDiscountType] = useState<DiscountType | 'none'>('none');
   const [discountValue, setDiscountValue] = useState('');
   const discountNumber = Math.max(0, Number(discountValue) || 0);
+  // the final amount typed by the counter (blank = the calculated total); the difference is kept as 'Round off / adjustment'
+  const [finalText, setFinalText] = useState('');
+  const finalNumber = finalText.trim() === '' || !(Number(finalText) >= 0) ? null : Number(finalText);
   const activeDiscount: { discount_type: DiscountType | null; discount_value: number } =
     discountType !== 'none' && discountNumber > 0
       ? { discount_type: discountType, discount_value: discountNumber }
@@ -123,7 +127,7 @@ export default function QuotationCreate() {
       // Keep line positions: an unpicked line is sent as nothing and shown as "not priced yet".
       const picked = lines.filter((l): l is QuotationItemInput => l !== null);
       quotationsApi
-        .preview({ tax_id: watchedTaxId, with_gst: Boolean(withGst), ...activeDiscount, items: picked.map(previewable) })
+        .preview({ tax_id: watchedTaxId, with_gst: Boolean(withGst), ...activeDiscount, final_amount: finalNumber, items: picked.map(previewable) })
         .then((result) => {
           let k = 0;
           const items = lines.map((l) => (l ? result.items[k++] : { unit_price: 0, total_price: 0, priceable: false }));
@@ -135,7 +139,7 @@ export default function QuotationCreate() {
       if (previewTimer.current) clearTimeout(previewTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(watchedItems), watchedTaxId, withGst, activeDiscount.discount_type, activeDiscount.discount_value]);
+  }, [JSON.stringify(watchedItems), watchedTaxId, withGst, activeDiscount.discount_type, activeDiscount.discount_value, finalNumber]);
   const allPriced = Boolean(preview) && (preview?.items ?? []).every((i) => i.priceable);
   const gstAmount = withGst ? preview?.tax_amount ?? 0 : 0;
   const discountAmount = preview?.discount_amount ?? 0;
@@ -232,7 +236,7 @@ export default function QuotationCreate() {
       }
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       return quotationsApi.create({
-        ...data, customer_id: customerId, is_order: isQuick, ...activeDiscount,
+        ...data, customer_id: customerId, is_order: isQuick, ...activeDiscount, final_amount: finalNumber,
         priority: isUrgent ? 'urgent' : undefined,
       });
     },
@@ -264,7 +268,9 @@ export default function QuotationCreate() {
     },
   });
 
-  const orderTotal = Math.max(0, (preview?.subtotal ?? 0) - discountAmount + gstAmount);
+  const calculatedTotal = Math.max(0, (preview?.subtotal ?? 0) - discountAmount + gstAmount);
+  const orderTotal = Math.max(0, preview?.grand_total ?? calculatedTotal);
+  const adjustmentAmount = preview?.adjustment_amount ?? 0;
   const advanceNumber = Math.max(0, Number(advance) || 0);
   const onSubmit = (data: QuotationCreateInput) => {
     if (isQuick && advanceNumber > orderTotal + 0.009 && orderTotal > 0) {
@@ -648,11 +654,44 @@ export default function QuotationCreate() {
                   </Stack>
                 )}
                 <Stack direction="row" sx={{ justifyContent: 'space-between', pt: 0.5, borderTop: '1px solid', borderColor: 'divider' }}>
-                  <Typography sx={{ fontWeight: 'bold' }}>Total</Typography>
-                  <Typography sx={{ fontWeight: 'bold' }}>
-                    ₹{(preview.subtotal - discountAmount + gstAmount).toFixed(2)}
+                  <Typography sx={{ fontWeight: finalNumber == null ? 'bold' : 400 }} color={finalNumber == null ? 'text.primary' : 'text.secondary'}>
+                    {finalNumber == null ? 'Total' : 'Calculated total'}
+                  </Typography>
+                  <Typography sx={{ fontWeight: finalNumber == null ? 'bold' : 400 }} data-testid="calculated-total">
+                    ₹{calculatedTotal.toFixed(2)}
                   </Typography>
                 </Stack>
+                {/* the total can be changed: type the amount the customer will really be billed */}
+                <Box sx={{ pt: 1 }} data-testid="final-amount-box">
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                    <TextField
+                      size="small" type="number" fullWidth label="Final amount (optional)" placeholder={calculatedTotal.toFixed(2)}
+                      value={finalText} onChange={(e) => { setFinalText(e.target.value); setAdvanceError(null); }}
+                      error={finalText.trim() !== '' && finalNumber == null}
+                      helperText={finalText.trim() !== '' && finalNumber == null ? 'Enter a valid amount' : 'Type to round off or agree a different total. Blank = the calculated total.'}
+                      slotProps={{ input: { startAdornment: <InputAdornment position="start">₹</InputAdornment> }, htmlInput: { min: 0, step: 'any', 'data-testid': 'final-amount' } }}
+                    />
+                    <Tooltip title="Use the calculated total">
+                      <span>
+                        <IconButton aria-label="Reset final amount" disabled={finalText === ''} onClick={() => setFinalText('')} data-testid="final-amount-reset" sx={{ mt: 0.25 }}>
+                          <UndoIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </Box>
+                  {Math.abs(adjustmentAmount) > 0.004 && (
+                    <>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', pt: 0.5 }} data-testid="adjustment-row">
+                        <Typography color="text.secondary">Round off / adjustment</Typography>
+                        <Typography color={adjustmentAmount < 0 ? 'success.main' : 'text.primary'}>{adjustmentAmount > 0 ? '+' : '-'} ₹{Math.abs(adjustmentAmount).toFixed(2)}</Typography>
+                      </Stack>
+                      <Stack direction="row" sx={{ justifyContent: 'space-between', pt: 0.5 }}>
+                        <Typography sx={{ fontWeight: 'bold' }}>Total</Typography>
+                        <Typography sx={{ fontWeight: 'bold' }} data-testid="final-total">₹{orderTotal.toFixed(2)}</Typography>
+                      </Stack>
+                    </>
+                  )}
+                </Box>
                 {!allPriced && (
                   <Typography variant="caption" color="warning.main">
                     Some lines are not priced yet — complete their options to include them.

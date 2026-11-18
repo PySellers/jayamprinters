@@ -9,6 +9,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
+import EditIcon from '@mui/icons-material/Edit';
 import { invoicesApi } from '../api/invoicesApi';
 import type { InvoiceBillType } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
@@ -17,6 +18,8 @@ import { productsApi } from '../api/productsApi';
 import { quotationsApi } from '../api/quotationsApi';
 import EntitySelect from '../components/pickers/EntitySelect';
 import ConfirmDialog from '../components/ConfirmDialog';
+import EditInvoiceDialog from '../components/invoices/EditInvoiceDialog';
+import { useAuth } from '../context/AuthContext';
 import type { Invoice } from '../types/invoices';
 import type { InvoiceStatus } from '../types/common';
 
@@ -78,6 +81,9 @@ export default function Invoices() {
   const [busy, setBusy] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [unpaidTarget, setUnpaidTarget] = useState<Invoice | null>(null);
+  const [editing, setEditing] = useState<Invoice | null>(null);
+  const { user } = useAuth();
+  const canEdit = user?.role === 'admin' || user?.role === 'accounts' || user?.role === 'counter';
 
   const invoicesQuery = useQuery({ queryKey: ['invoices'], queryFn: invoicesApi.list });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
@@ -86,7 +92,10 @@ export default function Invoices() {
 
   const customerOf = (id: number) => customersQuery.data?.find((c) => c.id === id);
   const customerName = (id: number) => customerOf(id)?.name ?? `#${id}`;
-  const productName = (id: number) => productsQuery.data?.find((p) => p.id === id)?.name ?? `#${id}`;
+  const productName = (id?: number | null) => productsQuery.data?.find((p) => p.id === id)?.name ?? (id ? `#${id}` : 'Item');
+  // a row edited on the invoice shows what was typed; otherwise the item's name
+  const rowName = (i: { product_id?: number | null; particulars?: string | null }) =>
+    i.particulars?.trim() ? i.particulars.split('\n')[0] : productName(i.product_id);
   // "New from Quotation": approved quotations that don't have an invoice yet.
   const invoicedQuotationIds = new Set((invoicesQuery.data ?? []).map((inv) => inv.quotation_id));
   const convertedQuotations = (quotationsQuery.data ?? []).filter(
@@ -229,9 +238,9 @@ export default function Invoices() {
                     onClick={() => navigate(`/invoices/${inv.id}`)}
                   >
                     <TableCell sx={nowrap}>{inv.invoice_number}</TableCell>
-                    <TableCell>{customerName(inv.customer_id)}</TableCell>
+                    <TableCell>{inv.bill_to_name || customerName(inv.customer_id)}</TableCell>
                     <TableCell sx={{ minWidth: 140 }}>
-                      <Lines values={inv.items.map((i) => productName(i.product_id))} />
+                      <Lines values={inv.items.map((i) => rowName(i))} />
                     </TableCell>
                     <TableCell sx={nowrap}>{customer?.phone || '-'}</TableCell>
                     <TableCell><Lines values={inv.items.map((i) => i.quantity)} /></TableCell>
@@ -254,6 +263,19 @@ export default function Invoices() {
                     </TableCell>
                     <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                       <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                        {canEdit && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="secondary"
+                            startIcon={<EditIcon />}
+                            data-testid={`edit-invoice-${inv.id}`}
+                            disabled={busy !== null}
+                            onClick={() => setEditing(inv)}
+                          >
+                            Edit
+                          </Button>
+                        )}
                         <Button
                           size="small"
                           variant="outlined"
@@ -291,6 +313,8 @@ export default function Invoices() {
           </Table>
         )}
       </Paper>
+
+      <EditInvoiceDialog invoiceId={editing?.id ?? null} invoiceNumber={editing?.invoice_number} onClose={() => setEditing(null)} />
 
       <ConfirmDialog
         open={Boolean(unpaidTarget)}

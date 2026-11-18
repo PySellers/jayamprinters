@@ -47,5 +47,7 @@ class Product(Base):
     min_quantity = Column(Integer, nullable=True)
     # Groups items of one service in the order form (e.g. Rubber Stamp: Polymer Stamp / Dater / Pre-ink). Blank = none.
     sub_category = Column(String, nullable=True)
+    # The counter may type the card amount and the printing charge for this item (invitations).
+    allow_manual_amounts = Column(Boolean, nullable=False, default=False, server_default="false")
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)

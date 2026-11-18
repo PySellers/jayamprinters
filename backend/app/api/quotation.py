@@ -13,7 +13,7 @@ from app.models.product import Product
 from app.models.invoice import Invoice
 from app.models.quotation import Quotation
 from app.services import pricing_service
-from app.services.quotation_service import create_quotation, split_discount
+from app.services.quotation_service import adjustment_for, create_quotation, split_discount
 from app.services.job_card_service import convert_quotation_to_job_cards
 from app.services.quotation_pdf_service import generate_quotation_pdf
 from app.services.company_service import get_company
@@ -42,6 +42,7 @@ def preview(payload: QuotationPreviewRequest, db: Session = Depends(get_db)):
                 item.layer_gsm_option_ids, payload.tax_id,
                 [spec.model_dump() for spec in item.layer_specs] or None,
                 [c.model_dump() for c in item.custom_charges] or None,
+                manual={"card_amount": item.card_amount, "card_amount_mode": item.card_amount_mode, "printing_charge": item.printing_charge_manual},
             )
         except HTTPException as exc:
             # Required attribute not picked yet, or no matrix cell for this combination -- not an error at
@@ -73,9 +74,11 @@ def preview(payload: QuotationPreviewRequest, db: Session = Depends(get_db)):
 
     subtotal = round(sum(totals), 2)
     tax_amount = round(sum(r["tax"] for r in breakdown.values()), 2)
+    calculated = round(subtotal - discount + tax_amount, 2)
+    adjustment = adjustment_for(calculated, payload.final_amount) if priced else 0.0
     return QuotationPreviewOut(
         items=items_out, subtotal=subtotal, discount_amount=discount, taxable_amount=round(subtotal - discount, 2),
-        tax_amount=tax_amount, grand_total=round(subtotal - discount + tax_amount, 2),
+        tax_amount=tax_amount, computed_total=calculated, adjustment_amount=adjustment, grand_total=round(calculated + adjustment, 2),
         tax_breakdown=[TaxBreakdownRow(hsn_code=k[0], rate=k[1], taxable=round(v["taxable"], 2), tax=round(v["tax"], 2)) for k, v in breakdown.items()],
     )
 

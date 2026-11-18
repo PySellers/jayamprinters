@@ -35,6 +35,11 @@ def main():
         done["quotations"] += api("DELETE", f"/quotations/{q['id']}", token=admin()).status in (200, 204)
     for c in customers:
         done["customers"] += api("DELETE", f"/customers/{c['id']}", token=admin()).status in (200, 204)
+    # Credit / Debit book entries made by the tests (names start with ZZ or UI)
+    done["credit_debit"] = 0
+    for e in get("/credit-debit/entries?limit=20000"):
+        if (e["name"] or "").startswith(("ZZ", "UI")):
+            done["credit_debit"] += api("DELETE", f"/credit-debit/entries/{e['id']}", token=admin()).status in (200, 204)
     print("removed", done)
 
 

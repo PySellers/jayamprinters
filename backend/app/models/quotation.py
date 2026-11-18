@@ -40,6 +40,8 @@ class Quotation(Base):
     discount_amount = Column(Float, nullable=False, default=0.0, server_default="0")
     # low / medium / high / urgent: handed to the job cards made from this order.
     priority = Column(String, nullable=True)
+    # The counter typed a different final amount: the difference to the calculated total (+ / -), shown as 'Round off / adjustment'.
+    adjustment_amount = Column(Float, nullable=False, default=0.0, server_default="0")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -76,6 +78,12 @@ class QuotationItem(Base):
     price_breakdown = Column(JSON, nullable=True)
     # This line's share of the order discount (the discount is spread over the lines by value).
     discount_amount = Column(Float, nullable=False, default=0.0, server_default="0")
+    # Amounts typed by the counter for invitation-type items: the card price (per card or for the whole order) and the printing charge.
+    card_amount = Column(Float, nullable=True)
+    card_amount_mode = Column(String, nullable=True)  # 'per_card' | 'total'
+    printing_charge_manual = Column(Float, nullable=True)
+    # The text typed when a drop-down's 'Custom' option was chosen: {attribute_id: text}.
+    option_texts = Column(JSON, nullable=True)
 
     quotation = relationship("Quotation", back_populates="items")
     product = relationship("Product")

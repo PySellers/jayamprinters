@@ -31,6 +31,8 @@ class AttributeCreate(BaseModel):
     display_order: int = 0
     is_active: bool = True
     in_price_matrix: bool = True
+    # Set = the drop-down is shown only for that one item of the service
+    product_id: Optional[int] = None
 
 
 class AttributeUpdate(BaseModel):
@@ -40,6 +42,7 @@ class AttributeUpdate(BaseModel):
     display_order: Optional[int] = None
     is_active: Optional[bool] = None
     in_price_matrix: Optional[bool] = None
+    product_id: Optional[int] = None
 
 
 class AttributeOut(AttributeCreate):

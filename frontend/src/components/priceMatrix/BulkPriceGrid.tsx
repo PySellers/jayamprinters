@@ -24,7 +24,8 @@ interface Combo {
 }
 
 function buildCombos(attributes: Attribute[]): Combo[] {
-  const requiredAttrs = attributes.filter((a) => a.is_required && a.options.length > 0);
+  // drop-downs that only describe the job (not part of the price grid) never multiply the grid
+  const requiredAttrs = attributes.filter((a) => a.is_required && a.options.length > 0 && a.in_price_matrix !== false);
   if (requiredAttrs.length === 0) return [{ key: 'none', label: '—', options: [] }];
 
   let combos: Combo[] = [{ key: '', label: '', options: [] }];

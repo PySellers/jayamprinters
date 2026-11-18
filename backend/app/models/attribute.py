@@ -15,6 +15,8 @@ class Attribute(Base):
     # False = a descriptive/surcharge choice (document type, paper brand, copies...)
     # that is NOT part of the price-matrix key. Its option extra_price still applies.
     in_price_matrix = Column(Boolean, default=True, nullable=False)
+    # Set = this drop-down appears only for that one item of the service (e.g. 'Method' for Wedding Invitation - Screen Print).
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
 
     category = relationship("ProductCategory")
     options = relationship("AttributeOption", back_populates="attribute", cascade="all, delete-orphan", order_by="AttributeOption.display_order, AttributeOption.id")

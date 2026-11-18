@@ -186,7 +186,7 @@ export default function JobDetailPanel({ jobCardId, canEdit = true }: { jobCardI
             Print with price
           </Button>
         </Stack>
-        <Typography variant="caption" color="text.secondary">The printout shows the status as it is right now, so print it again whenever it changes.</Typography>
+        <Typography variant="caption" color="text.secondary">Printouts are A5 landscape. The printout shows the status as it is right now, so print it again whenever it changes. To change what it says, use Edit job card.</Typography>
         {printMutation.isError && <Alert severity="error" sx={{ mt: 1 }}>{getErrorMessage(printMutation.error, 'Could not open the job card')}</Alert>}
         {d.price && (
           <Box sx={{ mt: 1.5 }}>
