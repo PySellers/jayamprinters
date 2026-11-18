@@ -10,6 +10,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { attributesApi } from '../../api/attributesApi';
+import { productsApi } from '../../api/productsApi';
 import type { Attribute, AttributeInput, AttributeOption, AttributeOptionInput } from '../../types/attributes';
 import AttributeFormDialog from './AttributeFormDialog';
 import AttributeOptionFormDialog from './AttributeOptionFormDialog';
@@ -31,6 +32,8 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
   const [deletingOption, setDeletingOption] = useState<AttributeOption | null>(null);
 
   const attributesQuery = useQuery({ queryKey: ['attributes', categoryId], queryFn: () => attributesApi.list(categoryId) });
+  const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
+  const items = (productsQuery.data ?? []).filter((p) => p.category_id === categoryId);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['attributes', categoryId] });
 
@@ -124,7 +127,12 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
                         {expanded.has(attr.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                       </IconButton>
                     </TableCell>
-                    <TableCell>{attr.name}</TableCell>
+                    <TableCell>
+                      {attr.name}
+                      {attr.product_id != null && (
+                        <Chip size="small" variant="outlined" sx={{ ml: 1 }} label={`Only: ${items.find((p) => p.id === attr.product_id)?.name ?? 'one item'}`} />
+                      )}
+                    </TableCell>
                     <TableCell>{attr.is_required && <Chip label="Required" size="small" color="warning" />}</TableCell>
                     <TableCell>
                       <Chip label={attr.is_active ? 'Active' : 'Inactive'} color={attr.is_active ? 'success' : 'default'} size="small" />
@@ -210,6 +218,7 @@ export default function AttributesPanel({ categoryId }: AttributesPanelProps) {
         open={attrDialogOpen}
         title={editingAttr ? 'Edit Attribute' : 'Add Attribute'}
         initialValues={editingAttr}
+        items={items}
         loading={saveAttrMutation.isPending}
         onSave={(values) => saveAttrMutation.mutate(values)}
         onCancel={() => { setAttrDialogOpen(false); setEditingAttr(null); }}

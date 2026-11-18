@@ -1,7 +1,7 @@
 import api from '../utils/api';
 import type {
   JobCard, JobCardCreateInput, JobCardUpdateInput, JobCardComment, JobCardCommentInput,
-  JobCardSheet, JobCardSheetData, JobCardDetail, JobProof, ProofStatus,
+  JobCardSheet, JobCardSheetData, JobCardDetail, JobProof, ProofStatus, PriceLine,
 } from '../types/jobCards';
 import type { JobCardStatus } from '../types/common';
 
@@ -53,8 +53,9 @@ export const jobCardsApi = {
   },
   getSheet: async (id: number): Promise<JobCardSheet> => (await api.get(`/job-cards/${id}/sheet`)).data,
   resetSheet: async (id: number): Promise<JobCardSheet> => (await api.post(`/job-cards/${id}/sheet/reset`)).data,
-  saveSheet: async (id: number, sheet: JobCardSheetData): Promise<JobCardSheet> =>
-    (await api.put(`/job-cards/${id}/sheet`, { sheet })).data,
+  // price_lines: omitted = keep the saved list, null = back to the order's own list, a list = the edited price list
+  saveSheet: async (id: number, sheet: JobCardSheetData, priceLines?: PriceLine[] | null): Promise<JobCardSheet> =>
+    (await api.put(`/job-cards/${id}/sheet`, { sheet: priceLines === undefined ? sheet : { ...sheet, price_lines: priceLines } })).data,
   updateStatus: async (id: number, status: JobCardStatus): Promise<JobCard> =>
     (await api.patch(`/job-cards/${id}/status`, { status })).data,
   remove: async (id: number): Promise<void> => {

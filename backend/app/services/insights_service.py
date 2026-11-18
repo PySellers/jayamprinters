@@ -93,7 +93,16 @@ def generate_insights(db: Session, days: int = 180) -> Dict[str, Any]:
     reopened_steps = {e.step_id for e in db.query(JobEvent).filter(JobEvent.action == "reopened").all() if e.step_id}
 
     def net(inv: Invoice) -> float:
-        return (inv.subtotal or 0) - (inv.discount_amount or 0)
+        return (inv.subtotal or 0) - (inv.discount_amount or 0) + (inv.adjustment_amount or 0)
+
+    def line_net(inv: Invoice) -> List[float]:
+        """Each line's revenue: what it sold for after its discount, plus its share of the invoice's round off (typed final amount)."""
+        base = [(l.total_price or 0) - (l.discount_amount or 0) for l in inv.items]
+        adjustment = inv.adjustment_amount or 0
+        if not adjustment or not base:
+            return base
+        whole = sum(base)
+        return [b + adjustment * ((b / whole) if whole else 1 / len(base)) for b in base]
 
     # -------------------------------------------------------------------------------- headline money figures
     period_invoices = [i for i in invoices if i.invoice_date and start <= i.invoice_date <= today]
@@ -159,16 +168,16 @@ def generate_insights(db: Session, days: int = 180) -> Dict[str, Any]:
     svc: Dict[str, Dict[str, Any]] = defaultdict(lambda: {"revenue": 0.0, "prev_revenue": 0.0, "lines": 0, "quantity": 0, "discount": 0.0, "gross": 0.0,
                                                            "jobs": 0, "delivered": 0, "on_time": 0, "due_known": 0, "turn": [], "urgent": 0})
     for inv in period_invoices:
-        for line in inv.items:
+        for line, line_revenue in zip(inv.items, line_net(inv)):
             row = svc[service_of(line.product_id)]
-            row["revenue"] += (line.total_price or 0) - (line.discount_amount or 0)
+            row["revenue"] += line_revenue
             row["gross"] += line.total_price or 0
             row["discount"] += line.discount_amount or 0
             row["lines"] += 1
             row["quantity"] += line.quantity or 0
     for inv in prev_invoices:
-        for line in inv.items:
-            svc[service_of(line.product_id)]["prev_revenue"] += (line.total_price or 0) - (line.discount_amount or 0)
+        for line, line_revenue in zip(inv.items, line_net(inv)):
+            svc[service_of(line.product_id)]["prev_revenue"] += line_revenue
 
     turnarounds: List[float] = []
     on_time = due_known = 0

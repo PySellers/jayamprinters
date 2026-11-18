@@ -320,6 +320,7 @@ def price_line(
     tax_id: Optional[int] = None,
     layer_specs: Optional[List[dict]] = None,
     custom_charges: Optional[List[dict]] = None,
+    manual: Optional[dict] = None,
 ) -> LinePrice:
     """Prices one order line: paper (per layer) + extra charges + printing charge, with the service minimum applied.
     Also returns `breakdown`: every part of the price with where it comes from, shown beside the rate."""
@@ -342,7 +343,22 @@ def price_line(
     if layer_gsm_option_ids and not specs:
         specs = [{}] + [{"gsm_option_id": g or None} for g in layer_gsm_option_ids]
 
-    if product.pricing_type == ProductPricingType.fixed:
+    # Invitation-type items: the counter may type the card amount and the printing charge instead of using the rate grid.
+    manual = manual or {}
+    manual_ok = bool(getattr(product, "allow_manual_amounts", False))
+    card_amount = manual.get("card_amount") if manual_ok else None
+    if card_amount is not None:
+        card_amount = float(card_amount)
+        if card_amount < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The card amount cannot be negative")
+        if (manual.get("card_amount_mode") or "per_card") == "total":
+            base_unit = card_amount / quantity if quantity else 0.0
+            card_how = f"Rs.{card_amount:,.2f} for the whole order (typed at the counter)"
+        else:
+            base_unit = card_amount
+            card_how = f"Rs.{card_amount:,.2f} per card x {quantity:,} cards (typed at the counter)"
+        add("card", "Card amount", card_how, base_unit * quantity, "none")
+    elif product.pricing_type == ProductPricingType.fixed:
         if product.fixed_price is None:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Product has no fixed price configured")
         base_unit = product.fixed_price
@@ -467,7 +483,13 @@ def price_line(
         charges_total += amount
         add("custom", label, "Entered by hand at the counter", amount, "none")
 
-    print_amount, print_how = printing_charge_detail(db, category, quantity, layers)
+    if manual_ok and manual.get("printing_charge") is not None:
+        print_amount = float(manual["printing_charge"])
+        print_how = "Entered by hand at the counter"
+        if print_amount < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The printing charge cannot be negative")
+    else:
+        print_amount, print_how = printing_charge_detail(db, category, quantity, layers)
     if print_amount:
         add("printing", "Printing charge", print_how, print_amount, "printing")
     total = paper_total + charges_total + print_amount

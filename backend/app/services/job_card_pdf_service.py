@@ -1,4 +1,4 @@
-"""Printable job card (A4): the live status, every choice made for the job, the copies of the set, extras, proofs and the
+"""Printable job card (A5 landscape, A4 on request): the live status, every choice made for the job, the copies of the set, extras, proofs and the
 production steps - with or without prices. Built from job_card_detail, so it is always up to date when printed."""
 from io import BytesIO
 from typing import Any, Dict, Optional
@@ -11,6 +11,7 @@ from reportlab.pdfgen import canvas
 
 from app.models.company import CompanySettings
 from app.services.job_sheet_service import sheet_profile
+from app.services.job_sheet_pdf_service import page_setup
 from app.services.bill_pdf_service import BAND, BRAND_RED, GREY, INK, LINE, TINT, Shop, _draw_logo, _fit
 from app.services.time_utils import now_ist, utc_naive_to_ist
 
@@ -30,13 +31,14 @@ def _dt(value) -> str:
     return utc_naive_to_ist(value).strftime("%d %b %H:%M") if value else ""
 
 
-def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySettings] = None) -> bytes:
+def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySettings] = None, size: str = "a5") -> bytes:
     shop = Shop(company)
     with_price = bool(detail.get("with_price"))
     buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=landscape(A4))
+    page, k, W, H = page_setup(size)  # drawn on a slightly larger canvas and scaled onto the paper (see page_setup)
+    c = canvas.Canvas(buffer, pagesize=page)
+    c.scale(k, k)
     c.setTitle(f"Job card {detail['job_number']}")
-    W, H = landscape(A4)
     left, right = 12 * mm, W - 12 * mm
     width = right - left
     bottom = 16 * mm
@@ -52,12 +54,27 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
     def new_page():
         footer()
         c.showPage()
+        c.scale(k, k)
         state["page"] += 1
         state["y"] = H - 14 * mm
 
     def need(height: float):
-        if state["y"] - height < bottom:
+        # a section heading waiting to be drawn travels with its first row, so it is never left alone at a page bottom
+        extra = 9.5 * mm if state.get("pending") else 0
+        if state["y"] - height - extra < bottom:
             new_page()
+
+    def flush_section():
+        title = state.pop("pending", None)
+        if title is None:
+            return
+        state["y"] -= 2.5 * mm
+        c.setFillColor(BAND)
+        c.rect(left, state["y"] - 5.5 * mm, width, 5.5 * mm, fill=1, stroke=0)
+        c.setFillColor(colors.white)
+        c.setFont("Helvetica-Bold", 8.5)
+        c.drawString(left + 2 * mm, state["y"] - 4 * mm, title.upper())
+        state["y"] -= 7 * mm
 
     # ---- header -------------------------------------------------------------
     top = state["y"]
@@ -115,20 +132,14 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
     state["y"] -= banner_h + 3 * mm
 
     def section(title: str):
-        need(16 * mm)
-        state["y"] -= 2.5 * mm
-        c.setFillColor(BAND)
-        c.rect(left, state["y"] - 5.5 * mm, width, 5.5 * mm, fill=1, stroke=0)
-        c.setFillColor(colors.white)
-        c.setFont("Helvetica-Bold", 8.5)
-        c.drawString(left + 2 * mm, state["y"] - 4 * mm, title.upper())
-        state["y"] -= 7 * mm
+        state["pending"] = title
 
     def kv_rows(rows, label_w=46 * mm, size=9):
         for label, value in rows:
             lines = simpleSplit(str(value) if value not in (None, "") else "-", "Helvetica-Bold", size, width - label_w - 4 * mm) or ["-"]
             h = max(5.2 * mm, len(lines) * 4.2 * mm + 1.4 * mm)
             need(h)
+            flush_section()
             c.setFillColor(GREY)
             c.setFont("Helvetica", size - 0.5)
             c.drawString(left + 2 * mm, state["y"] - 4 * mm, f"{label}")
@@ -145,6 +156,7 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
         scale = width / (sum(widths_mm) * mm)  # the page is landscape: stretch the columns to the full width
         widths = [w * mm * scale for w in widths_mm]
         need(6 * mm + 5.5 * mm)
+        flush_section()
         c.setFillColor(TINT)
         c.rect(left, state["y"] - 5.5 * mm, width, 5.5 * mm, fill=1, stroke=0)
         c.setFillColor(INK)
@@ -163,6 +175,7 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
                 cells.append((lines, value[1] if isinstance(value, tuple) else INK))
                 height = max(height, len(lines) * 3.8 * mm + 1.6 * mm)
             need(height)
+            flush_section()
             x = left
             for i, ((lines, colour), w) in enumerate(zip(cells, widths)):
                 c.setFillColor(colour)

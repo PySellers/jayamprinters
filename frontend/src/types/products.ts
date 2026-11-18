@@ -44,6 +44,8 @@ export interface Product {
   sub_category?: string | null;
   /** The attributes this item's price depends on; other drop-downs of the service do not block its price. */
   price_attribute_ids?: number[];
+  /** The counter may type the card amount and the printing charge (invitations). */
+  allow_manual_amounts?: boolean;
   is_active: boolean;
   created_at: string;
 }
@@ -57,5 +59,6 @@ export interface ProductInput {
   hsn_id?: number | null;
   min_quantity?: number | null;
   sub_category?: string | null;
+  allow_manual_amounts?: boolean;
   is_active?: boolean;
 }

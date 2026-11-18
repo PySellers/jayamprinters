@@ -30,6 +30,7 @@ import Users from './pages/Users';
 import Purchases from './pages/Purchases';
 import Inventory from './pages/Inventory';
 import CashLedger from './pages/CashLedger';
+import CreditDebit from './pages/CreditDebit';
 import BillingCounter from './pages/BillingCounter';
 import WorkLog from './pages/WorkLog';
 import Profile from './pages/Profile';
@@ -180,6 +181,14 @@ export default function App() {
               element={
                 <ProtectedRoute roles={['admin', 'accounts']}>
                   <CashLedger />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="credit-debit"
+              element={
+                <ProtectedRoute roles={['admin', 'accounts', 'counter']}>
+                  <CreditDebit />
                 </ProtectedRoute>
               }
             />

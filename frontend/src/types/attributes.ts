@@ -23,6 +23,8 @@ export interface Attribute {
   is_active: boolean;
   /** false = descriptive / surcharge-only choice, not part of the price-matrix key. */
   in_price_matrix?: boolean;
+  /** Set = this drop-down is shown only for that one item of the service. */
+  product_id?: number | null;
   options: AttributeOption[];
 }
 
@@ -32,4 +34,7 @@ export interface AttributeInput {
   is_required?: boolean;
   display_order?: number;
   is_active?: boolean;
+  in_price_matrix?: boolean;
+  /** Show the drop-down only for this one item of the service. */
+  product_id?: number | null;
 }

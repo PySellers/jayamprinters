@@ -1,11 +1,11 @@
-"""The paper job card as a landscape A4 print: the same form the staff fill on screen, but only the parts that belong to
+"""The paper job card as a landscape A5 print (A4 on request): the same form the staff fill on screen, but only the parts that belong to
 the job's service (a Xerox job has no ink colours, margins, proofs or 1st/2nd copy rows). Without prices the payment
 column is left off; with prices it carries the bill total, advance, balance and the price list of the order."""
 from io import BytesIO
 from typing import Any, Dict, List, Optional
 
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.pagesizes import A4, A5, landscape
 from reportlab.lib.units import mm
 from reportlab.lib.utils import simpleSplit
 from reportlab.pdfgen import canvas
@@ -16,20 +16,35 @@ from app.services.job_sheet_service import COLOUR_NAMES, MARGIN_NAMES
 
 PAYMENT_LABELS = {"first": "Bill total", "rate": "Rate", "advance": "Advance paid", "balance1": "Balance"}
 
+# The card is laid out on a canvas a little bigger than the paper and scaled onto it, so an A5 sheet carries the same
+# complete form (nothing cut off or overlapping) with text that is still easy to read: 0.82 x 8.5 pt is about 7 pt.
+A5_SCALE = 0.82
+
+
+def page_setup(size: str):
+    """(page size in points, scale of the drawing, drawing width, drawing height)"""
+    if (size or "a5").lower() == "a4":
+        page, k = landscape(A4), 1.0
+    else:
+        page, k = landscape(A5), A5_SCALE
+    return page, k, page[0] / k, page[1] / k
+
 
 def _date(value) -> str:
     text = str(value or "")
     return "/".join(reversed(text.split("-"))) if len(text) == 10 and text[4] == "-" else text
 
 
-def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettings] = None, with_price: bool = False) -> bytes:
+def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettings] = None, with_price: bool = False,
+                           size: str = "a5") -> bytes:
     shop = Shop(company)
     sheet = meta["sheet"]
     profile = meta.get("profile") or {}
     labels = profile.get("paper_labels") or {}
     buffer = BytesIO()
-    W, H = landscape(A4)
-    c = canvas.Canvas(buffer, pagesize=(W, H))
+    page, k, W, H = page_setup(size)
+    c = canvas.Canvas(buffer, pagesize=page)
+    c.scale(k, k)
     c.setTitle(f"Job card {meta['job_number']}")
     m = 8 * mm
     x0, x1 = m, W - m
@@ -177,8 +192,7 @@ def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettin
     c.setFillColor(INK)
     for i, k in enumerate(cols):
         label = "Cutting Size" if k == "cutting" else labels.get(k, k)
-        c.setFont("Helvetica-Bold", 8)
-        c.drawCentredString((xs[i] + xs[i + 1]) / 2, head_y - 4.2 * mm, label)
+        _fit(c, label, xs[i] + 1 * mm, head_y - 4.2 * mm, xs[i + 1] - xs[i] - 2 * mm, "Helvetica-Bold", 8, "center", min_size=5.5)
     hline(head_y - 6 * mm, mx0, body_x1)
     paper = sheet.get("paper") or []
     n_rows = max(len(paper), 1)
@@ -215,7 +229,21 @@ def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettin
         blocks.append(("No Details", "numbering"))
     if blocks:
         bw = (body_x1 - mx0) / len(blocks)
+
+        def rows_needed(options, width, size=7.5, gap=2 * mm):
+            rows, cx = 1, 0.0
+            for opt in options:
+                w = 5 * mm + c.stringWidth(opt, "Helvetica", size) + gap
+                if cx + w > width and cx > 0:
+                    rows, cx = rows + 1, 0.0
+                cx += w
+            return rows
+
         bh = 22 * mm
+        if profile.get("show_colours"):
+            bh = max(bh, 11.5 * mm + rows_needed(COLOUR_NAMES, bw - 5 * mm) * 5 * mm)
+        if profile.get("show_margin"):
+            bh = max(bh, 11.5 * mm + rows_needed(MARGIN_NAMES, bw - 5 * mm) * 5 * mm)
         for i, (title, kind) in enumerate(blocks):
             bx = mx0 + i * bw
             c.setFillColor(TINT)
@@ -245,13 +273,24 @@ def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettin
     c.setFont("Helvetica-Bold", 8.5)
     c.drawString(mx0 + 3 * mm, sy - 5 * mm, "Remarks :")
     ty = sy - 10 * mm
-    for raw in (sheet.get("remarks") or "").splitlines():
-        for line in simpleSplit(raw, "Helvetica", 8.5, body_x1 - mx0 - 8 * mm) or [""]:
-            if ty < body_bottom + 3 * mm:
-                break
-            c.setFont("Helvetica", 8.5)
-            c.drawString(mx0 + 4 * mm, ty, line)
-            ty -= 4.2 * mm
+    room = ty - (body_bottom + 3 * mm)
+    remark_width = body_x1 - mx0 - 8 * mm
+    size_pt = 8.5
+    while True:
+        wrapped = []
+        for raw in (sheet.get("remarks") or "").splitlines():
+            wrapped += simpleSplit(raw, "Helvetica", size_pt, remark_width) or [""]
+        pitch = size_pt * 0.5 * mm
+        if len(wrapped) * pitch <= room + 0.1 or size_pt <= 6.0:
+            break
+        size_pt -= 0.5
+    max_lines = max(int(room / pitch) + 1, 1)
+    if len(wrapped) > max_lines:  # still too long even in small print: say so rather than cutting it silently
+        wrapped = wrapped[: max_lines - 1] + ["... (more notes on the job detail screen)"]
+    for line in wrapped:
+        c.setFont("Helvetica", size_pt)
+        c.drawString(mx0 + 4 * mm, ty, line)
+        ty -= pitch
 
     # right: payment column (only on the copy with prices)
     if with_price:
@@ -270,19 +309,26 @@ def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettin
             c.drawString(body_x1 + 2.5 * mm, py + 2.3 * mm, PAYMENT_LABELS.get(key, key))
             _fit(c, pay.get(key, ""), body_x1 + 26 * mm, py + 2.3 * mm, pay_w - 28 * mm, "Helvetica", 9, "right")
             hline(py, body_x1, x1)
-        lines = meta.get("price_lines") or []
+        lines = list(meta.get("price_lines") or [])
         if lines:
             py -= 5 * mm
             c.setFont("Helvetica-Bold", 8)
             c.drawString(body_x1 + 2.5 * mm, py, "Price list")
             py -= 4.6 * mm
+            room = py - (body_bottom + 2 * mm)
+            pitch = 4.2 * mm
+            if len(lines) * pitch > room:
+                pitch = max(room / len(lines), 3.1 * mm)
+            fits = int(room / pitch + 0.01)
+            if len(lines) > fits:  # never cut the list: fold the last lines into one so the total stays right
+                rest = lines[max(fits - 1, 0):]
+                lines = lines[: max(fits - 1, 0)] + [{"label": f"Other ({len(rest)} lines)", "amount": sum(float(r.get("amount") or 0) for r in rest)}]
+            font_pt = 7.6 if pitch >= 4.0 * mm else 6.6
             for ln in lines:
-                if py < body_bottom + 4 * mm:
-                    break
-                c.setFont("Helvetica", 7.6)
-                _fit(c, ln["label"], body_x1 + 2.5 * mm, py, pay_w - 25 * mm, "Helvetica", 7.6)
-                _fit(c, f"{ln['amount']:,.2f}", body_x1 + pay_w - 24 * mm, py, 21.5 * mm, "Helvetica-Bold", 7.8, "right")
-                py -= 4.2 * mm
+                c.setFont("Helvetica", font_pt)
+                _fit(c, ln["label"], body_x1 + 2.5 * mm, py, pay_w - 25 * mm, "Helvetica", font_pt)
+                _fit(c, f"{float(ln.get('amount') or 0):,.2f}", body_x1 + pay_w - 24 * mm, py, 21.5 * mm, "Helvetica-Bold", font_pt + 0.2, "right")
+                py -= pitch
 
     # ---- job position + DC / bill numbers -------------------------------------------------
     hline(body_bottom)

@@ -19,10 +19,11 @@ interface Form {
   fixed_price: string;
   min_quantity: string;
   description: string;
+  allow_manual_amounts: boolean;
   is_active: boolean;
 }
 
-const blank: Form = { name: '', sub_category: '', pricing_type: 'matrix', fixed_price: '', min_quantity: '', description: '', is_active: true };
+const blank: Form = { name: '', sub_category: '', pricing_type: 'matrix', fixed_price: '', min_quantity: '', description: '', allow_manual_amounts: false, is_active: true };
 const PRICE_TYPE_LABEL: Record<string, string> = { matrix: 'By quantity slab', fixed: 'Fixed price', per_area: 'Per sq ft' };
 
 /**
@@ -55,6 +56,7 @@ export default function ItemsPanel({ categoryId }: { categoryId: number }) {
         fixed_price: form.pricing_type === 'fixed' && form.fixed_price.trim() !== '' ? Number(form.fixed_price) : null,
         min_quantity: form.min_quantity.trim() !== '' ? Math.max(1, Math.floor(Number(form.min_quantity))) : null,
         description: form.description.trim() || null,
+        allow_manual_amounts: form.allow_manual_amounts,
         is_active: form.is_active,
       };
       return editing ? productsApi.update(editing.id, body) : productsApi.create(body);
@@ -72,7 +74,7 @@ export default function ItemsPanel({ categoryId }: { categoryId: number }) {
     setEditing(p);
     setForm({
       name: p.name, sub_category: p.sub_category ?? '', pricing_type: p.pricing_type, fixed_price: p.fixed_price != null ? String(p.fixed_price) : '',
-      min_quantity: p.min_quantity != null ? String(p.min_quantity) : '', description: p.description ?? '', is_active: p.is_active,
+      min_quantity: p.min_quantity != null ? String(p.min_quantity) : '', description: p.description ?? '', allow_manual_amounts: Boolean(p.allow_manual_amounts), is_active: p.is_active,
     });
     save.reset();
     setOpen(true);
@@ -148,6 +150,10 @@ export default function ItemsPanel({ categoryId }: { categoryId: number }) {
             )}
             <TextField label="Minimum quantity (optional)" type="number" fullWidth value={form.min_quantity} onChange={(e) => setForm({ ...form, min_quantity: e.target.value })} slotProps={{ htmlInput: { min: 1 } }} />
             <TextField label="Note (optional)" fullWidth value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            <FormControlLabel
+              control={<Switch checked={form.allow_manual_amounts} onChange={(e) => setForm({ ...form, allow_manual_amounts: e.target.checked })} slotProps={{ input: { 'data-testid': 'item-manual' } as React.InputHTMLAttributes<HTMLInputElement> }} />}
+              label="Counter types the Card Amount and Printing Charge (invitations)"
+            />
             <FormControlLabel control={<Switch checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />} label="Active (shown in the order form)" />
           </Stack>
         </DialogContent>

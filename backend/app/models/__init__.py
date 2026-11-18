@@ -54,3 +54,5 @@ from .job_proof import JobProof
 from .payment_proof import PaymentProof
 from .job_material import JobMaterial
 from .outsource import OutsourcePayment
+from .credit_debit import CreditDebitEntry
+from .invoice_edit import InvoiceEdit

@@ -429,7 +429,7 @@ def run_all():
         for inv in api("GET", "/invoices/", token=admin()).data:
             when = date.fromisoformat(inv["invoice_date"])
             if start <= when <= end:
-                total += (inv["subtotal"] or 0) - (inv["discount_amount"] or 0)
+                total += (inv["subtotal"] or 0) - (inv["discount_amount"] or 0) + (inv.get("adjustment_amount") or 0)
                 count += 1
         expect(abs(d["headline"]["revenue"] - round(total, 2)) < 0.05, f"report {d['headline']['revenue']} vs invoices {total:.2f}")
         expect(d["headline"]["orders"] == count, (d["headline"]["orders"], count))

@@ -14,6 +14,7 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import TuneIcon from '@mui/icons-material/Tune';
 import HistoryIcon from '@mui/icons-material/History';
+import SwapVertIcon from '@mui/icons-material/SwapVert';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import { mastersConfig } from '../../api/mastersApi';
@@ -45,6 +46,7 @@ export const mainNavItems: NavItem[] = [
   { label: 'Inventory', path: '/inventory', icon: WarehouseIcon },
   { label: 'Outsource', path: '/outsource', icon: LocalShippingIcon, roles: ['admin', 'accounts', 'counter'] },
   { label: 'Cash Ledger', path: '/cash-ledger', icon: AccountBalanceIcon, roles: ['admin', 'accounts'] },
+  { label: 'Credit / Debit', path: '/credit-debit', icon: SwapVertIcon, roles: ['admin', 'accounts', 'counter'] },
   { label: 'Reports', path: '/reports', icon: BarChartIcon, roles: ['admin'] },
   { label: 'Users', path: '/users', icon: ManageAccountsIcon, roles: ['admin'] },
 ];

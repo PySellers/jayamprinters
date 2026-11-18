@@ -13,10 +13,10 @@ import { unansweredSections } from './ChargeGroupPicker';
 const money = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const PART_COLOUR: Record<string, string> = {
-  paper: '#1a237e', option: '#6a1b9a', charge: '#00695c', custom: '#00695c', printing: '#ef6c00', minimum: '#c62828',
+  paper: '#1a237e', option: '#6a1b9a', charge: '#00695c', custom: '#00695c', printing: '#ef6c00', minimum: '#c62828', card: '#1a237e',
 };
 const PART_TITLE: Record<string, string> = {
-  paper: 'Rate', option: 'Option extra', charge: 'Extra', custom: 'Extra (typed)', printing: 'Printing', minimum: 'Minimum charge',
+  paper: 'Rate', option: 'Option extra', charge: 'Extra', custom: 'Extra (typed)', printing: 'Printing', minimum: 'Minimum charge', card: 'Card amount',
 };
 
 interface Props {
@@ -47,7 +47,8 @@ export default function PricePanel({ preview, items, withGst, discountLabel, adv
     const product = products.data?.find((p) => p.id === it.product_id);
     if (!product) return [];
     const k = categoryIds.indexOf(product.category_id ?? -1);
-    const attrs = (attrQueries[k]?.data ?? []).filter((a) => a.is_active);
+    // a drop-down that belongs to another item of the service is not asked for this one
+    const attrs = (attrQueries[k]?.data ?? []).filter((a) => a.is_active && (a.product_id == null || a.product_id === product.id));
     const chosen = new Set((it.selected_options ?? []).map((o) => o.attribute_id));
     const missing = attrs
       .filter((a) => a.is_required && (a.in_price_matrix === false || !product.price_attribute_ids?.length || product.price_attribute_ids.includes(a.id)))
@@ -62,7 +63,9 @@ export default function PricePanel({ preview, items, withGst, discountLabel, adv
   };
 
   const pricedLines = preview?.items ?? [];
-  const total = preview ? Math.max(0, preview.subtotal - (preview.discount_amount ?? 0) + (withGst ? preview.tax_amount : 0)) : 0;
+  // the total includes the typed final amount (round off / adjustment), if one was typed
+  const total = preview ? Math.max(0, preview.grand_total) : 0;
+  const adjustment = preview?.adjustment_amount ?? 0;
   const anyPriced = pricedLines.some((l) => l?.priceable);
   const allPriced = lines.length > 0 && lines.every(({ i }) => pricedLines[i]?.priceable);
 
@@ -159,6 +162,9 @@ export default function PricePanel({ preview, items, withGst, discountLabel, adv
               </Box>
             ))}
             {withGst && <Row label="GST total" value={`₹${money(preview.tax_amount)}`} />}
+            {Math.abs(adjustment) > 0.004 && (
+              <Row label="Round off / adjustment" value={`${adjustment > 0 ? '+' : '-'} ₹${money(Math.abs(adjustment))}`} colour={adjustment > 0 ? 'inherit' : 'success.main'} testId="panel-adjustment" />
+            )}
             <Divider sx={{ my: 1 }} />
             <Row label="TOTAL" value={`₹${money(total)}`} big />
             {advance > 0 && (
@@ -177,11 +183,11 @@ export default function PricePanel({ preview, items, withGst, discountLabel, adv
   );
 }
 
-function Row({ label, value, big, small, colour }: { label: string; value: string; big?: boolean; small?: boolean; colour?: string }) {
+function Row({ label, value, big, small, colour, testId }: { label: string; value: string; big?: boolean; small?: boolean; colour?: string; testId?: string }) {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, py: big ? 0.5 : 0.2 }}>
       <Typography sx={{ fontSize: big ? 15 : small ? 12 : 13.5, fontWeight: big ? 900 : small ? 400 : 700, color: colour ?? (small ? 'text.secondary' : 'inherit') }}>{label}</Typography>
-      <Typography sx={{ fontSize: big ? 18 : small ? 12 : 13.5, fontWeight: big ? 900 : 700, color: colour ?? 'inherit' }} data-testid={big ? 'panel-grand' : undefined}>{value}</Typography>
+      <Typography sx={{ fontSize: big ? 18 : small ? 12 : 13.5, fontWeight: big ? 900 : 700, color: colour ?? 'inherit' }} data-testid={big ? 'panel-grand' : testId}>{value}</Typography>
     </Box>
   );
 }

@@ -88,7 +88,9 @@ def job_card_detail(db: Session, job: JobCard, with_price: bool = True) -> Dict[
         for selected in sorted(item.selected_options, key=lambda s: (s.attribute.display_order if s.attribute else 0, s.id)):
             if selected.attribute is None or selected.attribute_option is None:
                 continue
-            chosen[selected.attribute.name] = selected.attribute_option.value
+            typed = ((getattr(item, "option_texts", None) or {}).get(str(selected.attribute_id)) or "").strip()
+            # 'Custom' chosen: show what the counter typed
+            chosen[selected.attribute.name] = typed if (typed and selected.attribute_option.value.strip().lower() == "custom") else selected.attribute_option.value
         copies_text = chosen.get(COPIES_ATTRIBUTE)
         if copies_text:
             try:

@@ -40,6 +40,15 @@ class Invoice(Base):
     notes = Column(String, nullable=True)
     # The customer promised to pay the balance by this day (the dashboard reminds the counter).
     pay_by_date = Column(Date, nullable=True)
+    # Round off / adjustment: the final amount was typed by hand (see Quotation.adjustment_amount).
+    adjustment_amount = Column(Float, nullable=False, default=0.0, server_default="0")
+    # Who the bill is made out to, when edited on this invoice only (blank = the customer's own details).
+    bill_to_name = Column(String, nullable=True)
+    bill_to_address = Column(String, nullable=True)
+    bill_to_gstin = Column(String, nullable=True)
+    bill_to_phone = Column(String, nullable=True)
+    last_edited_at = Column(DateTime, nullable=True)
+    last_edited_by = Column(String, nullable=True)
     # Discount taken off the order total (subtotal stays the gross amount before discount).
     discount_type = Column(String, nullable=True)
     discount_value = Column(Float, nullable=False, default=0.0, server_default="0")
@@ -48,7 +57,7 @@ class Invoice(Base):
 
     customer = relationship("Customer")
     tax = relationship("Tax")
-    items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
+    items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan", order_by="InvoiceItem.id")
     payments = relationship("Payment", back_populates="invoice", cascade="all, delete-orphan")
 
 
@@ -57,7 +66,7 @@ class InvoiceItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     invoice_id = Column(Integer, ForeignKey("invoices.id"))
-    product_id = Column(Integer, ForeignKey("products.id"))
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=True)
     quantity = Column(Integer)
     area_sqft = Column(Float, nullable=True)
     unit_price = Column(Float)
@@ -68,6 +77,16 @@ class InvoiceItem(Base):
     tax_amount = Column(Float, nullable=False, default=0.0, server_default="0")
     price_breakdown = Column(JSON, nullable=True)
     discount_amount = Column(Float, nullable=False, default=0.0, server_default="0")
+    card_amount = Column(Float, nullable=True)
+    card_amount_mode = Column(String, nullable=True)
+    printing_charge_manual = Column(Float, nullable=True)
+    option_texts = Column(JSON, nullable=True)
+    # Edited on the invoice: the particulars as they should read, and CGST / SGST per line (blank = the tax rate split in two).
+    particulars = Column(String, nullable=True)
+    cgst_rate = Column(Float, nullable=True)
+    sgst_rate = Column(Float, nullable=True)
+    cgst_amount = Column(Float, nullable=True)
+    sgst_amount = Column(Float, nullable=True)
 
     invoice = relationship("Invoice", back_populates="items")
     selected_options = relationship("InvoiceItemAttributeOption", cascade="all, delete-orphan")

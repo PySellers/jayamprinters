@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import {
@@ -11,6 +11,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
+import EditIcon from '@mui/icons-material/Edit';
 import PrintIcon from '@mui/icons-material/Print';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -26,6 +27,8 @@ import { paymentProofApi } from '../api/extraApi';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import OrderProduction from '../components/workflow/OrderProduction';
 import { RateInfo } from '../components/quotations/PriceBreakdown';
+import EditInvoiceDialog from '../components/invoices/EditInvoiceDialog';
+import { useAuth } from '../context/AuthContext';
 
 const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
   unpaid: 'default',
@@ -49,12 +52,16 @@ export default function InvoiceDetail() {
   const [payBy, setPayBy] = useState('');
   const [printMenuAnchor, setPrintMenuAnchor] = useState<null | HTMLElement>(null);
   const [downloadMenuAnchor, setDownloadMenuAnchor] = useState<null | HTMLElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [editOpen, setEditOpen] = useState(searchParams.get('edit') === '1');
+  const { user } = useAuth();
+  const canEdit = user?.role === 'admin' || user?.role === 'accounts' || user?.role === 'counter';
 
   const invoiceQuery = useQuery({ queryKey: ['invoices', invoiceId], queryFn: () => invoicesApi.get(invoiceId) });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: productsApi.list });
 
-  const productName = (pid: number) => productsQuery.data?.find((p) => p.id === pid)?.name ?? `#${pid}`;
+  const productName = (pid?: number | null) => productsQuery.data?.find((p) => p.id === pid)?.name ?? (pid ? `#${pid}` : 'Item');
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<PaymentInput>({
     defaultValues: { amount: 0, method: 'cash', reference_number: '', notes: '' },
@@ -129,12 +136,22 @@ export default function InvoiceDetail() {
           <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
             {invoice.invoice_number}
           </Typography>
-          <Typography color="text.secondary">
-            {customersQuery.data?.find((c) => c.id === invoice.customer_id)?.name ?? `Customer #${invoice.customer_id}`}
+          <Typography color="text.secondary" data-testid="invoice-customer">
+            {invoice.bill_to_name || (customersQuery.data?.find((c) => c.id === invoice.customer_id)?.name ?? `Customer #${invoice.customer_id}`)}
           </Typography>
+          {invoice.last_edited_at && (
+            <Typography variant="caption" color="text.secondary" data-testid="invoice-edited">
+              Edited{invoice.last_edited_by ? ` by ${invoice.last_edited_by}` : ''} on {new Date(invoice.last_edited_at + 'Z').toLocaleString('en-IN')}
+            </Typography>
+          )}
         </Box>
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
           <Chip label={invoice.status.replace('_', ' ')} color={STATUS_COLORS[invoice.status]} />
+          {canEdit && (
+            <Button variant="outlined" color="secondary" startIcon={<EditIcon />} data-testid="edit-invoice" onClick={() => setEditOpen(true)}>
+              Edit
+            </Button>
+          )}
           <Button
             variant="contained"
             startIcon={printPdfMutation.isPending ? <CircularProgress size={16} color="inherit" /> : <PrintIcon />}
@@ -207,13 +224,13 @@ export default function InvoiceDetail() {
             {invoice.items.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
-                  {productName(item.product_id)}
-                  {item.spec_notes && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{item.spec_notes}</Typography>}
+                  {item.particulars?.trim() ? item.particulars.split('\n').map((l, i) => <Box key={i}>{l}</Box>) : productName(item.product_id)}
+                  {!item.particulars?.trim() && item.spec_notes && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{item.spec_notes}</Typography>}
                 </TableCell>
                 <TableCell>{item.quantity}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   ₹{item.unit_price.toFixed(2)}
-                  <RateInfo rows={item.price_breakdown} title={`${productName(item.product_id)} x ${item.quantity}`} rate={item.unit_price} amount={item.total_price} />
+                  <RateInfo rows={item.price_breakdown} title={`${item.particulars?.split('\n')[0] || productName(item.product_id)} x ${item.quantity}`} rate={item.unit_price} amount={item.total_price} />
                 </TableCell>
                 <TableCell>₹{item.total_price.toFixed(2)}</TableCell>
               </TableRow>
@@ -247,6 +264,12 @@ export default function InvoiceDetail() {
                 <Typography color="text.secondary">Tax</Typography>
                 <Typography>₹{invoice.tax_amount.toFixed(2)}</Typography>
               </Box>
+              {Math.abs(invoice.adjustment_amount ?? 0) > 0.004 && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }} data-testid="invoice-adjustment">
+                  <Typography color="text.secondary">Round off / adjustment</Typography>
+                  <Typography>{(invoice.adjustment_amount ?? 0) > 0 ? '+' : '-'} ₹{Math.abs(invoice.adjustment_amount ?? 0).toFixed(2)}</Typography>
+                </Box>
+              )}
             </Stack>
 
             <Box
@@ -384,6 +407,19 @@ export default function InvoiceDetail() {
           </DialogActions>
         </form>
       </Dialog>
+
+      <EditInvoiceDialog
+        invoiceId={editOpen ? invoiceId : null}
+        invoiceNumber={invoice.invoice_number}
+        onClose={() => {
+          setEditOpen(false);
+          if (searchParams.get('edit')) setSearchParams({}, { replace: true });
+        }}
+        onSaved={() => {
+          queryClient.invalidateQueries({ queryKey: ['invoices', invoiceId] });
+          queryClient.invalidateQueries({ queryKey: ['invoice-dues'] });
+        }}
+      />
 
       <ConfirmDialog
         open={Boolean(deletingPaymentId)}

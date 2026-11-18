@@ -154,7 +154,15 @@ export interface JobCardSheet {
   sheet: JobCardSheetData;
   /** Which parts of the form belong to this job's service. */
   profile: SheetProfile;
-  price_lines: { label: string; detail: string; amount: number }[];
+  price_lines: PriceLine[];
+  /** true when the price list was edited by hand on the job card */
+  price_edited?: boolean;
+}
+
+export interface PriceLine {
+  label: string;
+  detail: string;
+  amount: number;
 }
 
 export interface SheetProfile {

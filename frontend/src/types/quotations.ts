@@ -24,7 +24,7 @@ export interface CustomCharge {
 
 /** One part of a price and where it comes from. `area` says which Pricing Setup tab holds the rate. */
 export interface BreakdownRow {
-  kind: 'paper' | 'option' | 'charge' | 'custom' | 'printing' | 'minimum';
+  kind: 'paper' | 'option' | 'charge' | 'custom' | 'printing' | 'minimum' | 'card';
   label: string;
   detail: string;
   amount: number;
@@ -59,10 +59,17 @@ export interface QuotationItem {
   custom_charges?: CustomCharge[] | null;
   price_breakdown?: BreakdownRow[] | null;
   charge_lines?: ChargeLine[];
+  card_amount?: number | null;
+  card_amount_mode?: CardAmountMode | null;
+  printing_charge_manual?: number | null;
+  option_texts?: Record<string, string> | null;
   selected_options: SelectedOption[];
 }
 
 export type DiscountType = 'percent' | 'amount';
+
+/** Invitation cards: the typed card amount is per card or for the whole order. */
+export type CardAmountMode = 'per_card' | 'total';
 
 export interface Quotation {
   id: number;
@@ -76,6 +83,8 @@ export interface Quotation {
   discount_type?: DiscountType | null;
   discount_value?: number;
   discount_amount?: number;
+  /** Round off / adjustment: the difference between the typed final amount and the calculated total. */
+  adjustment_amount?: number;
   priority?: string | null;
   notes?: string | null;
   with_gst?: boolean;
@@ -104,6 +113,12 @@ export interface QuotationItemInput {
   /** Paper name / GSM / size / colour of every copy of the set. */
   layer_specs?: LayerSpec[];
   custom_charges?: CustomCharge[];
+  /** Invitation items: the card amount and printing charge typed at the counter. */
+  card_amount?: number | null;
+  card_amount_mode?: CardAmountMode | null;
+  printing_charge_manual?: number | null;
+  /** What was typed for a drop-down's 'Custom' choice, by attribute id. */
+  option_texts?: Record<string, string>;
   /** Screen only (never sent): the answer given for each required extras section - 'none', 'custom' or a charge id. */
   extras_choices?: Record<string, string>;
 }
@@ -124,6 +139,8 @@ export interface QuotationCreateInput {
   discount_type?: DiscountType | null;
   discount_value?: number;
   priority?: 'low' | 'medium' | 'high' | 'urgent' | null;
+  /** The final amount typed by the counter (blank = the calculated total). */
+  final_amount?: number | null;
   items: QuotationItemInput[];
 }
 
@@ -132,6 +149,7 @@ export interface QuotationPreviewRequest {
   with_gst?: boolean;
   discount_type?: DiscountType | null;
   discount_value?: number;
+  final_amount?: number | null;
   items: QuotationItemInput[];
 }
 
@@ -162,6 +180,9 @@ export interface QuotationPreview {
   discount_amount?: number;
   taxable_amount?: number;
   tax_amount: number;
+  /** The total worked out from the prices, before a typed final amount. */
+  computed_total?: number;
+  adjustment_amount?: number;
   grand_total: number;
   tax_breakdown?: TaxBreakdownRow[];
 }

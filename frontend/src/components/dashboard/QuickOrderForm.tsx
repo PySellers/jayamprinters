@@ -448,6 +448,16 @@ export default function QuickOrderForm() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
+              {...small}
+              label="Customer Name"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              helperText="Name printed on the bill. Blank = the billing person's name."
+              slotProps={{ htmlInput: { ...noAutofill, name: 'qo-customer-name', 'data-testid': 'customer-name', maxLength: 120 } }}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
               id={FIELD_ID.phone}
               {...small}
               label="Phone Number"
@@ -492,9 +502,6 @@ export default function QuickOrderForm() {
         </Grid>
         <Collapse in={moreDetails || Boolean(errors.email)} unmountOnExit={false}>
           <Grid container spacing={1.25} sx={{ mt: 0 }}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...small} label="Company Name" value={customerName} onChange={(e) => setCustomerName(e.target.value)} helperText="Printed on the bill; blank = billing person." slotProps={{ htmlInput: { ...noAutofill, name: 'qo-company' } }} />
-            </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id={FIELD_ID.email}

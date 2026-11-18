@@ -60,6 +60,17 @@ def split_discount(
     return discount, per_line, taxes
 
 
+def adjustment_for(calculated: float, final_amount: Optional[float]) -> float:
+    """Round off / adjustment: the difference between the amount the counter typed and the calculated total (0 when none was typed)."""
+    if final_amount is None:
+        return 0.0
+    return round(float(final_amount) - calculated, 2)
+
+
+def product_of(db: Session, product_id: int):
+    return db.query(Product).filter(Product.id == product_id).first()
+
+
 def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     if not db.query(Customer.id).filter(Customer.id == payload.customer_id).first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
@@ -94,6 +105,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
         line = pricing_service.price_line(
             db, product, item.quantity, selected_options, item.area_sqft, item.extra_charge_ids, item.sets,
             item.layer_gsm_option_ids, payload.tax_id, layer_specs or None, custom_charges or None,
+            manual={"card_amount": item.card_amount, "card_amount_mode": item.card_amount_mode, "printing_charge": item.printing_charge_manual},
         )
         priced.append((item, line, layer_specs, custom_charges))
 
@@ -118,6 +130,10 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
             price_breakdown=line.breakdown or None,
             print_charge=round(line.print_charge, 2),
             discount_amount=line_discount,
+            card_amount=item.card_amount if getattr(product_of(db, item.product_id), "allow_manual_amounts", False) else None,
+            card_amount_mode=item.card_amount_mode if item.card_amount is not None else None,
+            printing_charge_manual=item.printing_charge_manual,
+            option_texts={k: v for k, v in (item.option_texts or {}).items() if str(v).strip()} or None,
             hsn_code=line.hsn_code,
             tax_rate=line.tax_rate if payload.with_gst else 0.0,
             tax_amount=line_tax_amount,
@@ -147,7 +163,9 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     quotation.discount_value = payload.discount_value if discount_total > 0 else 0.0
     quotation.discount_amount = discount_total
     quotation.tax_amount = tax_amount
-    quotation.grand_total = round(subtotal - discount_total + tax_amount, 2)
+    calculated = round(subtotal - discount_total + tax_amount, 2)
+    quotation.adjustment_amount = adjustment_for(calculated, payload.final_amount)
+    quotation.grand_total = round(calculated + quotation.adjustment_amount, 2)
 
     db.commit()
     db.refresh(quotation)

@@ -9,7 +9,10 @@ from app.models.invoice import Invoice, InvoiceStatus
 from app.models.customer import Customer
 from app.models.product import Product
 from app.models.user import User, UserRole
-from app.schemas.invoice import InvoiceOut, InvoicePatch, InvoiceStatusUpdate, PaymentCreate
+from app.schemas.invoice import (
+    InvoiceEditForm, InvoiceEditPreview, InvoiceEditRequest, InvoiceOut, InvoicePatch, InvoiceStatusUpdate, PaymentCreate,
+)
+from app.services.invoice_edit_service import apply_edit, compute_edit, edit_form
 from app.services.time_utils import today_ist
 from app.services.invoice_service import create_invoice_from_quotation, record_payment, delete_payment, set_invoice_status
 from app.services.pdf_service import generate_invoice_pdf, generate_invoice_thermal_pdf, THERMAL_WIDTHS_MM
@@ -87,7 +90,7 @@ def download_invoice_pdf(
     if not customer:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
 
-    product_ids = {item.product_id for item in invoice.items}
+    product_ids = {item.product_id for item in invoice.items if item.product_id}
     products_by_id = {p.id: p for p in db.query(Product).filter(Product.id.in_(product_ids)).all()}
 
     if format == "a4":
@@ -125,7 +128,7 @@ def download_invoice_bill_pdf(
     if bill_type not in {"gst", "cash"}:
         raise HTTPException(status_code=400, detail="bill_type must be 'gst' or 'cash'")
 
-    product_ids = {item.product_id for item in invoice.items}
+    product_ids = {item.product_id for item in invoice.items if item.product_id}
     products_by_id = {p.id: p for p in db.query(Product).filter(Product.id.in_(product_ids)).all()}
 
     if bill_type == "gst":
@@ -140,6 +143,40 @@ def download_invoice_bill_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="{invoice.invoice_number}-{suffix}.pdf"'},
     )
+
+
+edit_roles = [Depends(require_role(UserRole.admin, UserRole.accounts, UserRole.counter))]
+
+
+def _invoice_or_404(db: Session, invoice_id: int) -> Invoice:
+    invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
+    if not invoice:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
+    return invoice
+
+
+@invoice_router.get("/{invoice_id}/edit-form", response_model=InvoiceEditForm, dependencies=edit_roles)
+def get_invoice_edit_form(invoice_id: int, db: Session = Depends(get_db)):
+    """The invoice as it prints today, in the shape of the Edit Invoice window."""
+    return edit_form(db, _invoice_or_404(db, invoice_id))
+
+
+@invoice_router.post("/{invoice_id}/edit/preview", response_model=InvoiceEditPreview, dependencies=edit_roles)
+def preview_invoice_edit(invoice_id: int, payload: InvoiceEditRequest, db: Session = Depends(get_db)):
+    """Re-works every amount, CGST / SGST and total for the rows typed so far (nothing is saved)."""
+    return compute_edit(_invoice_or_404(db, invoice_id), payload)
+
+
+@invoice_router.put("/{invoice_id}/edit", response_model=InvoiceOut, dependencies=edit_roles)
+def edit_invoice(
+    invoice_id: int,
+    payload: InvoiceEditRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Save the edited invoice: customer details, date, rows (particulars, HSN / SAC, qty, rate, CGST / SGST) and an
+    optional typed final amount. Totals are re-worked; the PDF and the print show the edited bill."""
+    return apply_edit(db, invoice_id, payload, current_user.name or current_user.email)
 
 
 @invoice_router.put("/{invoice_id}/status", response_model=InvoiceOut)

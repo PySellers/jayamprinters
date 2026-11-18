@@ -44,6 +44,12 @@ class QuotationItemCreate(BaseModel):
     # Paper name / GSM / size / colour of EVERY copy of the set (copy 1 first).
     layer_specs: List[LayerSpecIn] = []
     custom_charges: List[CustomChargeIn] = []
+    # Invitation-type items: the card price and the printing charge typed by the counter (see Product.allow_manual_amounts).
+    card_amount: Optional[float] = Field(default=None, ge=0)
+    card_amount_mode: Optional[Literal["per_card", "total"]] = None
+    printing_charge_manual: Optional[float] = Field(default=None, ge=0)
+    # Text typed for a drop-down's 'Custom' choice: {attribute_id: text}
+    option_texts: Dict[str, str] = {}
 
 class QuotationItemOut(BaseModel):
     id: int
@@ -64,6 +70,10 @@ class QuotationItemOut(BaseModel):
     hsn_code: Optional[str] = None
     tax_rate: float = 0.0
     tax_amount: float = 0.0
+    card_amount: Optional[float] = None
+    card_amount_mode: Optional[str] = None
+    printing_charge_manual: Optional[float] = None
+    option_texts: Optional[Dict[str, str]] = None
     selected_options: List[SelectedOptionOut] = []
 
     class Config:
@@ -87,6 +97,8 @@ class QuotationCreate(BaseModel):
     discount_value: float = Field(default=0.0, ge=0)
     # low / medium / high / urgent, handed to the job cards of this order.
     priority: Optional[Literal["low", "medium", "high", "urgent"]] = None
+    # The final amount the counter typed (blank = the calculated total). The difference is kept as 'Round off / adjustment'.
+    final_amount: Optional[float] = Field(default=None, ge=0)
     items: List[QuotationItemCreate] = Field(min_length=1)
 
 class QuotationOut(BaseModel):
@@ -101,6 +113,7 @@ class QuotationOut(BaseModel):
     discount_type: Optional[str] = None
     discount_value: float = 0.0
     discount_amount: float = 0.0
+    adjustment_amount: float = 0.0
     priority: Optional[str] = None
     notes: Optional[str]
     with_gst: bool = True
@@ -131,12 +144,19 @@ class QuotationPreviewItemIn(BaseModel):
     layer_gsm_option_ids: List[int] = []
     layer_specs: List[LayerSpecIn] = []
     custom_charges: List[CustomChargeIn] = []
+    # Invitation-type items: the card price and the printing charge typed by the counter (see Product.allow_manual_amounts).
+    card_amount: Optional[float] = Field(default=None, ge=0)
+    card_amount_mode: Optional[Literal["per_card", "total"]] = None
+    printing_charge_manual: Optional[float] = Field(default=None, ge=0)
+    # Text typed for a drop-down's 'Custom' choice: {attribute_id: text}
+    option_texts: Dict[str, str] = {}
 
 class QuotationPreviewRequest(BaseModel):
     tax_id: Optional[int] = None
     with_gst: bool = True
     discount_type: Optional[Literal["percent", "amount"]] = None
     discount_value: float = Field(default=0.0, ge=0)
+    final_amount: Optional[float] = Field(default=None, ge=0)
     items: List[QuotationPreviewItemIn]
 
 class QuotationPreviewItemOut(BaseModel):
@@ -170,5 +190,8 @@ class QuotationPreviewOut(BaseModel):
     discount_amount: float = 0.0
     taxable_amount: float = 0.0
     tax_amount: float
+    # The total worked out from the prices, before a typed final amount; grand_total includes the adjustment.
+    computed_total: float = 0.0
+    adjustment_amount: float = 0.0
     grand_total: float
     tax_breakdown: List[TaxBreakdownRow] = []

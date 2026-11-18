@@ -48,6 +48,8 @@ class ProductCreate(BaseModel):
     hsn_id: Optional[int] = None
     min_quantity: Optional[int] = None
     sub_category: Optional[str] = None
+    # The counter may type the card amount and printing charge for this item (invitations)
+    allow_manual_amounts: bool = False
     is_active: bool = True
 
 
@@ -60,6 +62,7 @@ class ProductUpdate(BaseModel):
     hsn_id: Optional[int] = None
     min_quantity: Optional[int] = None
     sub_category: Optional[str] = None
+    allow_manual_amounts: Optional[bool] = None
     is_active: Optional[bool] = None
 
 

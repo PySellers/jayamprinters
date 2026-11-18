@@ -83,7 +83,7 @@ export default function PriceMatrixCellFormDialog({
             onChange={setQuantitySlabId}
           />
 
-          {(attributesQuery.data ?? []).map((attr) => (
+          {(attributesQuery.data ?? []).filter((a) => a.in_price_matrix !== false).map((attr) => (
             <EntitySelect
               key={attr.id}
               label={attr.name}
