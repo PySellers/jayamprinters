@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, IconButton, Paper, Stack, TextField, Typography,
+  Alert, Box, Button, Checkbox, CircularProgress, FormControlLabel, IconButton, Paper, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
@@ -94,6 +94,9 @@ export default function JobCardSheet() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  // Which job card is being edited: the shop-floor copy (without price) or the office copy (with price: payment column + price list)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const withPrice = searchParams.get('view') === 'price';
 
   const sheetQuery = useQuery({
     queryKey: ['job-card-sheet', jobCardId],
@@ -180,21 +183,28 @@ export default function JobCardSheet() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }} spacing={2}>
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', rowGap: 1.5 }} spacing={2}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/job-cards')}>
           Back to Job Cards
         </Button>
         <Typography variant="h5" sx={{ fontWeight: 'bold' }} data-testid="sheet-title">
           Edit job card — {meta.job_number}
         </Typography>
+        <ToggleButtonGroup
+          exclusive size="small" color="primary" value={withPrice ? 'price' : 'plain'} data-testid="edit-mode"
+          onChange={(_, v: 'plain' | 'price' | null) => { if (v) setSearchParams({ view: v }, { replace: true }); }}
+        >
+          <ToggleButton value="plain" data-testid="edit-mode-plain" sx={{ textTransform: 'none', px: 2 }}>Job card without price</ToggleButton>
+          <ToggleButton value="price" data-testid="edit-mode-price" sx={{ textTransform: 'none', px: 2 }}>Job card with price</ToggleButton>
+        </ToggleButtonGroup>
         <Button variant="outlined" onClick={() => navigate(`/job-cards/${id}/track`)}>
           Track progress
         </Button>
-        <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => jobCardsApi.printSheet(jobCardId, false)} data-testid="sheet-print">
-          Print
+        <Button variant={withPrice ? 'outlined' : 'contained'} startIcon={<PrintIcon />} onClick={() => jobCardsApi.printSheet(jobCardId, false)} data-testid="sheet-print">
+          Print without price (A5)
         </Button>
-        <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => jobCardsApi.printSheet(jobCardId, true)} data-testid="sheet-print-price">
-          Print with price
+        <Button variant={withPrice ? 'contained' : 'outlined'} startIcon={<PrintIcon />} onClick={() => jobCardsApi.printSheet(jobCardId, true)} data-testid="sheet-print-price">
+          Print with price (A5)
         </Button>
         <Button
           variant="contained"
@@ -214,11 +224,16 @@ export default function JobCardSheet() {
         </Alert>
       )}
 
-      <JobDetailPanel jobCardId={jobCardId} canEdit={user?.role !== 'accounts'} />
+      <Alert severity="info" sx={{ mb: 2 }} data-testid="edit-mode-note">
+        {withPrice
+          ? 'You are editing the job card WITH price (the office copy): the form, the payment column and the price list. Press Save, then Print with price (A5).'
+          : 'You are editing the job card WITHOUT price (the shop-floor copy): prices are not shown or printed. Press Save, then Print without price (A5).'}
+        {' '}Tasks, materials and progress of this job are below the form.
+      </Alert>
 
       <Stack direction="row" sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1.5, mb: 1 }}>
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: INK }}>Printing job card</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: INK }}>Printing job card {withPrice ? '- with price' : '- without price'}</Typography>
           <Typography variant="caption" color="text.secondary">
             Filled in from the order. Edit anything here (party, job, size, proofs, delivery, paper, colours, remarks
             {priceLines !== null ? ' and, for the copy with price, the price list' : ''}) and press Save. The printed job card — with or
@@ -275,8 +290,8 @@ export default function JobCardSheet() {
           )}
 
           {/* ---- main body: left stack + payment column ---- */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 290px' }}>
-            <Box sx={{ borderRight: border }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: withPrice ? '1fr 290px' : '1fr' }}>
+            <Box sx={{ borderRight: withPrice ? border : 'none' }}>
               {/* proof / delivery + paper details */}
               <Box sx={{ display: 'grid', gridTemplateColumns: '170px 1fr', borderBottom: border }}>
                 <Box sx={{ borderRight: border, p: 1 }}>
@@ -381,8 +396,9 @@ export default function JobCardSheet() {
               </Box>
             </Box>
 
-            {/* payment details */}
-            <Box>
+            {/* payment details: only on the copy with price */}
+            {withPrice && (
+            <Box data-testid="sheet-payment">
               <Heading>Payment Details</Heading>
               {profile.payment_keys.map((key) => (
                 <Box key={key} sx={{ display: 'grid', gridTemplateColumns: '105px 1fr', borderBottom: border }}>
@@ -440,6 +456,7 @@ export default function JobCardSheet() {
                 </Box>
               )}
             </Box>
+            )}
           </Box>
 
           {/* ---- job position + DC / bill numbers ---- */}
@@ -459,6 +476,9 @@ export default function JobCardSheet() {
           </Box>
         </Paper>
       </Box>
+
+      <Typography variant="h6" sx={{ fontWeight: 800, color: INK, mt: 3, mb: 1 }}>Tasks, materials and progress</Typography>
+      <JobDetailPanel jobCardId={jobCardId} canEdit={user?.role !== 'accounts'} />
     </Box>
   );
 }

@@ -301,7 +301,7 @@ export async function round5Tests(browser) {
   // ================================================================== paper job card
   const M7 = 'Paper job card';
   await run('UI-R5J', M7, 'A Xerox job card has no ink colours, margins, proofs or copy rows; a bill book job card has them', 'Sections follow the service', async () => {
-    await go(ap, `/job-cards/${xer.job.id}`);
+    await go(ap, `/job-cards/${xer.job.id}?view=price`);
     await ap.getByTestId('sheet-paper').waitFor({ timeout: 8000 });
     expect(await ap.getByTestId('sheet-extras').count() === 0, 'Xerox shows colour / margin / numbering');
     expect(await ap.getByTestId('sheet-proofs').count() === 0, 'Xerox shows proofs');

@@ -1,6 +1,7 @@
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
@@ -37,9 +38,24 @@ def next_person_name(db: Session) -> str:
 
 
 # Declared before "/{customer_id}" so the literal path is not parsed as an id.
+@router.get("/billing-persons", response_model=List[CustomerResponse])
+def get_billing_persons(db: Session = Depends(get_db)):
+    """The names offered in the 'Billing Person Name' drop-down: every saved customer that was not removed from the list,
+    A to Z. Walk-in placeholders ('Person 12') are left out; they stay reachable by phone number."""
+    rows = (
+        db.query(Customer)
+        .filter(Customer.hidden_in_billing.is_(False))
+        .order_by(func.lower(func.coalesce(Customer.billing_person_name, Customer.name)), Customer.id)
+        .limit(5000)
+        .all()
+    )
+    return [c for c in rows if not _PERSON_NAME.match(c.billing_person_name or c.name or "")]
+
+
 @router.get("/billing-defaults", response_model=BillingDefaults)
 def get_billing_defaults(db: Session = Depends(get_db)):
-    recent = db.query(Customer).order_by(Customer.created_at.desc(), Customer.id.desc()).limit(8).all()
+    recent = (db.query(Customer).filter(Customer.hidden_in_billing.is_(False))
+              .order_by(Customer.created_at.desc(), Customer.id.desc()).limit(8).all())
     return BillingDefaults(next_person_name=next_person_name(db), recent_customers=recent)
 
 

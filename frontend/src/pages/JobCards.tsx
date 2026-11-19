@@ -48,6 +48,7 @@ const PRIORITY_COLORS: Record<string, 'default' | 'info' | 'warning' | 'error'> 
 
 export default function JobCards() {
   const [printMenu, setPrintMenu] = useState<{ anchor: HTMLElement; id: number } | null>(null);
+  const [editMenu, setEditMenu] = useState<{ anchor: HTMLElement; id: number } | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [assigning, setAssigning] = useState<JobCard | null>(null);
@@ -209,8 +210,8 @@ export default function JobCards() {
                         <AssignmentIndIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Edit job card">
-                      <IconButton size="small" aria-label="Edit job card" data-testid="list-edit" onClick={() => navigate(`/job-cards/${jc.id}`)}>
+                    <Tooltip title="Edit job card (without price / with price)">
+                      <IconButton size="small" aria-label="Edit job card" data-testid="list-edit" onClick={(e) => setEditMenu({ anchor: e.currentTarget, id: jc.id })}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -356,6 +357,10 @@ export default function JobCards() {
         </form>
       </Dialog>
 
+      <Menu anchorEl={editMenu?.anchor} open={Boolean(editMenu)} onClose={() => setEditMenu(null)}>
+        <MenuItem data-testid="list-edit-plain" onClick={() => { if (editMenu) navigate(`/job-cards/${editMenu.id}?view=plain`); setEditMenu(null); }}>Edit job card - without price</MenuItem>
+        <MenuItem data-testid="list-edit-price" onClick={() => { if (editMenu) navigate(`/job-cards/${editMenu.id}?view=price`); setEditMenu(null); }}>Edit job card - with price</MenuItem>
+      </Menu>
       <Menu anchorEl={printMenu?.anchor} open={Boolean(printMenu)} onClose={() => setPrintMenu(null)}>
         <MenuItem data-testid="list-print-plain" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, false); setPrintMenu(null); }}>Job card without price (A5)</MenuItem>
         <MenuItem data-testid="list-print-price" onClick={() => { if (printMenu) jobCardsApi.printSheet(printMenu.id, true); setPrintMenu(null); }}>Job card with price (A5)</MenuItem>

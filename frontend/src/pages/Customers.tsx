@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, TextField, Dialog, DialogTitle, DialogContent, DialogActions,
-  Stack, CircularProgress, Menu, MenuItem, Alert,
+  Stack, CircularProgress, Menu, MenuItem, Alert, Checkbox, FormControlLabel,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,13 +37,14 @@ export default function Customers() {
   const rows = search.length > 0 ? searchQuery.data ?? [] : listQuery.data ?? [];
   const loading = search.length > 0 ? searchQuery.isFetching : listQuery.isLoading;
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CustomerInput>();
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<CustomerInput>();
 
   const saveMutation = useMutation({
     mutationFn: (data: CustomerInput) =>
       editing ? customersApi.update(editing.id, data) : customersApi.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['billing-persons'] });
       setDialogOpen(false);
       setEditing(null);
     },
@@ -59,7 +60,7 @@ export default function Customers() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: '', billing_person_name: '', phone: '', email: '', reason: '', gstin: '' });
+    reset({ name: '', billing_person_name: '', phone: '', email: '', reason: '', gstin: '', hidden_in_billing: false });
     setDialogOpen(true);
   };
 
@@ -72,6 +73,7 @@ export default function Customers() {
       email: customer.email ?? '',
       reason: customer.reason ?? '',
       gstin: customer.gstin ?? '',
+      hidden_in_billing: Boolean(customer.hidden_in_billing),
     });
     setDialogOpen(true);
   };
@@ -178,29 +180,33 @@ export default function Customers() {
               <TextField label="Billing Person Name (optional)" fullWidth {...register('billing_person_name')} />
               <TextField
                 label="Phone"
-                required
+                required={!editing}
                 fullWidth
                 error={Boolean(errors.phone)}
-                {...register('phone', { required: true })}
+                {...register('phone', { required: !editing })}
               />
               <TextField
                 label="Email"
                 type="email"
-                required
+                required={!editing}
                 fullWidth
                 error={Boolean(errors.email)}
-                {...register('email', { required: true })}
+                {...register('email', { required: !editing })}
               />
               <TextField
                 label="Reason"
-                required
+                required={!editing}
                 fullWidth
                 multiline
                 rows={2}
                 error={Boolean(errors.reason)}
-                {...register('reason', { required: true })}
+                {...register('reason', { required: !editing })}
               />
               <TextField label="GSTIN (optional)" fullWidth {...register('gstin')} />
+              <FormControlLabel
+                control={<Checkbox checked={!watch('hidden_in_billing')} onChange={(e) => setValue('hidden_in_billing', !e.target.checked, { shouldDirty: true })} slotProps={{ input: { 'data-testid': 'customer-in-billing-list' } as React.InputHTMLAttributes<HTMLInputElement> }} />}
+                label="Show this name in the Billing Person Name list (Start New Order)"
+              />
             </Stack>
           </DialogContent>
           <DialogActions>

@@ -217,6 +217,7 @@ const SECTIONS: Section[] = [
       {
         head: 'Taking an order',
         items: [
+          'Billing Person Name is a drop-down of saved names (A to Z). Type a few letters to narrow it down and choose one - the customer details are filled in. "Add a new person" (first line) saves a new name with an optional phone number. The cross beside a name removes it from the list; the customer, orders and bills are kept and the name returns when you order for that person again (or tick "Show this name in the Billing Person Name list" on the Customers page).',
           'Start New Order > Customer now has its own Customer Name box. The name you type there is the name printed on the bill and the job card; leave it blank and the billing person\'s name is used.',
           'The Total on the order screen can be changed: type the amount the customer will really be billed in "Final amount" (blank = the calculated total). The difference is kept as "Round off / adjustment" and shows on the price panel, the quotation, the invoice and the bills. The arrow beside the box goes back to the calculated total.',
           'Wedding Invitation - Screen Print: choose the Screen Print occasion (Wedding Invitation, House Warming, Baby Shower, Birthday or Custom - type it) and the Method (Invitation, Thamboolam Bag, Visiting Card, Pen, Diary or Custom - type it). Paper/Board Type can be Nil.',
@@ -233,8 +234,8 @@ const SECTIONS: Section[] = [
       {
         head: 'Job cards',
         items: [
-          'Job Cards > the pencil button (Edit job card) opens the job card form. Change the party, mobile, job name, size, type of printing, proof dates and times, delivery date and time, paper details, printing colour, margin, serial and book numbers and remarks, then Save. For the copy with price you can also edit the price list (change a line, add or remove a line). "Back to the order\'s list" undoes your price edits.',
-          'Both job cards (with price and without price) now print on A5 landscape, sized to fit the page completely, and the print shows exactly what you saved.',
+          'Job Cards > the pencil button (Edit job card) offers "Edit job card - without price" (shop-floor copy) and "Edit job card - with price" (office copy); the two buttons at the top of the edit page switch between them. The form comes first, the tasks and materials are below it. Change the party, mobile, job name, size, type of printing, proof dates and times, delivery date and time, paper details, printing colour, margin, serial and book numbers and remarks, then Save. For the copy with price you can also edit the price list (change a line, add or remove a line). "Back to the order\'s list" undoes your price edits.',
+          'Both job cards (with price and without price) print on A5 landscape (210 x 148 mm), sized to fit the page completely, and the print shows exactly what you saved. The size is written under the card; choose A5 paper in the print window and print at actual size.',
         ],
       },
       {

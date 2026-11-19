@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Alert, Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, FormControlLabel, Grid,
-  InputAdornment, Paper, TextField, ToggleButton, ToggleButtonGroup, Typography,
+  Alert, Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Dialog, DialogActions, DialogContent, DialogTitle,
+  FormControlLabel, Grid, IconButton, InputAdornment, Paper, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography,
 } from '@mui/material';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CloseIcon from '@mui/icons-material/Close';
+import ConfirmDialog from '../ConfirmDialog';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { customersApi } from '../../api/customersApi';
@@ -104,8 +107,13 @@ const dateProps = { slotProps: { inputLabel: { shrink: true } } } as const;
 
 // ---- component -----------------------------------------------------------------
 
+// The first line of the Billing Person Name list: opens the 'add a new person' window.
+const ADD_PERSON = { id: -1, name: '', created_at: '', __add: true } as Customer & { __add: true };
+const isAdd = (o: unknown): o is typeof ADD_PERSON => typeof o === 'object' && o !== null && '__add' in o;
+
 export default function QuickOrderForm() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const defaultsQuery = useQuery({ queryKey: ['billing-defaults'], queryFn: customersApi.billingDefaults });
   const taxesQuery = useQuery({ queryKey: ['taxes'], queryFn: taxesApi.list });
@@ -158,18 +166,48 @@ export default function QuickOrderForm() {
   }, [sameWhatsapp, phone]);
 
   // ---- customer lookup for the billing-name dropdown ----
-  const [debouncedBilling, setDebouncedBilling] = useState('');
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedBilling(billingName.trim()), 250);
-    return () => clearTimeout(t);
-  }, [billingName]);
-  const searching = billingEdited && !linked && debouncedBilling.length >= 1;
-  const searchQuery = useQuery({
-    queryKey: ['customer-lookup', debouncedBilling],
-    queryFn: () => customersApi.search(debouncedBilling),
-    enabled: searching,
+  // The Billing Person Name drop-down lists every saved name (A to Z); typing narrows it down.
+  const personsQuery = useQuery({ queryKey: ['billing-persons'], queryFn: customersApi.billingPersons });
+  const needle = billingName.trim().toLowerCase();
+  const shownPersons = (personsQuery.data ?? []).filter((c) => {
+    if (!needle || !billingEdited || linked) return true;
+    return [c.billing_person_name, c.name, c.phone].some((v) => (v ?? '').toLowerCase().includes(needle));
   });
-  const nameOptions: Customer[] = searching ? searchQuery.data ?? [] : defaultsQuery.data?.recent_customers ?? [];
+  const nameOptions: (Customer | typeof ADD_PERSON)[] = [ADD_PERSON, ...shownPersons];
+
+  // ---- add a new person / remove a name that is not needed ----
+  const [addOpen, setAddOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [addTouched, setAddTouched] = useState(false);
+  const [removing, setRemoving] = useState<Customer | null>(null);
+  const [listOpen, setListOpen] = useState(false); // the name list; kept closed while the add / remove windows are open
+  const newNameError = !newName.trim() ? 'Enter the name' : '';
+  const newPhoneError = newPhone.trim() && !isValidPhone(normalizePhone(newPhone)) ? 'Enter a 10-digit mobile number' : '';
+  const addPersonMutation = useMutation({
+    mutationFn: () =>
+      customersApi.create({
+        name: newName.trim(), billing_person_name: newName.trim(), phone: normalizePhone(newPhone) || null,
+      }),
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: ['billing-persons'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      setAddOpen(false);
+      setNewName('');
+      setNewPhone('');
+      setAddTouched(false);
+      applyCustomer(created);
+    },
+  });
+  const removePersonMutation = useMutation({
+    mutationFn: (id: number) => customersApi.update(id, { hidden_in_billing: true }),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['billing-persons'] });
+      queryClient.invalidateQueries({ queryKey: ['billing-defaults'] });
+      if (linked?.id === id) clearLinked();
+      setRemoving(null);
+    },
+  });
 
   function applyCustomer(c: Customer, onlyEmpty = false) {
     const fill = (current: string, incoming: string | null | undefined) =>
@@ -255,6 +293,7 @@ export default function QuickOrderForm() {
       if (target) {
         return customersApi.update(target.id, {
           ...(customerName.trim() ? { name: customerName.trim() } : {}),
+          hidden_in_billing: false,
           billing_person_name: billing,
           ...(digits ? { phone: digits } : {}),
           ...(wa ? { whatsapp_number: wa } : {}),
@@ -405,7 +444,11 @@ export default function QuickOrderForm() {
               id={FIELD_ID.billing}
               size="small"
               freeSolo
+              forcePopupIcon
               openOnFocus
+              open={listOpen && !addOpen && !removing}
+              onOpen={() => setListOpen(true)}
+              onClose={() => setListOpen(false)}
               options={nameOptions}
               filterOptions={(o) => o}
               inputValue={billingName}
@@ -416,20 +459,40 @@ export default function QuickOrderForm() {
                 }
               }}
               onChange={(_, value) => {
-                if (value && typeof value !== 'string') applyCustomer(value);
+                if (isAdd(value)) {
+                  setListOpen(false);
+                  setNewName(billingName.trim() && billingEdited && !/^Person \d+$/i.test(billingName.trim()) ? billingName.trim() : '');
+                  setAddOpen(true);
+                } else if (value && typeof value !== 'string') applyCustomer(value);
               }}
-              getOptionLabel={(o) => (typeof o === 'string' ? o : o.billing_person_name || o.name)}
+              getOptionLabel={(o) => (typeof o === 'string' ? o : isAdd(o) ? billingName : o.billing_person_name || o.name)}
               getOptionKey={(o) => (typeof o === 'string' ? o : o.id)}
               renderOption={(props, o) => {
                 const { key, ...rest } = props as typeof props & { key: string };
+                if (isAdd(o)) {
+                  return (
+                    <li key={key} {...rest} data-testid="billing-add-new">
+                      <PersonAddIcon fontSize="small" color="primary" sx={{ mr: 1 }} />
+                      <Typography sx={{ fontWeight: 700, color: 'primary.main' }}>Add a new person…</Typography>
+                    </li>
+                  );
+                }
                 return (
-                  <li key={key} {...rest}>
-                    <Box>
+                  <li key={key} {...rest} data-testid="billing-person-option" data-person={o.id} style={{ ...(rest as { style?: React.CSSProperties }).style, display: 'flex', alignItems: 'center' }}>
+                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 600 }}>{o.billing_person_name || o.name}</Typography>
                       <Typography variant="caption" color="text.secondary">
                         {[o.name !== o.billing_person_name ? o.name : '', o.phone].filter(Boolean).join(' · ') || 'No phone saved'}
                       </Typography>
                     </Box>
+                    <Tooltip title="Remove this name from the list (its orders and bills stay)">
+                      <IconButton
+                        size="small" aria-label={`Remove ${o.billing_person_name || o.name} from the list`} data-testid={`remove-person-${o.id}`}
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setListOpen(false); setRemoving(o); }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </li>
                 );
               }}
@@ -440,7 +503,7 @@ export default function QuickOrderForm() {
                   required
                   onBlur={touch('billing')}
                   error={showError('billing')}
-                  helperText={helper('billing')}
+                  helperText={helper('billing', 'Select a saved name, or choose "Add a new person"')}
                   slotProps={{ ...params.slotProps, htmlInput: { ...params.slotProps.htmlInput, ...noAutofill, name: 'qo-billing-person' } }}
                 />
               )}
@@ -600,6 +663,44 @@ export default function QuickOrderForm() {
       >
         {createOrderMutation.isPending ? 'Starting…' : 'Start Order'}
       </Button>
+
+      <Dialog open={addOpen} onClose={() => !addPersonMutation.isPending && setAddOpen(false)} maxWidth="xs" fullWidth disableRestoreFocus data-testid="add-person-dialog">
+        <DialogTitle>Add a new person</DialogTitle>
+        <DialogContent>
+          {addPersonMutation.isError && <Alert severity="error" sx={{ mb: 2 }}>{getErrorMessage(addPersonMutation.error, 'Could not add the person')}</Alert>}
+          <Box sx={{ display: 'grid', gap: 2, mt: 1 }}>
+            <TextField
+              autoFocus required label="Billing person name" value={newName} onChange={(e) => setNewName(e.target.value)}
+              error={addTouched && Boolean(newNameError)} helperText={addTouched && newNameError ? newNameError : undefined}
+              slotProps={{ htmlInput: { 'data-testid': 'new-person-name', maxLength: 120, autoComplete: 'off' } }}
+            />
+            <TextField
+              label="Phone number (optional)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)}
+              error={addTouched && Boolean(newPhoneError)} helperText={addTouched && newPhoneError ? newPhoneError : 'Saved with the name, so the next order fills it in.'}
+              slotProps={{ input: { startAdornment: <InputAdornment position="start">+91</InputAdornment> }, htmlInput: { 'data-testid': 'new-person-phone', inputMode: 'numeric', maxLength: 16, autoComplete: 'off' } }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAddOpen(false)} disabled={addPersonMutation.isPending}>Cancel</Button>
+          <Button
+            variant="contained" data-testid="new-person-save" disabled={addPersonMutation.isPending}
+            onClick={() => { setAddTouched(true); if (!newNameError && !newPhoneError) addPersonMutation.mutate(); }}
+          >
+            Add person
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ConfirmDialog
+        open={Boolean(removing)}
+        title="Remove this name?"
+        message={removing ? `Remove "${removing.billing_person_name || removing.name}" from the Billing Person Name list? Their orders, bills and customer record are kept, and the name comes back if you place a new order for them.` : ''}
+        confirmLabel="Remove"
+        loading={removePersonMutation.isPending}
+        onConfirm={() => removing && removePersonMutation.mutate(removing.id)}
+        onCancel={() => setRemoving(null)}
+      />
     </Paper>
   );
 }
