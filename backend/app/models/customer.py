@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import Column, DateTime, Integer, String, Boolean, text
 
 from app.core.database import Base
 
@@ -18,4 +18,6 @@ class Customer(Base):
     gstin = Column(String, nullable=True)
     reason = Column(String, nullable=True)
     notes = Column(String, nullable=True)
+    # Removed from the Billing Person Name list on the order form (the customer, their orders and bills are kept).
+    hidden_in_billing = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -10,6 +10,8 @@ export const customersApi = {
   remove: async (id: number): Promise<void> => {
     await api.delete(`/customers/${id}`);
   },
+  /** The names of the Billing Person Name drop-down (A to Z, without the ones that were removed from the list). */
+  billingPersons: async (): Promise<Customer[]> => (await api.get('/customers/billing-persons')).data,
   billingDefaults: async (): Promise<BillingDefaults> => (await api.get('/customers/billing-defaults')).data,
   orders: async (id: number): Promise<CustomerOrders> => (await api.get(`/customers/${id}/orders`)).data,
   /** Admin: every customer and employee phone number as a .vcf (phone / Google Contacts) or Google CSV file. */

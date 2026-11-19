@@ -9,6 +9,8 @@ export interface Customer {
   gstin?: string | null;
   reason?: string | null;
   notes?: string | null;
+  /** Removed from the Billing Person Name list on the order form. */
+  hidden_in_billing?: boolean;
   created_at: string;
 }
 
@@ -28,6 +30,7 @@ export interface CustomerInput {
   gstin?: string | null;
   reason?: string | null;
   notes?: string | null;
+  hidden_in_billing?: boolean;
 }
 
 export interface CustomerOrderRow {

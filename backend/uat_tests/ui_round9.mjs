@@ -457,7 +457,8 @@ export async function round9Tests(browser) {
     await go('/job-cards');
     const row = page.locator('tr', { hasText: job.job_number }).first();
     await row.getByTestId('list-edit').click();
-    await page.waitForURL(new RegExp(`/job-cards/${job.id}$`));
+    await page.getByTestId('list-edit-price').click();
+    await page.waitForURL((u) => new URL(u).pathname === `/job-cards/${job.id}`);
     await page.getByTestId('sheet-title').waitFor();
     expect((await page.getByTestId('sheet-title').innerText()).startsWith('Edit job card'), 'title');
     await page.getByText('Printouts are A5').first().waitFor({ timeout: 10000 });

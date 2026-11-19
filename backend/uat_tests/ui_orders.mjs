@@ -310,6 +310,7 @@ export async function orderTests(browser) {
   await run('UI-JOB', M8, 'Open the printable job sheet, edit and save it', 'Sheet opens with invoice number and saves', async () => {
     const r = page.locator('tbody tr', { hasText: startCust.name }).first();
     await r.getByRole('button', { name: /edit job card/i }).click();
+    await page.getByTestId('list-edit-price').click();
     await page.waitForURL(/job-cards\/\d+/, { timeout: 8000 });
     await page.waitForTimeout(1000);
     expect(/JOB CARD No: INV-/.test(await bodyText(page)), 'invoice no. missing on the sheet');

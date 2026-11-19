@@ -43,9 +43,11 @@ def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettin
     labels = profile.get("paper_labels") or {}
     buffer = BytesIO()
     page, k, W, H = page_setup(size)
+    is_a5 = k < 1
     c = canvas.Canvas(buffer, pagesize=page)
     c.scale(k, k)
     c.setTitle(f"Job card {meta['job_number']}")
+    c.setViewerPreference("PrintScaling", "None")  # print at actual size: A5 paper gives an A5 job card
     m = 8 * mm
     x0, x1 = m, W - m
     top = H - m
@@ -345,5 +347,9 @@ def generate_job_sheet_pdf(meta: Dict[str, Any], company: Optional[CompanySettin
     c.drawString(x1 - 52 * mm, body_bottom - 10.5 * mm, "Bill No. :")
     c.setFont("Helvetica-Bold", 9)
     c.drawString(x1 - 36 * mm, body_bottom - 10.5 * mm, str(meta.get("invoice_number") or "-"))
+    c.setFont("Helvetica", 5.5)
+    c.setFillColor(GREY)
+    c.drawRightString(x1, 3.2 * mm, f"{'A5' if is_a5 else 'A4'} landscape ({'210 x 148' if is_a5 else '297 x 210'} mm) - print at actual size on {'A5' if is_a5 else 'A4'} paper"
+                      + (" - with price" if with_price else " - without price"))
     c.save()
     return buffer.getvalue()

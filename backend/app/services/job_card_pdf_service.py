@@ -39,6 +39,7 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
     c = canvas.Canvas(buffer, pagesize=page)
     c.scale(k, k)
     c.setTitle(f"Job card {detail['job_number']}")
+    c.setViewerPreference("PrintScaling", "None")
     left, right = 12 * mm, W - 12 * mm
     width = right - left
     bottom = 16 * mm
@@ -49,7 +50,7 @@ def generate_job_card_pdf(detail: Dict[str, Any], company: Optional[CompanySetti
         c.setFont("Helvetica", 7)
         stamp = now_ist().strftime("%d %b %Y %I:%M %p")
         c.drawString(left, 9 * mm, f"Job card {detail['job_number']} - status as on {stamp}" + ("" if with_price else " - prices not shown"))
-        c.drawRightString(right, 9 * mm, f"Page {state['page']}")
+        c.drawRightString(right, 9 * mm, f"Page {state['page']}  |  {'A5' if k < 1 else 'A4'} landscape - print at actual size")
 
     def new_page():
         footer()

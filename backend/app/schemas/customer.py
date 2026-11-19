@@ -14,6 +14,7 @@ class CustomerCreate(BaseModel):
     gstin: Optional[str] = None
     reason: Optional[str] = None
     notes: Optional[str] = None
+    hidden_in_billing: bool = False
 
 
 class CustomerUpdate(BaseModel):
@@ -26,6 +27,7 @@ class CustomerUpdate(BaseModel):
     gstin: Optional[str] = None
     reason: Optional[str] = None
     notes: Optional[str] = None
+    hidden_in_billing: Optional[bool] = None
 
 
 class CustomerResponse(BaseModel):
@@ -39,6 +41,7 @@ class CustomerResponse(BaseModel):
     gstin: Optional[str]
     reason: Optional[str]
     notes: Optional[str]
+    hidden_in_billing: bool = False
     created_at: datetime
 
     class Config:
