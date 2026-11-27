@@ -139,9 +139,15 @@ export default function JobCardSheet() {
     },
   });
 
+  // The delivery is on the day of the last proof or later: a proof set after it moves the delivery up
+  const withDelivery = (s: JobCardSheetData): JobCardSheetData => {
+    const days = [s.proof1_date, s.proof2_date, ...(s.more_proofs ?? []).map((p) => p.date)].filter(Boolean) as string[];
+    const last = days.sort().pop();
+    return last && (!s.delivery_date || s.delivery_date < last) ? { ...s, delivery_date: last } : s;
+  };
   const set = <K extends keyof JobCardSheetData>(key: K, value: JobCardSheetData[K]) => {
     setSaveNote(null);
-    setSheet((s) => (s ? { ...s, [key]: value } : s));
+    setSheet((s) => (s ? withDelivery({ ...s, [key]: value }) : s));
   };
   const setPaper = (index: number, field: keyof JobCardSheetData['paper'][number], value: string) => {
     setSaveNote(null);

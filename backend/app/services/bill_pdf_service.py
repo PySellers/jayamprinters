@@ -127,6 +127,18 @@ def _item_text(product: Optional[Product], item) -> tuple[str, str]:
     return description, (getattr(item, "spec_notes", None) or "").strip()
 
 
+def display_name(product: Optional[Product], item) -> str:
+    """The short name of an ordered item for lists and screens: a bill book reads "Bill Book - 1/4", not "Sheet Printing - 1/4"."""
+    name = product.name if product else "Item"
+    if name.startswith("Sheet Printing - "):
+        for selected in getattr(item, "selected_options", None) or []:
+            attribute = getattr(selected, "attribute", None)
+            option = getattr(selected, "attribute_option", None)
+            if attribute is not None and attribute.name == "Document Type" and option is not None and option.value:
+                return f"{option.value} - {name[len('Sheet Printing - '):]}"
+    return name
+
+
 def _particulars_lines(product: Optional[Product], item, font: str, size: float, width: float, max_lines: int) -> list[tuple[str, bool]]:
     """Wrapped (text, is_note) lines for a bill row: description first, then the specification if there is room."""
     if getattr(item, "particulars", None):

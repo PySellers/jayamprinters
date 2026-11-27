@@ -495,11 +495,14 @@ export async function round3Tests(browser) {
     expect(await page.getByTestId('proof-row').count() === 3, 'proofs not listed on the tracking page');
   }, page, live);
 
-  await run('UI-R3J', M6, 'In the Job Cards list urgent jobs come first, highlighted, with their proof status', 'Urgent rows first', async () => {
+  await run('UI-R3J', M6, 'In the Job Cards list urgent jobs are highlighted with their proof status (the list itself is in job-number order since round 11)', 'Urgent rows marked red', async () => {
     await go('/job-cards');
+    await page.getByTestId('job-search-input').fill(urgentJob.job_number);
+    await page.waitForTimeout(600);
     const first = page.locator('tbody tr').first();
-    expect((await first.getAttribute('data-urgent')) === 'true', 'first row is not urgent');
+    expect((await first.getAttribute('data-urgent')) === 'true', 'the urgent job is not marked');
     expect(/URGENT/.test(await first.innerText()), 'URGENT label missing');
+    await page.getByTestId('job-search-input').fill('');
     await shot(page, 'r3-job-cards-list');
   }, page, live);
 

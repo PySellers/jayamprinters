@@ -120,7 +120,7 @@ export default function QuotationDetail() {
           <TableBody>
             {quotation.items.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{productName(item.product_id)}</TableCell>
+                <TableCell>{item.description || productName(item.product_id)}</TableCell>
                 <TableCell>{item.quantity}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   ₹{item.unit_price.toFixed(2)}

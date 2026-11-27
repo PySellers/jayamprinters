@@ -178,8 +178,32 @@ def _only_changes(base: Dict[str, Any], sheet: Dict[str, Any]) -> Dict[str, Any]
     return kept
 
 
+def _proof_days_of_sheet(sheet: Dict[str, Any]) -> List[date]:
+    days: List[date] = []
+    values = [sheet.get("proof1_date"), sheet.get("proof2_date")] + [(p or {}).get("date") for p in (sheet.get("more_proofs") or [])]
+    for raw in values:
+        if raw:
+            try:
+                days.append(date.fromisoformat(str(raw)))
+            except ValueError:
+                continue
+    return days
+
+
 def save_job_card_sheet(db: Session, job_card: JobCard, sheet: Dict[str, Any]) -> Dict[str, Any]:
     sheet = dict(sheet)
+    raw_delivery = sheet.get("delivery_date")
+    if raw_delivery:
+        try:
+            delivery = date.fromisoformat(str(raw_delivery))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="The delivery date is not a valid date")
+        proof_days = _proof_days_of_sheet(sheet)
+        if proof_days and delivery < max(proof_days):
+            raise HTTPException(
+                status_code=400,
+                detail=f"The delivery date ({delivery:%d-%m-%Y}) cannot be before the last proof date ({max(proof_days):%d-%m-%Y})",
+            )
     sent_price_lines = "price_lines" in sheet
     typed_lines = sheet.pop("price_lines", None)
     kept = _only_changes(prefilled_sheet(db, job_card), sheet)

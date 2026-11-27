@@ -272,13 +272,16 @@ export async function workflowTests(browser) {
     const job3 = await makeJob();
     const page = pages.counter.page;
     await go(page, '/job-cards');
+    await page.locator('tbody tr', { hasText: job3.job_number }).first().waitFor({ timeout: 15000 });
+    await page.waitForTimeout(1500); // let the list finish refreshing before a row is clicked
     const t = await bodyText(page);
     expect(t.includes('Now with'), 'Now with column missing');
     const r = page.locator('tbody tr', { hasText: job3.job_number }).first();
     expect(/Design \/ DTP/.test(await r.innerText()) && /0\/5 steps/.test(await r.innerText()), 'row: ' + (await r.innerText()).replace(/\s+/g, ' '));
     await r.getByRole('button', { name: 'Track job' }).click();
     await page.waitForURL(/\/track$/, { timeout: 8000 });
-    expect((await bodyText(page)).includes(job3.job_number), 'tracking page did not open');
+    await page.getByText(job3.job_number).first().waitFor({ timeout: 10000 });
+    expect((await bodyText(page)).includes(job3.job_number), 'tracking page did not open: expected ' + job3.job_number + ' on ' + page.url());
     await go(page, `/job-cards/${job3.id}`);
     await page.getByRole('button', { name: 'Track progress' }).click();
     await page.waitForURL(/\/track$/, { timeout: 8000 });

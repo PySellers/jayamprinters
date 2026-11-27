@@ -16,13 +16,11 @@ import { invoicesApi } from '../api/invoicesApi';
 import { getErrorMessage } from '../utils/api';
 import { customersApi } from '../api/customersApi';
 import { taxesApi } from '../api/taxesApi';
-import type { DiscountType, QuotationCreateInput, QuotationItemInput, QuotationPreview } from '../types/quotations';
+import type { DiscountType, ProofSlot, QuotationCreateInput, QuotationItemInput, QuotationPreview } from '../types/quotations';
 import type { Customer, CustomerInput } from '../types/customers';
 import EntitySelect from '../components/pickers/EntitySelect';
-import QuotationLineItem from '../components/quotations/QuotationLineItem';
-import BillBookWizard from '../components/quotations/BillBookWizard';
-import ServiceItemPicker from '../components/quotations/ServiceItemPicker';
-import { productsApi, productCategoriesApi } from '../api/productsApi';
+import OrderLine from '../components/quotations/OrderLine';
+import { productCategoriesApi } from '../api/productsApi';
 import CustomerHistoryPanel from '../components/quotations/CustomerHistoryPanel';
 import PricePanel from '../components/quotations/PricePanel';
 import PaymentDetailsFields, { detailsPayload, emptyPaymentDetails, type PaymentDetails } from '../components/PaymentDetailsFields';
@@ -68,6 +66,14 @@ export default function QuotationCreate() {
   const initialProof1Time = searchParams.get('proof1Time');
   const initialProof2Date = searchParams.get('proof2Date');
   const initialProof2Time = searchParams.get('proof2Time');
+  const initialMoreProofs: ProofSlot[] = (() => {
+    try {
+      const list = JSON.parse(searchParams.get('moreProofs') ?? '[]');
+      return Array.isArray(list) ? list.filter((p) => p && p.date) : [];
+    } catch {
+      return [];
+    }
+  })();
   const isUrgent = searchParams.get('priority') === 'urgent';
   const { user } = useAuth();
   const withGstParam = searchParams.get('withGst');
@@ -85,6 +91,7 @@ export default function QuotationCreate() {
       proof1_time: initialProof1Time || undefined,
       proof2_date: initialProof2Date || undefined,
       proof2_time: initialProof2Time || undefined,
+      extra_proofs: initialMoreProofs,
       delivery_date: initialDeliveryDate || undefined,
       delivery_time: initialDeliveryTime || undefined,
       items: [initialProductId ? { ...emptyItem, product_id: Number(initialProductId) } : emptyItem],
@@ -147,18 +154,7 @@ export default function QuotationCreate() {
 
   // ---- service -> item (step 2 of Start New Order) ----------------------------
   const categoriesQuery = useQuery({ queryKey: ['product-categories'], queryFn: productCategoriesApi.list });
-  const productsListQuery = useQuery({ queryKey: ['product-picker', 'list'], queryFn: productsApi.list });
   const serviceCategory = categoriesQuery.data?.find((c) => c.id === serviceCategoryId);
-  const serviceProducts = (productsListQuery.data ?? []).filter((p) => p.category_id === serviceCategoryId && p.is_active);
-  const firstProductId = methods.watch('items.0.product_id');
-  const isBillBookFlow = serviceCategory?.guided_flow === 'bill_book';
-  // A service with a single item has nothing to choose between: skip that screen.
-  useEffect(() => {
-    if (!isBillBookFlow && serviceProducts.length === 1 && !firstProductId) {
-      methods.setValue('items.0.product_id', serviceProducts[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isBillBookFlow, serviceProducts.length, firstProductId]);
 
   // ---- customer: pick an existing one OR type a brand-new name ----------------
   const [nameInput, setNameInput] = useState('');
@@ -272,7 +268,17 @@ export default function QuotationCreate() {
   const orderTotal = Math.max(0, preview?.grand_total ?? calculatedTotal);
   const adjustmentAmount = preview?.adjustment_amount ?? 0;
   const advanceNumber = Math.max(0, Number(advance) || 0);
+  const [dateError, setDateError] = useState<string | null>(null);
   const onSubmit = (data: QuotationCreateInput) => {
+    // the delivery is on the last proof's day or later
+    const proofDays = [data.proof1_date, data.proof2_date, ...(data.extra_proofs ?? []).map((p) => p.date)].filter(Boolean) as string[];
+    const lastProof = proofDays.sort().pop();
+    if (data.delivery_date && lastProof && data.delivery_date < lastProof) {
+      setDateError(`The delivery date (${data.delivery_date.split('-').reverse().join('-')}) cannot be before the last proof date (${lastProof.split('-').reverse().join('-')}). Change it under "Edit details".`);
+      setShowDetails(true);
+      return;
+    }
+    setDateError(null);
     if (isQuick && advanceNumber > orderTotal + 0.009 && orderTotal > 0) {
       setAdvanceError(`The advance cannot be more than the order total (₹${orderTotal.toFixed(2)})`);
       return;
@@ -287,6 +293,7 @@ export default function QuotationCreate() {
       proof1_time: data.proof1_time || undefined,
       proof2_date: data.proof2_date || undefined,
       proof2_time: data.proof2_time || undefined,
+      extra_proofs: (data.extra_proofs ?? []).filter((p) => p.date).map((p) => ({ date: p.date, time: p.time || undefined })),
       delivery_date: data.delivery_date || undefined,
       delivery_time: data.delivery_time || undefined,
       estimated_delivery: data.estimated_delivery?.trim() || undefined,
@@ -320,6 +327,11 @@ export default function QuotationCreate() {
             <Typography variant="body2" color="text.secondary">
               Delivery: {formatDay(methods.watch('delivery_date'))}{methods.watch('delivery_time') ? `, ${methods.watch('delivery_time')}` : ''}
             </Typography>
+            {(methods.watch('extra_proofs') ?? []).length > 0 && (
+              <Typography variant="body2" color="text.secondary" data-testid="extra-proofs-summary">
+                More proofs: {(methods.watch('extra_proofs') ?? []).map((p) => `${formatDay(p.date)}${p.time ? ' ' + p.time : ''}`).join(' · ')}
+              </Typography>
+            )}
             <Button size="small" sx={{ ml: 'auto' }} onClick={() => setShowDetails((v) => !v)}>
               {showDetails ? 'Hide details' : 'Edit details'}
             </Button>
@@ -328,6 +340,7 @@ export default function QuotationCreate() {
         </Paper>
       )}
 
+      {dateError && <Alert severity="error" sx={{ mb: 2 }} data-testid="date-error">{dateError}</Alert>}
       {createMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {errorText(createMutation.error, 'Failed to create quotation')}
@@ -554,35 +567,19 @@ export default function QuotationCreate() {
             )}
           </Box>
 
-          {fields.map((field, index) => {
-            if (index === 0 && serviceCategoryId != null) {
-              if (!serviceCategory || productsListQuery.isLoading) return null;
-              if (isBillBookFlow) {
-                return <BillBookWizard key={field.id} index={0} categoryId={serviceCategory.id} />;
-              }
-              if (!firstProductId && serviceProducts.length > 1) {
-                return (
-                  <ServiceItemPicker
-                    key={field.id}
-                    serviceName={serviceCategory.name}
-                    products={serviceProducts}
-                    onPick={(id) => methods.setValue('items.0.product_id', id, { shouldDirty: true })}
-                  />
-                );
-              }
-            }
-            return (
-              <QuotationLineItem
-                key={field.id}
-                index={index}
-                onRemove={() => remove(index)}
-                canRemove={fields.length > 1}
-                previewItem={preview?.items[index]}
-                lockedServiceId={index === 0 ? serviceCategoryId : null}
-                showErrors={methods.formState.submitCount > 0}
-              />
-            );
-          })}
+          {/* every item is built like the first one: its service decides the form (Bill Book guide, item picker, plain item) */}
+          {fields.map((field, index) => (
+            <OrderLine
+              key={field.id}
+              index={index}
+              defaultServiceId={serviceCategoryId}
+              serviceFixed={index === 0 && serviceCategoryId != null}
+              onRemove={() => remove(index)}
+              canRemove={fields.length > 1}
+              previewItem={preview?.items[index]}
+              showErrors={methods.formState.submitCount > 0}
+            />
+          ))}
 
           <Button startIcon={<AddIcon />} onClick={() => append(emptyItem)} sx={{ mb: 3 }}>
             Add Line Item

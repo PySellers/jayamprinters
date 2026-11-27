@@ -516,10 +516,13 @@ def run_all():
         r = api("POST", "/outsource/", {"vendor_name": "ZZTEST Counter Press", "service": "Flex", "cost_amount": 10, "customer_price": 20}, as_role("counter"))
         expect_status(r, 201)
         os_ids.append(r.data["id"])
-        p = api("POST", "/outsource/", {"vendor_name": "v", "service": "x"}, as_role("production"))
-        expect_status(p, 403)
-        return "Counter staff can record jobs; production staff cannot"
-    run("OUT", M, "Who can record outsourced jobs", "Admin / accounts / counter yes; production no", t)
+        p = api("POST", "/outsource/", {"vendor_name": "ZZTEST Staff Press", "service": "x"}, as_role("production"))
+        expect_status(p, 201)  # since round 11 the staff login can send work out
+        os_ids.append(p.data["id"])
+        # ... but paying the outside company is for the money roles only
+        expect_status(api("POST", f"/outsource/{p.data['id']}/payments", {"amount": 1, "method": "cash"}, as_role("production")), 403)
+        return "Counter and staff (production) can record jobs; only the money roles can pay the outside company"
+    run("OUT", M, "Who can record outsourced jobs", "Admin / accounts / counter / production yes; payment: production no", t)
 
     def t():
         expect_status(api("DELETE", f"/outsource/{os_ids[-1]}", token=as_role("counter")), 403)

@@ -1,0 +1,22 @@
+# Sri Jayam ERP - client round 11 (version 1.6.0)
+
+Ten requests from the client / developers, each checked on the running application as the shop owner would use it.
+
+| # | Request | Found | Now |
+|---|---|---|---|
+| 1 | Delivery date = the last proof date; delivery on or after the proof date | Delivery could be before a proof; it did not follow the proofs | **Start New Order**: the Delivery Date follows the last proof by itself, can be moved later by hand, never before the last proof (message, and the field's minimum). **Job card form** and **Proofs panel**: a proof dated after the delivery moves the delivery to that day (a note says so); the server refuses a delivery before the last proof on the order, the job card form and the job update. |
+| 2 | Add n additional proofs | Only Proof 1 and 2 when taking the order (more only later on the job card) | **+ Add another proof** (after Proof 2) any number of times; each becomes Proof 3, 4 ... of the job card (`quotations.extra_proofs`, migration `w3h5j7l9n1q2`). |
+| 3 | A customer orders several jobs: a job card per job, ONE invoice | Verified: one order with several lines gives a job card per line and one invoice - but an added line was a plain form (see 6) | Tested: 3 different services in one order = 3 job cards (own numbers, status, print) + 1 invoice / bill with 3 rows. |
+| 4 | Overdue customers: how to update the status on payment | The list only had Remind / Open; payment had to be recorded on the invoice page | **Record payment** on every line of *Payments due*: amount (full balance by default; too much is refused), method / UPI / receipt, and for a part payment the new day for the rest. The balance, the overdue mark and the bill's status update at once; the full balance removes the customer from the list. |
+| 5 | Outsource for the staff login | Menu and screens were for Admin / Accounts / Counter only | The **staff (production) login** has Outsource: it can see the work that is out, send work out and update the status. Costs, prices, margin and paying the outside company stay with the money roles (hidden / refused for staff). |
+| 6 | Add Line Item must follow the Dashboard order service (alignment, calculation) | Added lines were a generic form: no Bill Book guide, no own service | New `OrderLine`: every item is built like the first. It starts with the order's service and has a **Service for this item** switch, so one order can carry other services; a Bill Book gets the guided Bill Book form; options, extras, minimum, price panel and totals work the same. |
+| 7 | Bill book chosen in Add Line Item printed as "Sheet Printing" (also urgent) | Plain lines had no Document Type; lists and the invoice page showed the item's internal name | Fixed with 6, and everywhere the item is named like the bill: **invoice list / page, production panel, job list, live board, quotation page, A4 invoice, receipt** ("Bill Book - 1/4 (...)"; the chosen document type). Tested with an urgent order. |
+| 8 | Job cards: search, and order by number, not urgency | Urgent jobs were moved to the top | **Search box** (job number, customer, product, status, person) and **job-number order** (newest first; click *Job #* for oldest first). Urgent jobs stay marked red. The Live Jobs board on the Dashboard keeps its priority order. |
+| 9 | Visiting card ordered with all options is not on the paper job card | The finish / lamination was missing (only options with a box of their own were shown) | Every option of the order without a box of its own (finish, binding type ...) is written in the **Remarks** ("Order details - Finish/Lamination Type: Matt Lamination ..."), before the notes and extras. |
+| 10 | HSN code in the invoice bill; bill not in the given format | The A4 invoice from the invoice page was a plain table (no HSN) | **A4 Invoice = Sri Jayam's own bill**: the GST INVOICE (HSN / SAC, CGST, SGST, Grand TOTAL, amount in words, bank details) for a GST order, the CASH BILL otherwise. The invoice page also shows the HSN / SAC column. The same bill as View / Download in the Invoices list. |
+
+## Notes for the client
+
+* A delivery date earlier than the last proof is now impossible by design (also when making an order overdue for a test): set the proof dates in the past too.
+* Staff (production) can send work out but do not see money on the Outsource screen.
+* Tests: `t_round11.py` (15 API) and `ui_round11.mjs` (15 browser); whole suite 1175 / 1175.

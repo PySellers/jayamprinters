@@ -7,7 +7,7 @@ const MAIN_MENU = ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoice
 const EXPECTED_MENU = {
   admin: MAIN_MENU,
   counter: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Outsource'],
-  production: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory'],
+  production: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Inventory', 'Outsource'],
   accounts: ['Dashboard', 'Customers', 'Quotations', 'Job Cards', 'Invoices', 'Products', 'Purchases', 'Inventory', 'Outsource', 'Cash Ledger'],
 };
 const LOGINS = { admin: ADMIN, counter: ['counter@srijayam.com', STAFF_PW], production: ['designer@srijayam.com', STAFF_PW], accounts: ['accounts@srijayam.com', STAFF_PW] };

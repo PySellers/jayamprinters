@@ -78,6 +78,12 @@ DEFECTS = [
     ("Medium", "Billing Person Name (round 10, client feedback)", "The box only suggested a few recent customers while typing; there was no clear way to select from all names, add a new person or remove a name that is not needed.", "A real drop-down of saved names (A to Z) with Add a new person and a remove cross (the customer and orders are kept)."),
     ("Low", "Billing Person Name list (round 10)", "While testing: the name list stayed open on top of the Add window, and the remove cross lost its click because the list closed first.", "The list closes while a window is open and the cross keeps the list open until the click is handled."),
     ("Low", "Customers page (round 10)", "A customer saved without an e-mail, reason or phone (for example one added from the order form) could not be edited or put back in the billing list because those boxes were required.", "They are required when adding a customer, not when editing one."),
+    ("High", "Add Line Item (round 11, client feedback)", "An added line was a plain form: a Bill Book chosen there skipped the Bill Book guide (no document type) and printed as 'Sheet Printing - 1/4', and it did not behave like the first item.", "Every item is built like the first one: its own service switch, the Bill Book guide, item picker, options, extras and price; one invoice, a job card per item."),
+    ("Medium", "Bill book naming (round 11)", "The invoice list, invoice page, production panel, job list and live board showed 'Sheet Printing - 1/4' for a bill book.", "They show the item as the bill does ('Bill Book - 1/4 ...')."),
+    ("High", "Invoice format (round 11, client feedback)", "The A4 invoice from the invoice page was a plain table without HSN, not Sri Jayam's own bill.", "A4 invoice = the GST INVOICE (HSN / SAC, CGST, SGST) or the CASH BILL; the invoice page shows the HSN."),
+    ("Medium", "Paper job card (round 11, client feedback)", "A visiting card ordered with a finish / lamination showed nothing of it on the paper job card.", "Every option of the order without a box of its own is written in the Remarks."),
+    ("Medium", "Delivery and proofs (round 11, client feedback)", "A delivery date could be set before a proof, only two proofs could be entered when taking the order and the delivery did not follow the proofs.", "Any number of proofs; the delivery follows the last proof and can never be before it (order, job card form, proofs panel, job update)."),
+    ("Low", "Job card list (round 11, client feedback)", "No search, and urgent jobs were moved to the top so the job numbers were out of order.", "A search box and job-number order (click the heading to turn it around); urgent jobs stay marked in red."),
 ]
 
 
@@ -111,7 +117,7 @@ all_rows = api + ui
 passed = sum(r["status"] == "PASS" for r in all_rows)
 ws.append(["Sri Jayam ERP - Test Report"])
 ws["A1"].font = Font(bold=True, size=16)
-ws.append([f"Test cycle: {date.today():%d %B %Y} (version 1.5.1)"])
+ws.append([f"Test cycle: {date.today():%d %B %Y} (version 1.6.0)"])
 ws.append([])
 facts = [
     ("Result", f"{passed} of {len(all_rows)} tests passed" + ("" if passed == len(all_rows) else f" ({len(all_rows) - passed} failed - see the test sheets)")),
@@ -190,7 +196,7 @@ if shots and os.path.isdir(shots):
             "purchase-added", "cash-ledger", "reports", "layout-1366x768", "layout-menu-390x844",
             "company-details", "hsn-codes", "printing-and-tax", "order-gst-breakdown", "bill-book-wizard", "bill-book-copies", "outsource-list",
             "purchase-upload", "financial-statement", "quotation-estimated-delivery",
-            "r10-billing-list", "r10-billing-removed", "r10-edit-without-price", "r10-edit-with-price", "r9-customer-name", "r9-final-amount", "r9-invoice-round-off", "r9-screen-print", "r9-screen-print-amounts", "r9-offset", "r9-edit-invoice", "r9-invoice-edited", "r9-credit-debit-entries", "r9-credit-debit-filter", "r9-edit-job-card", "r9-pricing-setup",
+            "r11-proof-delivery", "r11-add-line-item", "r11-add-line-billbook", "r11-payments-due", "r11-invoice-billbook", "r11-job-list", "r10-billing-list", "r10-billing-removed", "r10-edit-without-price", "r10-edit-with-price", "r9-customer-name", "r9-final-amount", "r9-invoice-round-off", "r9-screen-print", "r9-screen-print-amounts", "r9-offset", "r9-edit-invoice", "r9-invoice-edited", "r9-credit-debit-entries", "r9-credit-debit-filter", "r9-edit-job-card", "r9-pricing-setup",
             "r3-dashboard", "r3-live-board-urgent", "r3-order-visiting-card", "r3-extras-required", "r3-extras-custom", "r3-why-this-rate", "r3-discount", "r3-invoice-discount", "r3-bill-book-copies", "r3-job-card-copies", "r3-print-bands", "r3-extras-setup", "r3-product-min-qty", "r3-job-card-detail", "r3-proofs", "r3-job-cards-list", "r3-phone-dashboard",
             "my-work-designer", "my-work-on-hold", "job-tracking-delivered", "job-tracking-outside", "production-board", "production-monitor", "work-centers", "workflows", "my-work-phone"]
     for k in KEEP:

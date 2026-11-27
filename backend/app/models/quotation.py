@@ -30,6 +30,8 @@ class Quotation(Base):
     proof1_time = Column(String, nullable=True)
     proof2_date = Column(Date, nullable=True)
     proof2_time = Column(String, nullable=True)
+    # Further proofs asked for when the order was taken (Proof 3, 4 ...): [{"date": "2026-12-01", "time": "10:30"}]
+    extra_proofs = Column(JSON, nullable=True)
     delivery_date = Column(Date, nullable=True)
     delivery_time = Column(String, nullable=True)
     # Free text for a quotation, e.g. "5 working days" or "by 12 Nov" (a quotation has no proof or delivery dates).
@@ -89,6 +91,12 @@ class QuotationItem(Base):
     product = relationship("Product")
     selected_options = relationship("QuotationItemAttributeOption", cascade="all, delete-orphan")
     extra_charges = relationship("QuotationItemExtraCharge", cascade="all, delete-orphan")
+
+    @property
+    def description(self) -> str:
+        """The row as the bill prints it (item with its chosen options)."""
+        from app.services.invoice_describe import describe_item
+        return describe_item(self, self.product)
 
     @property
     def charge_lines(self):

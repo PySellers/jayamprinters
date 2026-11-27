@@ -244,6 +244,12 @@ def prefilled_sheet(db: Session, job: JobCard) -> Dict[str, Any]:
     remarks: List[str] = []
     if detail["urgent"]:
         remarks.append("URGENT - handle this job first")
+    # every option chosen on the order shows on the card: the ones with no box of their own (finish / lamination, binding type ...)
+    # are written here so nothing the customer asked for is missing
+    shown_elsewhere = set(SIZE_ATTRIBUTES) | set(PAPER_ATTRIBUTES) | set(SIDE_ATTRIBUTES) | {"Colour", "Paper Colour", "Document Type", "Copies per Set"}
+    other_options = [f"{label}: {value}" for label, value in specs.items() if label not in shown_elsewhere and value]
+    if other_options:
+        remarks.append("Order details - " + "; ".join(other_options))
     remarks.extend(detail["notes"])
     if detail["extras"]:
         remarks.append("Extras: " + "; ".join(f"{e['group']}: {e['name']}" for e in detail["extras"]))

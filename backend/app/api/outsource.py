@@ -14,7 +14,9 @@ from app.services.numbering import next_number
 from app.services.workflow_service import on_outsource_changed
 
 router = APIRouter(prefix="/outsource", tags=["outsource"])
-write_roles = [Depends(require_role(UserRole.admin, UserRole.accounts, UserRole.counter))]
+write_roles = [Depends(require_role(UserRole.admin, UserRole.accounts, UserRole.counter, UserRole.production))]
+# paying the outside company is money handling: not for the shop-floor staff login
+pay_roles = [Depends(require_role(UserRole.admin, UserRole.accounts, UserRole.counter))]
 
 
 def _out(job: OutsourceJob) -> OutsourceOut:
@@ -79,7 +81,7 @@ def update_job(job_id: int, data: OutsourceUpdate, db: Session = Depends(get_db)
     return _out(job)
 
 
-@router.post("/{job_id}/payments", response_model=OutsourceOut, dependencies=write_roles)
+@router.post("/{job_id}/payments", response_model=OutsourceOut, dependencies=pay_roles)
 def pay_job(job_id: int, data: OutsourcePayment, db: Session = Depends(get_db)):
     job = db.query(OutsourceJob).filter(OutsourceJob.id == job_id).first()
     if not job:

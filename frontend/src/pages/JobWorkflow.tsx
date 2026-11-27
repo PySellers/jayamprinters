@@ -176,7 +176,7 @@ export default function JobWorkflow() {
 
   const j = job.data;
   const customerName = customers.data?.find((c) => c.id === j?.customer_id)?.name ?? '-';
-  const productName = products.data?.find((p) => p.id === j?.product_id)?.name ?? '-';
+  const productName = j?.item_name || (products.data?.find((p) => p.id === j?.product_id)?.name ?? '-');
   const list = steps.data ?? [];
   const done = list.filter((s) => s.status === 'done').length;
   const total = list.filter((s) => s.status !== 'skipped').length;

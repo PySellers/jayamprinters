@@ -5,13 +5,14 @@ import { useForm, Controller } from 'react-hook-form';
 import {
   Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody,
   Button, IconButton, Tooltip, Chip, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent,
-  DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText, Menu,
+  DialogActions, Stack, TextField, MenuItem, Divider, List, ListItem, ListItemText, Menu, InputAdornment, TableSortLabel,
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
 import EditIcon from '@mui/icons-material/Edit';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SendIcon from '@mui/icons-material/Send';
+import SearchIcon from '@mui/icons-material/Search';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import { jobCardsApi } from '../api/jobCardsApi';
 import { deliveryChallansApi } from '../api/deliveryChallansApi';
@@ -54,6 +55,9 @@ export default function JobCards() {
   const [assigning, setAssigning] = useState<JobCard | null>(null);
   const [challanFor, setChallanFor] = useState<JobCard | null>(null);
   const [commentText, setCommentText] = useState('');
+  // The list is in job-number order (newest first, or oldest first); an urgent job is only marked in red, it is not moved up
+  const [search, setSearch] = useState('');
+  const [numberOrder, setNumberOrder] = useState<'desc' | 'asc'>('desc');
 
   const jobCardsQuery = useQuery({ queryKey: ['job-cards'], queryFn: jobCardsApi.list });
   const customersQuery = useQuery({ queryKey: ['customers'], queryFn: customersApi.list });
@@ -70,6 +74,17 @@ export default function JobCards() {
   const productName = (id: number) => productsQuery.data?.find((p) => p.id === id)?.name ?? `#${id}`;
   const userName = (id?: number | null) => (id ? usersQuery.data?.find((u) => u.id === id)?.name ?? `#${id}` : '-');
   const machineName = (id?: number | null) => (id ? machinesQuery.data?.find((m) => m.id === id)?.name ?? `#${id}` : '-');
+
+  const needle = search.trim().toLowerCase();
+  const shownJobs = [...(jobCardsQuery.data ?? [])]
+    .filter((jc) => {
+      if (!needle) return true;
+      return [
+        jc.job_number, customerName(jc.customer_id), jc.item_name || productName(jc.product_id), jc.status, jc.priority, jc.current_step ?? '',
+        userName(jc.designer_id), userName(jc.operator_id), machineName(jc.machine_id), jc.delivery_date ?? '',
+      ].some((v) => String(v).toLowerCase().includes(needle));
+    })
+    .sort((a, b) => (numberOrder === 'desc' ? b.id - a.id : a.id - b.id));
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: number; status: JobCardStatus }) => jobCardsApi.updateStatus(id, status),
@@ -119,6 +134,12 @@ export default function JobCards() {
         Job Cards
       </Typography>
 
+      <TextField
+        size="small" placeholder="Search by job number, customer, product, status or person..." value={search} onChange={(e) => setSearch(e.target.value)}
+        sx={{ mb: 2, width: { xs: '100%', sm: 480 }, bgcolor: 'white' }} data-testid="job-search"
+        slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }, htmlInput: { 'data-testid': 'job-search-input' } }}
+      />
+
       <Paper sx={{ borderRadius: 2, overflowX: 'auto' }}>
         {jobCardsQuery.isLoading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -128,7 +149,9 @@ export default function JobCards() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Job #</TableCell>
+                <TableCell sortDirection={numberOrder}>
+                  <TableSortLabel active direction={numberOrder} onClick={() => setNumberOrder((d) => (d === 'desc' ? 'asc' : 'desc'))} data-testid="sort-job-number">Job #</TableSortLabel>
+                </TableCell>
                 <TableCell>Customer</TableCell>
                 <TableCell>Product</TableCell>
                 <TableCell>Machine</TableCell>
@@ -142,7 +165,7 @@ export default function JobCards() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {[...(jobCardsQuery.data ?? [])].sort((a, b) => Number(b.priority === 'urgent' && b.status !== 'delivered') - Number(a.priority === 'urgent' && a.status !== 'delivered') || b.id - a.id).map((jc) => (
+              {shownJobs.map((jc) => (
                 <TableRow
                   key={jc.id}
                   data-urgent={jc.priority === 'urgent' && jc.status !== 'delivered' ? 'true' : 'false'}
@@ -150,7 +173,7 @@ export default function JobCards() {
                 >
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>{jc.job_number}</TableCell>
                   <TableCell>{customerName(jc.customer_id)}</TableCell>
-                  <TableCell>{productName(jc.product_id)}</TableCell>
+                  <TableCell>{jc.item_name || productName(jc.product_id)}</TableCell>
                   <TableCell>{machineName(jc.machine_id)}</TableCell>
                   <TableCell>{userName(jc.designer_id)}</TableCell>
                   <TableCell>{userName(jc.operator_id)}</TableCell>

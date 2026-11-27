@@ -248,6 +248,34 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: 'v151', title: '12b. New in version 1.6', who: 'Everyone',
+    steps: [
+      {
+        head: 'Taking an order',
+        items: [
+          'Proof & delivery: after Proof 1 and Proof 2 press "Add another proof" for as many proofs as the customer needs. The Delivery Date follows the last proof and can never be before it.',
+          '"Add Line Item" now works like the first item: choose the service for the item (a Bill Book gets the guided Bill Book form) and every item gets its own job card, while the order stays ONE invoice.',
+        ],
+      },
+      {
+        head: 'Dashboard and lists',
+        items: [
+          'Payments due: press "Record payment" on a customer to enter what they paid. A part payment lowers the balance (and you can set the new day for the rest); the full balance removes the customer from the list and marks the bill paid.',
+          'Job Cards: a search box finds a job by number, customer, product, status or person; the list is in job-number order (click "Job #" to turn it around). Urgent jobs are marked in red but not moved up.',
+          'Outsource is now in the menu of the staff login too (to send work out and follow it); costs and paying the outside company stay with Admin, Accounts and Counter.',
+        ],
+      },
+      {
+        head: 'Job card and invoice',
+        items: [
+          'The paper job card now shows every option of the order (for example the finish / lamination of a visiting card) in its Remarks.',
+          'A proof added or moved after the delivery date moves the delivery date to that day.',
+          'The invoice rows read like the bill ("Bill Book - 1/4 ...", not "Sheet Printing"), the invoice page shows the HSN / SAC, and the A4 invoice prints on Sri Jayam\'s own bill: the GST invoice with HSN, CGST and SGST (or the cash bill).',
+        ],
+      },
+    ],
+  },
+  {
     id: 'help', title: '13. Something not working?', who: 'Everyone',
     steps: [
       'The sign-in page appeared by itself: your 3 hours were up - sign in again.',

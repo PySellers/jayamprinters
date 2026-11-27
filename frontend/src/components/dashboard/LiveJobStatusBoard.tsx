@@ -166,7 +166,7 @@ export default function LiveJobStatusBoard() {
   const shown = useMemo(() => {
     const needle = search.trim().toLowerCase();
     const pick = jobs.filter((j) => {
-      if (needle && !`${j.job_number} ${customerName(j.customer_id)} ${productName(j.product_id)}`.toLowerCase().includes(needle)) return false;
+      if (needle && !`${j.job_number} ${customerName(j.customer_id)} ${j.item_name || productName(j.product_id)}`.toLowerCase().includes(needle)) return false;
       if (filter === 'all') return true;
       if (filter === 'active') return j.status !== 'delivered';
       if (filter === 'urgent') return j.status !== 'delivered' && j.priority === 'urgent';
@@ -329,7 +329,7 @@ export default function LiveJobStatusBoard() {
                   {!isFolded && (
                     <Stack spacing={0.9}>
                       {list.map((job) => (
-                        <JobRow key={job.id} job={job} customer={customerName(job.customer_id)} product={productName(job.product_id)} />
+                        <JobRow key={job.id} job={job} customer={customerName(job.customer_id)} product={job.item_name || productName(job.product_id)} />
                       ))}
                       {g.jobs.length > PAGE && !more[g.id] && (
                         <Button size="small" onClick={() => setMore((m) => ({ ...m, [g.id]: true }))} data-testid="section-more">Show all {g.jobs.length} {g.name} jobs ({g.jobs.length - PAGE} more)</Button>

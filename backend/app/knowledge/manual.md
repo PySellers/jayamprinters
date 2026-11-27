@@ -92,6 +92,16 @@ Keywords: wedding invitation, screen print, offset, card amount, printing charge
 Link: /dashboard
 For "Wedding Invitation - Screen Print" choose the Screen Print occasion (Wedding Invitation, House Warming, Baby Shower, Birthday or Custom - type it) and the Method (Invitation, Thamboolam Bag, Visiting Card, Pen, Diary or Custom - type it); Paper/Board Type can be Nil. For "Wedding Invitation - Offset" choose the Size (A5, A4 or Custom - type it). Both items let you type the Printing Charge and the Card Amount: the card amount is per card or for the whole order (the Per card / Whole order switch). The total is card amount + printing charge, and the same total goes to the quotation, the billing summary and the final invoice. The Admin switches this on for other items in Pricing Setup > Items ("Counter types the Card Amount and Printing Charge").
 
+## Proofs and the delivery date - n proofs, delivery on or after the last proof
+Keywords: proofs, more proofs, more than two proofs, how do I add more than two proofs, additional proof, extra proof, add another proof, n proofs, proof 3, proof 4, many proofs, order proofs, delivery date, delivery before proof, delivery same as proof, last proof, proof date and delivery date
+Link: /dashboard
+In Start New Order > Proof & delivery fill Proof 1 (date and time) and, if needed, Proof 2; then press "Add another proof" as many times as the customer needs (Proof 3, 4 ...). The Delivery Date follows the last proof by itself and can be set later but never before it: a delivery date before the last proof is refused. Every proof becomes a proof of the job card; adding or moving a proof later (on the job card, or on the paper job card) after the delivery date moves the delivery date to that proof's day.
+
+## Several jobs for one customer - Add Line Item
+Keywords: add line item, add line, another service, another item, multiple jobs, many jobs, several jobs, one invoice, one bill, same order, add item, second item, different service, line item
+Link: /dashboard
+One order can carry several jobs: press "Add Line Item" under the first item and, if the job is another service, change "Service for this item". Every added item works exactly like the first one - a Bill Book gets the guided Bill Book form, other services their options, extras and price - and shows in the price panel. The order gives ONE invoice (one bill) for the customer and a separate job card for every item, each with its own number, status and print.
+
 ## Customer's earlier orders
 Keywords: previous orders, earlier orders, history, frequent customer, regular customer, past jobs, order history
 Link: /quotations/new
@@ -108,9 +118,9 @@ Link: /invoices
 Every payment (customer invoices, purchases and outsourced jobs) can carry its transaction details: the method, the reference or UTR number, the UPI id, the bank details, and an uploaded photo or PDF of the UPI screen or transfer slip. Choose the method in the payment box and the matching boxes appear. A paperclip shows on a payment that has a receipt; click it to open it.
 
 ## Paying the balance later and payment reminders
-Keywords: pay later, pay later date, balance, due, reminder, notify, remind, credit, outstanding, promised date, collect
+Keywords: pay later, pay later date, balance, due, reminder, notify, remind, credit, outstanding, promised date, collect, overdue, customer paid, paid the balance, update overdue, record payment, mark paid, overdue customers
 Link: /dashboard
-If the customer will pay the remaining amount later, set "Balance will be paid by" (a date) on the order screen or on the invoice page. Payments that are due today or overdue appear on the Dashboard under "Payments due" with the customer, the amount and a Remind button that opens a ready WhatsApp message with the remaining amount. The same date is printed on the bill.
+When the customer pays - also an overdue balance - press "Record payment" on their line in "Payments due": the amount defaults to the full balance (change it for a part payment), choose how it was paid and save. The balance, the overdue mark and the bill's status update at once; a part payment keeps the customer on the list until the rest is paid (you can give the new day for the rest). If the customer will pay the remaining amount later, set "Balance will be paid by" (a date) on the order screen or on the invoice page. Payments that are due today or overdue appear on the Dashboard under "Payments due" with the customer, the amount and a Remind button that opens a ready WhatsApp message with the remaining amount. The same date is printed on the bill.
 
 ## Invoices, GST bill, cash bill and printing
 Keywords: invoice, bill, gst bill, cash bill, print bill, pdf, download bill, a4, thermal, tax invoice, without gst
@@ -133,9 +143,9 @@ Link: /job-cards
 In Job Cards press the DC button of a job to make its delivery challan. The printed challan is a white form with blue outlines, meant to be printed on the shop's yellow challan paper. It shows the number, date, the customer to deliver to and the particulars with quantities.
 
 ## Job cards list and printing the paper job card
-Keywords: job card, print job card, paper job card, printable, print, job sheet, printing job card, a5, a4, page size, print size, what size, paper size of the job card
+Keywords: search job card, find job card, job card order, job number order, sort job cards, job card, print job card, paper job card, printable, print, job sheet, printing job card, a5, a4, page size, print size, what size, paper size of the job card
 Link: /job-cards
-In the Job Cards list every row has a Print button at the end of the line: it opens the paper job card ready to print. Next to it are the other buttons (Delivery challan, Track, Assign, Open). The paper job card is printed on A5 landscape - 210 x 148 mm, yes it is A5 - (sized to fit the whole page, nothing cut off; the size is written under the card and the PDF asks the printer to print at actual size, so choose A5 paper in the print window) and contains only the parts that belong to the job's service. The pencil button at the end of the line is Edit job card.
+In the Job Cards list every row has a Print button at the end of the line: it opens the paper job card ready to print. Next to it are the other buttons (Delivery challan, Track, Assign, Edit). The Job Cards list has a search box (job number, customer, product, status, person) and is in job-number order, newest first - click "Job #" to turn it around; an urgent job is marked in red but is not moved up. The paper job card is printed on A5 landscape - 210 x 148 mm, yes it is A5 - (sized to fit the whole page, nothing cut off; the size is written under the card and the PDF asks the printer to print at actual size, so choose A5 paper in the print window) and contains only the parts that belong to the job's service. The pencil button at the end of the line is Edit job card.
 
 ## Editing a job card (with and without price)
 Keywords: edit without price, edit with price, which copy, shop floor copy, office copy, edit option not enabled, edit button, edit job card, change job card, correct job card, job card edit, change proof date, change delivery date, change paper, change price on job card, edit price list, modify job card, update job card
@@ -163,9 +173,9 @@ Link: /job-cards
 In the Tasks panel of a job press Add a task, type the name, choose which task it comes after, the section and optionally the person. The new task takes the stage of its neighbour so the job status does not jump. It cannot go in front of work that is already finished.
 
 ## Design proofs
-Keywords: proof, design proof, approval, send proof, approved, changes needed, proof date
+Keywords: proof, design proof, approval, send proof, approved, changes needed, proof date, add proof, more proofs
 Link: /job-cards
-A job's design proofs (Proof 1, Proof 2 ...) have a due date and time and a person looking after them. Mark each one Sent, Approved or Changes needed. The job moves on to printing after the proofs are approved.
+A job's design proofs (Proof 1, Proof 2 ...) have a due date and time and a person looking after them. Mark each one Sent, Approved or Changes needed. Add a proof with "Add a proof" whenever the customer wants another round; a proof dated after the delivery date moves the delivery date to that day. The job moves on to printing after the proofs are approved.
 
 ## Production workflow, steps and sections
 Keywords: workflow, steps, production, sections, work center, work centre, stage, flow, templates, board
@@ -215,7 +225,7 @@ When an item falls to its reorder level or to zero, the Dashboard shows "Stock t
 ## Outsourced jobs
 Keywords: outsource, outsourcing, outside press, vendor job, send out, outside work, margin
 Link: /outsource
-Outsourced jobs are jobs sent to an outside company. Record the company, what was sent, the cost to us and the price billed to the customer. Payments to the outside company can be recorded with their transaction details and receipt, and the job's progress appears in the job's steps.
+Outsourced jobs are jobs sent to an outside company. Record the company, what was sent, the cost to us and the price billed to the customer. The staff (production) login can open Outsource to see the work that is out, send new work out and update its status (received, ...); costs, prices and paying the outside company are only for Admin, Accounts and Counter. Payments to the outside company can be recorded with their transaction details and receipt, and the job's progress appears in the job's steps.
 
 ## Cash ledger and cheques
 Keywords: cash, cash ledger, cheque, cash in hand, bank deposit, daybook, expense, receipt

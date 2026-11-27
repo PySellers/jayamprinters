@@ -74,6 +74,13 @@ def product_of(db: Session, product_id: int):
 def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
     if not db.query(Customer.id).filter(Customer.id == payload.customer_id).first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+    # the delivery can be on the last proof's day or later, never before it
+    proof_days = [d for d in (payload.proof1_date, payload.proof2_date, *[p.date for p in payload.extra_proofs]) if d is not None]
+    if payload.delivery_date and proof_days and payload.delivery_date < max(proof_days):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The delivery date ({payload.delivery_date:%d-%m-%Y}) cannot be before the last proof date ({max(proof_days):%d-%m-%Y})",
+        )
     quotation = Quotation(
         quotation_number=generate_quotation_number(db, payload.is_order),
         customer_id=payload.customer_id,
@@ -84,6 +91,7 @@ def create_quotation(db: Session, payload: QuotationCreate) -> Quotation:
         proof1_time=payload.proof1_time,
         proof2_date=payload.proof2_date,
         proof2_time=payload.proof2_time,
+        extra_proofs=[{"date": p.date.isoformat(), "time": p.time or None} for p in payload.extra_proofs] or None,
         delivery_date=payload.delivery_date,
         delivery_time=payload.delivery_time,
         estimated_delivery=(payload.estimated_delivery or None),

@@ -138,7 +138,10 @@ export default function QuickOrderForm() {
   const [proof1Time, setProof1Time] = useState(proofSlot.time);
   const [proof2Date, setProof2Date] = useState('');
   const [proof2Time, setProof2Time] = useState('');
+  // Proof 3, 4 ... as many as the customer needs
+  const [moreProofs, setMoreProofs] = useState<{ date: string; time: string }[]>([]);
   const [deliveryDate, setDeliveryDate] = useState(proofSlot.date);
+  const [deliveryTouched, setDeliveryTouched] = useState(false);
   const [deliveryTime, setDeliveryTime] = useState('');
   const [service, setService] = useState<ProductCategory | null>(null);
   const [serviceFilter, setServiceFilter] = useState('');
@@ -148,6 +151,14 @@ export default function QuickOrderForm() {
   const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
   const [lookupNotice, setLookupNotice] = useState('');
+
+  // The delivery is on the day of the LAST proof or later, never before it: it follows the last proof until it is typed by hand,
+  // and it is moved up whenever a proof is set after it.
+  const lastProofDate = [proof1Date, proof2Date, ...moreProofs.map((p) => p.date)].filter(Boolean).sort().pop() ?? '';
+  useEffect(() => {
+    if (lastProofDate && (!deliveryTouched || (deliveryDate && deliveryDate < lastProofDate))) setDeliveryDate(lastProofDate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastProofDate]);
 
   // Keep the "Time" chip ticking so it always shows the current order time.
   useEffect(() => {
@@ -266,10 +277,10 @@ export default function QuickOrderForm() {
     if (!proof1Date) e.proof1Date = 'Required';
     if (!proof1Time) e.proof1Time = 'Required — when the first design proof is due';
     if (!deliveryDate) e.deliveryDate = 'Required';
-    else if (proof1Date && deliveryDate < proof1Date) e.deliveryDate = 'Cannot be before Proof 1';
+    else if (lastProofDate && deliveryDate < lastProofDate) e.deliveryDate = `Cannot be before the last proof (${lastProofDate.split('-').reverse().join('-')})`;
     if (!service) e.service = 'Choose a service';
     return e;
-  }, [billingName, phone, whatsapp, email, gstin, withGst, proof1Date, proof1Time, deliveryDate, service]);
+  }, [billingName, phone, whatsapp, email, gstin, withGst, proof1Date, proof1Time, deliveryDate, lastProofDate, service]);
 
   const touch = (k: FieldKey) => () => setTouched((t) => ({ ...t, [k]: true }));
   const showError = (k: FieldKey) => Boolean(errors[k]) && (submitted || Boolean(touched[k]));
@@ -323,6 +334,7 @@ export default function QuickOrderForm() {
         proof1Time,
         proof2Date,
         proof2Time,
+        ...(moreProofs.some((p) => p.date) ? { moreProofs: JSON.stringify(moreProofs.filter((p) => p.date)) } : {}),
         deliveryDate,
         deliveryTime,
         ...(urgent ? { priority: 'urgent' } : {}),
@@ -636,13 +648,35 @@ export default function QuickOrderForm() {
             <TextField {...small} label="Proof 2 Time" type="time" value={proof2Time} onChange={(e) => setProof2Time(e.target.value)} {...dateProps} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4 }}>
-            <TextField id={FIELD_ID.deliveryDate} {...small} label="Delivery Date" type="date" required value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} onBlur={touch('deliveryDate')} error={showError('deliveryDate')} helperText={helper('deliveryDate')} {...dateProps} />
+            <TextField id={FIELD_ID.deliveryDate} {...small} label="Delivery Date" type="date" required value={deliveryDate} onChange={(e) => { setDeliveryDate(e.target.value); setDeliveryTouched(true); }} onBlur={touch('deliveryDate')} error={showError('deliveryDate')} helperText={helper('deliveryDate', lastProofDate ? 'On or after the last proof' : undefined)} {...dateProps} slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: lastProofDate || undefined, 'data-testid': 'delivery-date' } }} />
           </Grid>
           <Grid size={{ xs: 6, sm: 2 }}>
             <TextField {...small} label="Delivery Time" type="time" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)} {...dateProps} />
           </Grid>
-          <Grid size={{ xs: 12, sm: 4 }} sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">More proofs can be added on the job card later.</Typography>
+          {moreProofs.map((p, i) => (
+            <Grid size={{ xs: 12 }} key={i} data-testid={`extra-proof-${i}`}>
+              <Grid container spacing={1.25} sx={{ alignItems: 'center' }}>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <TextField {...small} label={`Proof ${i + 3} Date`} type="date" value={p.date} onChange={(e) => setMoreProofs((l) => l.map((x, k) => (k === i ? { ...x, date: e.target.value } : x)))} {...dateProps}
+                    slotProps={{ inputLabel: { shrink: true }, htmlInput: { 'data-testid': `extra-proof-date-${i}` } }} />
+                </Grid>
+                <Grid size={{ xs: 5, sm: 2 }}>
+                  <TextField {...small} label={`Proof ${i + 3} Time`} type="time" value={p.time} onChange={(e) => setMoreProofs((l) => l.map((x, k) => (k === i ? { ...x, time: e.target.value } : x)))} {...dateProps}
+                    slotProps={{ inputLabel: { shrink: true }, htmlInput: { 'data-testid': `extra-proof-time-${i}` } }} />
+                </Grid>
+                <Grid size={{ xs: 1 }}>
+                  <Tooltip title="Remove this proof">
+                    <IconButton size="small" aria-label="Remove proof" data-testid={`extra-proof-remove-${i}`} onClick={() => setMoreProofs((l) => l.filter((_, k) => k !== i))}><CloseIcon fontSize="small" /></IconButton>
+                  </Tooltip>
+                </Grid>
+              </Grid>
+            </Grid>
+          ))}
+          <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Button size="small" disabled={!proof2Date} data-testid="add-proof" onClick={() => setMoreProofs((l) => [...l, { date: lastProofDate || deliveryDate || todayDateString(), time: '' }])}>
+              + Add another proof
+            </Button>
+            <Typography variant="caption" color="text.secondary">As many proofs as the customer needs (fill Proof 2 first). The delivery date is on or after the last proof.</Typography>
           </Grid>
         </Grid>
       </Section>

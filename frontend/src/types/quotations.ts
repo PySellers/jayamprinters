@@ -44,6 +44,8 @@ export interface ChargeLine {
 export interface QuotationItem {
   id: number;
   product_id: number;
+  /** The row as the bill prints it (item with its chosen options). */
+  description?: string | null;
   quantity: number;
   area_sqft?: number | null;
   unit_price: number;
@@ -71,6 +73,12 @@ export type DiscountType = 'percent' | 'amount';
 /** Invitation cards: the typed card amount is per card or for the whole order. */
 export type CardAmountMode = 'per_card' | 'total';
 
+/** One more design proof asked for with the order (Proof 3, 4 ...). */
+export interface ProofSlot {
+  date: string;
+  time?: string | null;
+}
+
 export interface Quotation {
   id: number;
   quotation_number: string;
@@ -93,6 +101,7 @@ export interface Quotation {
   proof1_time?: string | null;
   proof2_date?: string | null;
   proof2_time?: string | null;
+  extra_proofs?: ProofSlot[] | null;
   delivery_date?: string | null;
   delivery_time?: string | null;
   created_at: string;
@@ -133,6 +142,7 @@ export interface QuotationCreateInput {
   proof1_time?: string | null;
   proof2_date?: string | null;
   proof2_time?: string | null;
+  extra_proofs?: ProofSlot[];
   delivery_date?: string | null;
   delivery_time?: string | null;
   estimated_delivery?: string | null;
