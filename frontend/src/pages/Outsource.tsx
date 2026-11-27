@@ -57,6 +57,8 @@ export default function Outsource() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
+  // The shop-floor staff login sends work out and follows it; costs, prices, margin and paying the outside company stay with the money roles
+  const canSeeMoney = user?.role !== 'production';
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<OutsourceJob | null>(null);
   const [form, setForm] = useState<FormState>(blank());
@@ -165,18 +167,18 @@ export default function Outsource() {
         <Button variant="contained" startIcon={<AddIcon />} sx={{ bgcolor: '#1a237e' }} onClick={openCreate}>New Outsource Job</Button>
       </Box>
       <Typography color="text.secondary" sx={{ mb: 2 }}>
-        Work sent to an outside company and handed back to our customer — what it costs us, what we bill, and the margin.
+        {canSeeMoney ? 'Work sent to an outside company and handed back to our customer — what it costs us, what we bill, and the margin.' : 'Work sent to an outside company and handed back to our customer — who has it, when it was sent and when it is expected back.'}
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-        {[['Outside cost', money(totals.cost)], ['Billed to customers', money(totals.price)], ['Margin', money(totals.price - totals.cost)], ['Still to pay outside', money(totals.owed)]].map(([k, v]) => (
+        {canSeeMoney && [['Outside cost', money(totals.cost)], ['Billed to customers', money(totals.price)], ['Margin', money(totals.price - totals.cost)], ['Still to pay outside', money(totals.owed)]].map(([k, v]) => (
           <Paper key={k} variant="outlined" sx={{ px: 2, py: 1, borderRadius: 2, minWidth: 170 }}>
             <Typography variant="caption" color="text.secondary">{k}</Typography>
             <Typography variant="h6" sx={{ fontWeight: 800 }}>{v}</Typography>
           </Paper>
         ))}
         <Box sx={{ ml: 'auto', display: 'flex', gap: 1, alignItems: 'center' }}>
-          {([['all', 'All'], ['open', 'Out with the press'], ['unpaid', 'Unpaid to press']] as const).map(([k, label]) => (
+          {([['all', 'All'], ['open', 'Out with the press'], ['unpaid', 'Unpaid to press']] as const).filter(([k]) => canSeeMoney || k !== 'unpaid').map(([k, label]) => (
             <Chip key={k} label={label} color={filter === k ? 'primary' : 'default'} onClick={() => setFilter(k)} />
           ))}
         </Box>
@@ -196,10 +198,10 @@ export default function Outsource() {
                 <TableCell align="right">Qty</TableCell>
                 <TableCell>Sent / expected</TableCell>
                 <TableCell>Status</TableCell>
-                <TableCell align="right">Cost</TableCell>
-                <TableCell align="right">Billed</TableCell>
-                <TableCell align="right">Margin</TableCell>
-                <TableCell align="right">To pay</TableCell>
+                {canSeeMoney && <TableCell align="right">Cost</TableCell>}
+                {canSeeMoney && <TableCell align="right">Billed</TableCell>}
+                {canSeeMoney && <TableCell align="right">Margin</TableCell>}
+                {canSeeMoney && <TableCell align="right">To pay</TableCell>}
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -220,12 +222,12 @@ export default function Outsource() {
                       {STATUSES.map((s) => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
                     </TextField>
                   </TableCell>
-                  <TableCell align="right">{money(j.cost_amount)}</TableCell>
-                  <TableCell align="right">{money(j.customer_price)}</TableCell>
-                  <TableCell align="right" sx={{ color: j.margin < 0 ? 'error.main' : 'success.main', fontWeight: 700 }}>{money(j.margin)}</TableCell>
-                  <TableCell align="right">{j.balance_to_pay > 0 ? <strong>{money(j.balance_to_pay)}</strong> : <Chip size="small" color="success" label="Paid" />}</TableCell>
+                  {canSeeMoney && <TableCell align="right">{money(j.cost_amount)}</TableCell>}
+                  {canSeeMoney && <TableCell align="right">{money(j.customer_price)}</TableCell>}
+                  {canSeeMoney && <TableCell align="right" sx={{ color: j.margin < 0 ? 'error.main' : 'success.main', fontWeight: 700 }}>{money(j.margin)}</TableCell>}
+                  {canSeeMoney && <TableCell align="right">{j.balance_to_pay > 0 ? <strong>{money(j.balance_to_pay)}</strong> : <Chip size="small" color="success" label="Paid" />}</TableCell>}
                   <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                    {j.balance_to_pay > 0 && <IconButton size="small" aria-label="Pay outside company" onClick={() => { setPaying(j); setPayAmount(String(j.balance_to_pay)); setPayDetails(emptyPaymentDetails()); pay.reset(); }}><PaymentsIcon fontSize="small" /></IconButton>}
+                    {canSeeMoney && j.balance_to_pay > 0 && <IconButton size="small" aria-label="Pay outside company" onClick={() => { setPaying(j); setPayAmount(String(j.balance_to_pay)); setPayDetails(emptyPaymentDetails()); pay.reset(); }}><PaymentsIcon fontSize="small" /></IconButton>}
                     <IconButton size="small" aria-label="Edit" onClick={() => openEdit(j)}><EditIcon fontSize="small" /></IconButton>
                     {isAdmin && <IconButton size="small" aria-label="Delete" onClick={() => setDeleting(j)}><DeleteIcon fontSize="small" /></IconButton>}
                   </TableCell>
@@ -268,11 +270,13 @@ export default function Outsource() {
                 {STATUSES.map((s) => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
               </TextField>
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}><TextField fullWidth label="Cost (paid to outside company)" type="number" value={form.cost} onChange={(e) => set('cost', e.target.value)} slotProps={MONEY_PROPS} /></Grid>
-            <Grid size={{ xs: 12, sm: 4 }}><TextField fullWidth label="Price billed to customer" type="number" value={form.price} onChange={(e) => set('price', e.target.value)} slotProps={MONEY_PROPS} /></Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField fullWidth label="Margin" disabled value={money((Number(form.price) || 0) - (Number(form.cost) || 0))} />
-            </Grid>
+            {canSeeMoney && <Grid size={{ xs: 12, sm: 4 }}><TextField fullWidth label="Cost (paid to outside company)" type="number" value={form.cost} onChange={(e) => set('cost', e.target.value)} slotProps={MONEY_PROPS} /></Grid>}
+            {canSeeMoney && <Grid size={{ xs: 12, sm: 4 }}><TextField fullWidth label="Price billed to customer" type="number" value={form.price} onChange={(e) => set('price', e.target.value)} slotProps={MONEY_PROPS} /></Grid>}
+            {canSeeMoney && (
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField fullWidth label="Margin" disabled value={money((Number(form.price) || 0) - (Number(form.cost) || 0))} />
+              </Grid>
+            )}
             <Grid size={{ xs: 12 }}><TextField fullWidth label="Notes" value={form.notes} onChange={(e) => set('notes', e.target.value)} /></Grid>
           </Grid>
         </DialogContent>

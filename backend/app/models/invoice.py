@@ -90,6 +90,13 @@ class InvoiceItem(Base):
 
     invoice = relationship("Invoice", back_populates="items")
     selected_options = relationship("InvoiceItemAttributeOption", cascade="all, delete-orphan")
+    product = relationship("Product")
+
+    @property
+    def description(self) -> str:
+        """The row as the bill prints it (item with its chosen options; a bill book reads "Bill Book - 1/4 (...)")."""
+        from app.services.invoice_describe import describe_item
+        return describe_item(self, self.product)
 
 
 class InvoiceItemAttributeOption(Base):

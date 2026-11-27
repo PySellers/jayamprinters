@@ -11,7 +11,7 @@ from app.models.user import UserRole
 app = FastAPI(
     title="Sri Jayam Printers ERP",
     description="Cloud-based Printing ERP System",
-    version="1.5.1"
+    version="1.6.0"
 )
 
 app.add_middleware(

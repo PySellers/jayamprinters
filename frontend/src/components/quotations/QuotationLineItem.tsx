@@ -23,11 +23,13 @@ interface QuotationLineItemProps {
   lockedServiceId?: number | null;
   /** Show the "extras need an answer" errors (after a failed submit). */
   showErrors?: boolean;
+  /** The remove button is drawn by the line's header instead. */
+  hideRemove?: boolean;
 }
 
 const money = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export default function QuotationLineItem({ index, onRemove, canRemove, previewItem, lockedServiceId = null, showErrors }: QuotationLineItemProps) {
+export default function QuotationLineItem({ index, onRemove, canRemove, previewItem, lockedServiceId = null, showErrors, hideRemove }: QuotationLineItemProps) {
   const { control, register, setValue, formState: { errors } } = useFormContext<QuotationCreateInput>();
 
   const productId = useWatch({ control, name: `items.${index}.product_id` });
@@ -257,11 +259,13 @@ export default function QuotationLineItem({ index, onRemove, canRemove, previewI
             />
           )}
         </Grid>
-        <Grid size={{ xs: 4, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', ml: 'auto' }}>
-          <IconButton aria-label="Remove line" onClick={onRemove} disabled={!canRemove}>
-            <DeleteIcon />
-          </IconButton>
-        </Grid>
+        {!hideRemove && (
+          <Grid size={{ xs: 4, sm: 1 }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', ml: 'auto' }}>
+            <IconButton aria-label="Remove line" onClick={onRemove} disabled={!canRemove}>
+              <DeleteIcon />
+            </IconButton>
+          </Grid>
+        )}
 
         {previewItem && (
           <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2, py: 0.5, flexWrap: 'wrap' }}>

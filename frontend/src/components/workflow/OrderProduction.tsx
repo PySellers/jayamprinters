@@ -33,7 +33,7 @@ export default function OrderProduction({ quotationId }: { quotationId: number }
           {mine.map((j) => (
             <TableRow key={j.id}>
               <TableCell>{j.job_number}</TableCell>
-              <TableCell>{productName(j.product_id)}</TableCell>
+              <TableCell>{j.item_name || productName(j.product_id)}</TableCell>
               <TableCell>
                 {j.status === 'delivered' ? (
                   <Chip size="small" color="success" label="Delivered" />

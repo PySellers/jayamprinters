@@ -749,6 +749,6 @@ def run_all():
 
     def t():
         r = api("GET", "/auth/about", token=admin())
-        expect(r.data["version"] == "1.5.1", r.data)
-        return "About shows version 1.5.1"
-    run("R9H", M_CHAT, "Version 1.5.1", "Version in About", t)
+        expect(r.data["version"] == "1.6.0", r.data)
+        return "About shows version 1.6.0"
+    run("R9H", M_CHAT, "Version 1.6.0", "Version in About", t)

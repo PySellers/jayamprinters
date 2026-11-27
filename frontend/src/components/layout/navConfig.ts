@@ -44,7 +44,7 @@ export const mainNavItems: NavItem[] = [
   { label: 'Pricing Setup', path: '/pricing-setup', icon: PriceChangeIcon, roles: ['admin'] },
   { label: 'Purchases', path: '/purchases', icon: ShoppingCartIcon, roles: ['admin', 'accounts'] },
   { label: 'Inventory', path: '/inventory', icon: WarehouseIcon },
-  { label: 'Outsource', path: '/outsource', icon: LocalShippingIcon, roles: ['admin', 'accounts', 'counter'] },
+  { label: 'Outsource', path: '/outsource', icon: LocalShippingIcon, roles: ['admin', 'accounts', 'counter', 'production'] },
   { label: 'Cash Ledger', path: '/cash-ledger', icon: AccountBalanceIcon, roles: ['admin', 'accounts'] },
   { label: 'Credit / Debit', path: '/credit-debit', icon: SwapVertIcon, roles: ['admin', 'accounts', 'counter'] },
   { label: 'Reports', path: '/reports', icon: BarChartIcon, roles: ['admin'] },

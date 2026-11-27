@@ -5,6 +5,8 @@ import type { BreakdownRow } from './quotations';
 export interface InvoiceItem {
   id: number;
   product_id?: number | null;
+  /** The row as the bill prints it (item with its chosen options; a bill book reads "Bill Book - 1/4 (...)"). */
+  description?: string | null;
   quantity: number;
   unit_price: number;
   total_price: number;

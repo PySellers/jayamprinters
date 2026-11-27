@@ -54,6 +54,8 @@ class QuotationItemCreate(BaseModel):
 class QuotationItemOut(BaseModel):
     id: int
     product_id: int
+    # the row as the bill prints it (item with its chosen options)
+    description: Optional[str] = None
     quantity: int
     area_sqft: Optional[float]
     unit_price: float
@@ -79,6 +81,12 @@ class QuotationItemOut(BaseModel):
     class Config:
         from_attributes = True
 
+class ProofSlot(BaseModel):
+    """One more design proof asked for when the order is taken."""
+    date: date
+    time: Optional[str] = None
+
+
 class QuotationCreate(BaseModel):
     customer_id: int
     tax_id: Optional[int] = None
@@ -89,6 +97,8 @@ class QuotationCreate(BaseModel):
     proof1_time: Optional[str] = None
     proof2_date: Optional[date] = None
     proof2_time: Optional[str] = None
+    # Proof 3, 4 ... (as many as the customer needs)
+    extra_proofs: List[ProofSlot] = Field(default=[], max_length=20)
     delivery_date: Optional[date] = None
     delivery_time: Optional[str] = None
     estimated_delivery: Optional[str] = None
@@ -122,6 +132,7 @@ class QuotationOut(BaseModel):
     proof1_time: Optional[str] = None
     proof2_date: Optional[date] = None
     proof2_time: Optional[str] = None
+    extra_proofs: Optional[List[dict]] = None
     delivery_date: Optional[date] = None
     delivery_time: Optional[str] = None
     estimated_delivery: Optional[str] = None

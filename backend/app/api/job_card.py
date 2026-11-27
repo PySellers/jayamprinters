@@ -38,6 +38,8 @@ def _out(job_card: JobCard) -> JobCardOut:
     for key, value in proof_service.proofs_summary(job_card).items():
         setattr(out, key, value)
     out.quantity = job_card.quotation_item.quantity if job_card.quotation_item is not None else None
+    from app.services.bill_pdf_service import display_name
+    out.item_name = display_name(job_card.product, job_card.quotation_item)
     return out
 
 
@@ -91,6 +93,13 @@ def update_job_card(job_card_id: int, data: JobCardUpdate, db: Session = Depends
     if not job_card:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job card not found")
     changes = data.model_dump(exclude_unset=True)
+    if changes.get("delivery_date") is not None:
+        last = proof_service.last_proof_day(job_card)
+        if last is not None and changes["delivery_date"] < last:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"The delivery date ({changes['delivery_date']:%d-%m-%Y}) cannot be before the last proof date ({last:%d-%m-%Y})",
+            )
     for key, value in changes.items():
         setattr(job_card, key, value)
     _assign_from_legacy_fields(db, job_card, user, designer=changes.get("designer_id"), operator=changes.get("operator_id"))

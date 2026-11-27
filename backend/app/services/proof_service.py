@@ -1,6 +1,6 @@
 """Design proofs of a job card: Proof 1, Proof 2 ... as many as the customer needs, each with a due time,
 a status and the person looking after it."""
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, status
@@ -39,6 +39,8 @@ def proof_view(proof: JobProof) -> Dict[str, Any]:
         "sent_at": proof.sent_at,
         "decided_at": proof.decided_at,
         "overdue": overdue,
+        # set when adding / moving this proof pushed the job's delivery date to the proof's day
+        "delivery_moved_to": getattr(proof, "delivery_moved_to", None),
     }
 
 
@@ -67,14 +69,41 @@ def create_proofs_from_order(db: Session, job: JobCard, quotation) -> None:
     """Proof 1 (and Proof 2 when given) of the order become proofs of the job card."""
     if job.proofs or quotation is None:
         return
-    for number, day, time in ((1, quotation.proof1_date, quotation.proof1_time), (2, quotation.proof2_date, quotation.proof2_time)):
-        if day is not None or (number == 1):
-            db.add(JobProof(job_card_id=job.id, number=number, due_date=day, due_time=time or None, status="scheduled"))
+    slots = [(quotation.proof1_date, quotation.proof1_time)]
+    if quotation.proof2_date is not None:
+        slots.append((quotation.proof2_date, quotation.proof2_time))
+    for extra in quotation.extra_proofs or []:  # Proof 3, 4 ... asked for with the order
+        try:
+            slots.append((date.fromisoformat(str(extra.get("date"))), extra.get("time")))
+        except (TypeError, ValueError):
+            continue
+    for number, (day, time) in enumerate(slots, start=1):
+        db.add(JobProof(job_card_id=job.id, number=number, due_date=day, due_time=time or None, status="scheduled"))
     db.flush()
 
 
 def list_proofs(job: JobCard) -> List[Dict[str, Any]]:
     return [proof_view(p) for p in sorted(job.proofs, key=lambda p: p.number)]
+
+
+def last_proof_day(job: JobCard) -> Optional[date]:
+    """The latest due day among the proofs of the job (the delivery can be on that day or later)."""
+    days = [p.due_date for p in job.proofs if p.due_date is not None]
+    return max(days) if days else None
+
+
+def sync_delivery(db: Session, job: JobCard, user: Optional[User] = None) -> Optional[date]:
+    """A delivery date before the last proof is not possible: move it to the last proof's day. Returns the new day when it moved."""
+    last = last_proof_day(job)
+    if last is None or (job.delivery_date is not None and job.delivery_date >= last):
+        return None
+    job.delivery_date = last
+    sheet = dict(job.sheet_data or {})
+    if sheet.get("delivery_date"):
+        sheet["delivery_date"] = last.isoformat()
+        job.sheet_data = sheet
+    wf.log(db, job, None, user, "delivery_moved", f"Delivery date moved to {last:%d-%m-%Y} (the last proof)")
+    return last
 
 
 def add_proof(db: Session, job: JobCard, user: Optional[User], due_date=None, due_time=None, notes=None, handled_by=None) -> JobProof:
@@ -84,6 +113,8 @@ def add_proof(db: Session, job: JobCard, user: Optional[User], due_date=None, du
     db.add(proof)
     db.flush()
     wf.log(db, job, None, user, "proof_added", f"Proof {number} planned")
+    db.refresh(job)
+    proof.delivery_moved_to = sync_delivery(db, job, user)
     return proof
 
 
@@ -109,4 +140,8 @@ def update_proof(db: Session, proof: JobProof, user: Optional[User], changes: Di
             proof.decided_at = None
         if job is not None:
             wf.log(db, job, None, user, f"proof_{new_status}", f"Proof {proof.number}: {PROOF_STATUS_LABEL[new_status]}")
+    if job is not None and "due_date" in changes:
+        db.flush()
+        db.refresh(job)
+        proof.delivery_moved_to = sync_delivery(db, job, user)
     return proof

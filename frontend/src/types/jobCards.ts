@@ -3,6 +3,8 @@ import type { JobCardPriority, JobCardStatus } from './common';
 export interface JobCard {
   id: number;
   job_number: string;
+  /** The item as the bill names it (a bill book reads "Bill Book - 1/4"). */
+  item_name?: string | null;
   quotation_item_id?: number | null;
   customer_id: number;
   product_id: number;
@@ -49,6 +51,8 @@ export interface JobProof {
   sent_at?: string | null;
   decided_at?: string | null;
   overdue: boolean;
+  /** Set when adding / moving this proof pushed the delivery date to its day. */
+  delivery_moved_to?: string | null;
 }
 
 export interface JobCardDetail {

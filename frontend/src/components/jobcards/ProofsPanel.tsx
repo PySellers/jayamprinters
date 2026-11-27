@@ -35,19 +35,28 @@ export default function ProofsPanel({ jobCardId, canEdit = true }: { jobCardId: 
   const [dueTime, setDueTime] = useState('');
   const [notes, setNotes] = useState('');
   const [handler, setHandler] = useState<number | ''>('');
+  const [movedNote, setMovedNote] = useState<string | null>(null);
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['job-proofs', jobCardId] });
     queryClient.invalidateQueries({ queryKey: ['job-card-detail', jobCardId] });
     queryClient.invalidateQueries({ queryKey: ['job-cards'] });
   };
+  // a proof set after the delivery date moves the delivery to that day: say so
+  const noteMoved = (day?: string | null) => {
+    setMovedNote(day ? `The delivery date was moved to ${day.split('-').reverse().join('-')} because it cannot be before the last proof.` : null);
+    if (day) {
+      queryClient.invalidateQueries({ queryKey: ['job-card-sheet', jobCardId] });
+      queryClient.invalidateQueries({ queryKey: ['job-cards'] });
+    }
+  };
   const addMutation = useMutation({
     mutationFn: () => jobCardsApi.addProof(jobCardId, { due_date: dueDate || null, due_time: dueTime || null, notes: notes.trim() || null, handled_by: handler === '' ? null : handler }),
-    onSuccess: () => { refresh(); setAdding(false); setDueDate(''); setDueTime(''); setNotes(''); setHandler(''); },
+    onSuccess: (proof) => { refresh(); setAdding(false); setDueDate(''); setDueTime(''); setNotes(''); setHandler(''); noteMoved(proof.delivery_moved_to); },
   });
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Parameters<typeof jobCardsApi.updateProof>[1] }) => jobCardsApi.updateProof(id, data),
-    onSuccess: refresh,
+    onSuccess: (proof) => { refresh(); noteMoved(proof.delivery_moved_to); },
   });
   const removeMutation = useMutation({ mutationFn: (id: number) => jobCardsApi.removeProof(id), onSuccess: refresh });
 
@@ -63,6 +72,7 @@ export default function ProofsPanel({ jobCardId, canEdit = true }: { jobCardId: 
         </Typography>
         {canEdit && <Button size="small" startIcon={<AddIcon />} onClick={() => setAdding((v) => !v)} data-testid="add-proof">Add a proof</Button>}
       </Stack>
+      {movedNote && <Alert severity="info" sx={{ mb: 1 }} onClose={() => setMovedNote(null)} data-testid="delivery-moved">{movedNote}</Alert>}
       {error != null && <Alert severity="error" sx={{ mb: 1 }}>{getErrorMessage(error, 'Could not save the proof')}</Alert>}
 
       {adding && (

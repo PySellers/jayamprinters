@@ -75,7 +75,7 @@ def download_invoice_pdf(
     db: Session = Depends(get_db),
 ):
     """Renders the invoice for whichever printer the counter is using:
-    a full A4 page for a regular office/laser printer, or a narrow receipt
+    the shop's own A4 bill for a regular office/laser printer, or a narrow receipt
     for a small thermal bill-printing machine (58mm or 80mm roll). The PDF
     itself is sized to the target paper -- send it to the matching printer
     from the browser's normal print dialog, no special driver integration
@@ -94,8 +94,13 @@ def download_invoice_pdf(
     products_by_id = {p.id: p for p in db.query(Product).filter(Product.id.in_(product_ids)).all()}
 
     if format == "a4":
-        pdf_bytes = generate_invoice_pdf(invoice, customer, products_by_id)
-        suffix = "a4"
+        # The A4 invoice is Sri Jayam's own bill: the tax INVOICE (HSN / SAC, CGST, SGST) for a GST order, the CASH BILL otherwise
+        if invoice.with_gst:
+            pdf_bytes = generate_gst_bill_pdf(invoice, customer, products_by_id, get_company(db))
+            suffix = "a4-gst-invoice"
+        else:
+            pdf_bytes = generate_cash_bill_pdf(invoice, customer, products_by_id, get_company(db))
+            suffix = "a4-cash-bill"
     else:
         pdf_bytes = generate_invoice_thermal_pdf(invoice, customer, products_by_id, roll_width_mm=THERMAL_WIDTHS_MM[format])
         suffix = format

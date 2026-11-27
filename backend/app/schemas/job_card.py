@@ -46,6 +46,8 @@ class JobCardOut(JobCardCreate):
     proof_text: Optional[str] = None
     proof_overdue: bool = False
     quantity: Optional[int] = None
+    # the ordered item as it is named on the bill (a bill book reads "Bill Book - 1/4")
+    item_name: Optional[str] = None
 
     class Config:
         from_attributes = True

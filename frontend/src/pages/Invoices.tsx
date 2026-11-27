@@ -94,8 +94,8 @@ export default function Invoices() {
   const customerName = (id: number) => customerOf(id)?.name ?? `#${id}`;
   const productName = (id?: number | null) => productsQuery.data?.find((p) => p.id === id)?.name ?? (id ? `#${id}` : 'Item');
   // a row edited on the invoice shows what was typed; otherwise the item's name
-  const rowName = (i: { product_id?: number | null; particulars?: string | null }) =>
-    i.particulars?.trim() ? i.particulars.split('\n')[0] : productName(i.product_id);
+  const rowName = (i: { product_id?: number | null; particulars?: string | null; description?: string | null }) =>
+    i.particulars?.trim() ? i.particulars.split('\n')[0] : (i.description || productName(i.product_id));
   // "New from Quotation": approved quotations that don't have an invoice yet.
   const invoicedQuotationIds = new Set((invoicesQuery.data ?? []).map((inv) => inv.quotation_id));
   const convertedQuotations = (quotationsQuery.data ?? []).filter(

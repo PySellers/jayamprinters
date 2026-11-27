@@ -8,6 +8,8 @@ from app.schemas.quotation import SelectedOptionOut
 class InvoiceItemOut(BaseModel):
     id: int
     product_id: Optional[int] = None
+    # The row as the bill prints it: item with the chosen options (a bill book reads "Bill Book - 1/4 (...)"), or as edited
+    description: Optional[str] = None
     quantity: int
     area_sqft: Optional[float]
     unit_price: float

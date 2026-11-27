@@ -37,7 +37,7 @@ const STATUS_COLORS: Record<string, 'default' | 'warning' | 'success'> = {
 };
 
 const PRINT_FORMATS: { format: InvoicePrintFormat; label: string; hint: string; icon: React.ReactNode }[] = [
-  { format: 'a4', label: 'A4 Invoice', hint: 'Office / laser printer, full page', icon: <DescriptionIcon fontSize="small" /> },
+  { format: 'a4', label: 'A4 Invoice', hint: 'Sri Jayam bill: GST invoice (HSN, CGST, SGST) or cash bill', icon: <DescriptionIcon fontSize="small" /> },
   { format: 'thermal_80', label: 'Receipt (80mm)', hint: 'Small bill printer, 80mm roll', icon: <ReceiptLongIcon fontSize="small" /> },
   { format: 'thermal_58', label: 'Receipt (58mm)', hint: 'Small bill printer, 58mm roll', icon: <ReceiptLongIcon fontSize="small" /> },
 ];
@@ -215,6 +215,7 @@ export default function InvoiceDetail() {
           <TableHead>
             <TableRow>
               <TableCell>Product</TableCell>
+              {invoice.with_gst && <TableCell>HSN / SAC</TableCell>}
               <TableCell>Quantity</TableCell>
               <TableCell>Rate</TableCell>
               <TableCell>Total</TableCell>
@@ -224,9 +225,10 @@ export default function InvoiceDetail() {
             {invoice.items.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
-                  {item.particulars?.trim() ? item.particulars.split('\n').map((l, i) => <Box key={i}>{l}</Box>) : productName(item.product_id)}
+                  {item.particulars?.trim() ? item.particulars.split('\n').map((l, i) => <Box key={i}>{l}</Box>) : (item.description || productName(item.product_id))}
                   {!item.particulars?.trim() && item.spec_notes && <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{item.spec_notes}</Typography>}
                 </TableCell>
+                {invoice.with_gst && <TableCell data-testid="item-hsn">{item.hsn_code || '-'}</TableCell>}
                 <TableCell>{item.quantity}</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                   ₹{item.unit_price.toFixed(2)}

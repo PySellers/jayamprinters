@@ -171,7 +171,7 @@ export default function App() {
             <Route
               path="outsource"
               element={
-                <ProtectedRoute roles={['admin', 'accounts', 'counter']}>
+                <ProtectedRoute roles={['admin', 'accounts', 'counter', 'production']}>
                   <Outsource />
                 </ProtectedRoute>
               }

@@ -40,13 +40,13 @@ export async function round8Tests(browser) {
   // jobs in four services: bill books (one urgent, one overdue), Xerox, Visiting Card, Binding
   const bbPicks = [['Document Type', 'Bill Book'], ['Paper Name', 'Excel Bond'], ['Paper/GSM Type', '80 GSM'], ['Copies per Set', '1+1']];
   const bbUrgent = await mk('Bill Books & Stationery', 'Sheet Printing - 1/4', 300, bbPicks, { priority: 'urgent' });
-  const bbLate = await mk('Bill Books & Stationery', 'Sheet Printing - 1/4', 400, bbPicks);
+  // an overdue job: its proof and its delivery are in the past (a delivery cannot be before the last proof)
+  const bbLate = await mk('Bill Books & Stationery', 'Sheet Printing - 1/4', 400, bbPicks, { proof1_date: day(-6), delivery_date: day(-3) });
   const bbPlain = await mk('Bill Books & Stationery', 'Sheet Printing - 1/4', 500, bbPicks);
   const xer = await mk('Xerox / Photocopy', 'Xerox / Photocopy', 50, [['Paper Size', 'A4'], ['Colour', 'Black & White'], ['Print Side', 'Single Side']]);
   const vc = await mk('Visiting Card', 'Visiting Card', 100, [['Finish/Lamination Type', 'Without Lamination'], ['Side', 'Single Side']]);
   const bind = await mk('Binding Services', 'Project Binding', 5, [['Binding Material', 'Paper Rexon']]);
   // make one bill-book job overdue (delivery date in the past)
-  await api('PUT', `/job-cards/${bbLate.id}`, { delivery_date: day(-3) });
 
   const sectionsOnScreen = async () => page.getByTestId('live-section').evaluateAll((els) => els.map((e) => ({
     name: e.getAttribute('data-service'), rows: [...e.querySelectorAll('[data-testid=live-job]')].map((r) => r.getAttribute('data-job')),
